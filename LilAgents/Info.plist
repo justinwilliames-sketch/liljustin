@@ -24,7 +24,7 @@
     <key>SUFeedURL</key>
     <string>https://github.com/justinwilliames-sketch/liljustin/releases/latest/download/appcast.xml</string>
     <key>SUPublicEDKey</key>
-    <string>y8IBcvAX6fDANqJoBUE7yIjj1IRt29nARObljFqXsIo=</string>
+    <string>bNQR7ti9TfIVO9mwWWH5hge2A8JzV98AczkncKfitQY=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <key>SUScheduledCheckInterval</key>

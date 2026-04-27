@@ -60,12 +60,14 @@ LilJustin's Info.plist now points Sparkle at GitHub Releases for auto-update. Th
 gh secret set SPARKLE_ED_PRIVATE_KEY --repo justinwilliames-sketch/liljustin
 # When prompted, paste this exact value (no trailing newline):
 #
-# tUcOK106eyR21Dv8seUo/51i1xaHYdwwGzUfIakTynU=
+# <PASTE_PRIVATE_KEY_HERE — Claude shared the value in chat, not here>
 ```
 
-Or via the web UI: **Settings → Secrets and variables → Actions → New repository secret** → name `SPARKLE_ED_PRIVATE_KEY`, value `tUcOK106eyR21Dv8seUo/51i1xaHYdwwGzUfIakTynU=`.
+Or via the web UI: **Settings → Secrets and variables → Actions → New repository secret** → name `SPARKLE_ED_PRIVATE_KEY`, value `<PASTE_PRIVATE_KEY_HERE — Claude shared the value in chat, not here>`.
 
-The matching public key (`y8IBcvAX6fDANqJoBUE7yIjj1IRt29nARObljFqXsIo=`) is already baked into `LilAgents/Info.plist` as `SUPublicEDKey`. Do NOT change it — Sparkle will refuse to install updates signed with a different key.
+The matching public key (`bNQR7ti9TfIVO9mwWWH5hge2A8JzV98AczkncKfitQY=`) is already baked into `LilAgents/Info.plist` as `SUPublicEDKey`. Do NOT change it — Sparkle will refuse to install updates signed with a different key.
+
+> **Note on the rotated key:** an earlier commit briefly committed the original private key directly into this file. That key is now considered compromised and was rotated to the value above before the public pipeline ever signed anything with it. The earlier key value still appears in git history but cannot sign valid updates for the current `SUPublicEDKey`.
 
 **Step 2 — re-enable Sparkle's launch-time check.** Once the secret is set and at least one tagged release has shipped a signed `.dmg` + `appcast.xml`:
 
