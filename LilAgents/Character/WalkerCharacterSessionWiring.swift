@@ -173,15 +173,13 @@ extension WalkerCharacter {
             self?.terminalView?.clearApprovalRequest()
         }
 
-        session.onMCPAuthFailure = { _ in
-            // LilJustin: the archive MCP auth-failure flow is intentionally a no-op.
-            // LilJustin doesn't use the archive at all and the upstream
-            // session parser will sometimes mis-classify "no Lenny MCP detected"
-            // as "Lenny MCP auth failed", which used to:
-            //   (a) call failTurn so chat appeared to error out, and
-            //   (b) display the lennysdata.com auth-key prompt.
-            // Both behaviours are wrong for LilJustin. Suppress.
-        }
+        // LilJustin: the archive auth-failure flow is intentionally a no-op.
+        // LilJustin doesn't use the upstream archive at all, and the session
+        // parser sometimes mis-classifies "no archive MCP detected" (which is
+        // always true for us) as "archive auth failed", which used to call
+        // failTurn (chat shows error) and display the auth-key prompt. Both
+        // behaviours are wrong here.
+        session.onMCPAuthFailure = {}
     }
 
     func setCurrentActivityStatus(_ status: String) {
