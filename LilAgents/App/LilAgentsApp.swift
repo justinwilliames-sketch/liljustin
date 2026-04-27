@@ -54,6 +54,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         AppSettings.prefetchDetectionState()
+        // Reconcile the OS login-item registration with the user's
+        // preference. Default for first-install users is ON — the
+        // first call here registers the app with macOS, which surfaces
+        // the Login Items approval prompt in System Settings.
+        AppSettings.applyLaunchAtLoginPreference()
         controller = LilAgentsController()
         NotificationCenter.default.addObserver(self, selector: #selector(handleResetAllData), name: .lilLennyDidResetData, object: nil)
         controller?.onExpertsChanged = { [weak self] experts in

@@ -53,6 +53,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.preferredOpenAIModelKey) var preferredOpenAIModel = AppSettings.OpenAIModel.gpt5Nano.rawValue
     @AppStorage(AppSettings.welcomePreviewModeKey) var welcomePreviewMode = AppSettings.WelcomePreviewMode.live.rawValue
     @AppStorage(AppSettings.mcpReconnectNeededKey) var mcpReconnectNeeded = false
+    @AppStorage(AppSettings.launchAtLoginKey) var launchAtLogin: Bool = true
 
     @State var selectedPane: SettingsPane = .models
     @State var showResetConfirmation = false

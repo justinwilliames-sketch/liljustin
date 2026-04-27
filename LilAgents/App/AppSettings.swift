@@ -118,8 +118,27 @@ enum AppSettings {
     static let preferredOpenAIModelKey           = "preferredOpenAIModel"
     static let welcomePreviewModeKey             = "welcomePreviewMode"
     static let mcpReconnectNeededKey             = "mcpReconnectNeeded"
+    static let launchAtLoginKey                  = "launchAtLogin"
 
     // MARK: - Preferences
+
+    /// Run at login. Defaults to ON for first-install users (the dock
+    /// companion is ambient — most users want it back after restart
+    /// without thinking about it). Wired via SMAppService.mainApp; the
+    /// first call to `applyLaunchAtLoginPreference()` triggers the OS
+    /// permission grant in System Settings → General → Login Items.
+    static var launchAtLoginEnabled: Bool {
+        get {
+            // If the user has never explicitly set this, default to ON.
+            if UserDefaults.standard.object(forKey: launchAtLoginKey) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: launchAtLoginKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: launchAtLoginKey)
+        }
+    }
 
     static var preferredTransport: PreferredTransport {
         get {
@@ -290,4 +309,41 @@ enum AppSettings {
 
 extension Notification.Name {
     static let lilLennyDidResetData = Notification.Name("LilLennyDidResetData")
+}
+
+// MARK: - Launch at login (SMAppService)
+
+import ServiceManagement
+
+extension AppSettings {
+
+    /// Reconcile the OS login-item registration with the stored
+    /// `launchAtLoginEnabled` preference. Called once at app launch,
+    /// and again whenever the user toggles the setting.
+    ///
+    /// First call after install will register the app with the OS,
+    /// which triggers macOS to surface a System Settings → General
+    /// → Login Items prompt for the user to approve.
+    static func applyLaunchAtLoginPreference() {
+        let service = SMAppService.mainApp
+        let want = launchAtLoginEnabled
+        do {
+            switch service.status {
+            case .enabled:
+                if !want { try service.unregister() }
+            case .notRegistered, .notFound:
+                if want { try service.register() }
+            case .requiresApproval:
+                // User has the registration but hasn't approved it yet
+                // in System Settings. Nothing we can force from here —
+                // the OS handles the prompt. Keep our preference in
+                // sync so a re-toggle in our UI still works.
+                break
+            @unknown default:
+                if want { try service.register() }
+            }
+        } catch {
+            NSLog("[LilJustin] Launch-at-login update failed: \(error.localizedDescription)")
+        }
+    }
 }

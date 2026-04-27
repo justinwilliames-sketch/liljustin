@@ -10,6 +10,27 @@ extension SettingsView {
                 subtitle: "Choose how LilJustin should answer on this Mac."
             )
 
+            SettingsSectionCard(title: "Behaviour", subtitle: "How LilJustin shows up on this Mac.") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle(isOn: Binding(
+                        get: { launchAtLogin },
+                        set: { newValue in
+                            launchAtLogin = newValue
+                            AppSettings.applyLaunchAtLoginPreference()
+                        }
+                    )) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Launch at login")
+                                .font(.subheadline.weight(.medium))
+                            Text("Open LilJustin automatically when you log in to your Mac.")
+                                .settingsCaption()
+                        }
+                    }
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                }
+            }
+
             SettingsSectionCard(title: "Runtime", subtitle: modelSectionSubtitle) {
                 VStack(alignment: .leading, spacing: 14) {
                     RuntimeSegmentedControl(
