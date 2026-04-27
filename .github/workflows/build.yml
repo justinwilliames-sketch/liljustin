@@ -111,6 +111,108 @@ jobs:
           path: ${{ steps.dmg.outputs.dmg_path }}
           retention-days: 30
 
+      # ── Sparkle appcast generation ─────────────────────────────────
+      # Sparkle (the macOS auto-update framework bundled into LilJustin)
+      # needs two things to verify and install an update:
+      #   1. An Ed25519 signature on the .dmg, made with the private key
+      #      that pairs with SUPublicEDKey in Info.plist.
+      #   2. An appcast.xml file describing the new version + the
+      #      signature, hosted at SUFeedURL (which points at
+      #      /releases/latest/download/appcast.xml — auto-redirects to
+      #      whichever semver tag is currently the "Latest" release).
+      #
+      # The signing key lives in the SPARKLE_ED_PRIVATE_KEY repo secret
+      # (32-byte raw key, base64-encoded). If the secret is absent, this
+      # block skips silently — Sparkle just won't see updates until the
+      # secret lands.
+      - name: Install Sparkle CLI tools (sign_update)
+        if: env.SPARKLE_ED_PRIVATE_KEY != ''
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -e
+          SPARKLE_VERSION="2.6.4"
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" -o /tmp/sparkle.tar.xz
+          mkdir -p /tmp/sparkle && tar -xJf /tmp/sparkle.tar.xz -C /tmp/sparkle
+          # Locate sign_update — Sparkle ships it under bin/
+          SIGN_UPDATE=$(find /tmp/sparkle -name "sign_update" -type f | head -n 1)
+          if [ -z "$SIGN_UPDATE" ]; then
+            echo "::error::sign_update not found in Sparkle bundle"
+            find /tmp/sparkle -maxdepth 4 -type f -name 'sign*'
+            exit 1
+          fi
+          chmod +x "$SIGN_UPDATE"
+          echo "SIGN_UPDATE=$SIGN_UPDATE" >> "$GITHUB_ENV"
+
+      - name: Sign .dmg + generate appcast.xml
+        id: appcast
+        if: env.SPARKLE_ED_PRIVATE_KEY != ''
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -e
+          DMG_PATH="${{ steps.dmg.outputs.dmg_path }}"
+          DMG_NAME="${{ steps.dmg.outputs.dmg_name }}"
+          # Version: tag name (without leading v) for tag pushes,
+          # otherwise a sortable build number from the run id.
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            SHORT_VERSION="$VERSION"
+          else
+            VERSION="0.0.${{ github.run_number }}"
+            SHORT_VERSION="dev-${VERSION}"
+          fi
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${DMG_NAME}"
+
+          # Write the private key to a temp file for sign_update -f
+          KEY_FILE=$(mktemp)
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" > "$KEY_FILE"
+
+          # Sign — sign_update outputs:
+          #   sparkle:edSignature="..." length="..."
+          SIG_OUTPUT=$("$SIGN_UPDATE" -f "$KEY_FILE" "$DMG_PATH")
+          rm -f "$KEY_FILE"
+          echo "sign_update output: $SIG_OUTPUT"
+          ED_SIGNATURE=$(echo "$SIG_OUTPUT" | grep -oE 'sparkle:edSignature="[^"]*"' | sed 's/.*="\(.*\)"/\1/')
+          DMG_LENGTH=$(echo "$SIG_OUTPUT" | grep -oE 'length="[^"]*"' | sed 's/.*="\(.*\)"/\1/')
+          if [ -z "$ED_SIGNATURE" ] || [ -z "$DMG_LENGTH" ]; then
+            echo "::error::Could not parse sign_update output"
+            exit 1
+          fi
+
+          PUB_DATE=$(LC_TIME=C date -u +"%a, %d %b %Y %H:%M:%S +0000")
+
+          # Generate appcast.xml referencing this build's .dmg.
+          mkdir -p dist
+          cat > dist/appcast.xml <<APPCAST
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>LilJustin</title>
+              <link>https://github.com/${GITHUB_REPOSITORY}/releases/latest</link>
+              <description>LilJustin — the founder of Orbit, on your desktop.</description>
+              <language>en</language>
+              <item>
+                <title>LilJustin ${SHORT_VERSION}</title>
+                <link>https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}</link>
+                <sparkle:version>${VERSION}</sparkle:version>
+                <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+                <pubDate>${PUB_DATE}</pubDate>
+                <enclosure
+                  url="${DOWNLOAD_URL}"
+                  length="${DMG_LENGTH}"
+                  type="application/octet-stream"
+                  sparkle:edSignature="${ED_SIGNATURE}" />
+              </item>
+            </channel>
+          </rss>
+          APPCAST
+
+          echo "appcast_path=dist/appcast.xml" >> "$GITHUB_OUTPUT"
+          echo "Generated appcast.xml:"
+          cat dist/appcast.xml
+
       # Rolling 'latest' release — refreshed on every push to main so the
       # GitHub Releases page always carries the freshest .dmg. Sits
       # alongside semver-tagged releases (v0.1.0, v0.2.0, etc); the
@@ -121,7 +223,9 @@ jobs:
         with:
           tag_name: latest
           name: "LilJustin — latest dev build"
-          files: ${{ steps.dmg.outputs.dmg_path }}
+          files: |
+            ${{ steps.dmg.outputs.dmg_path }}
+            ${{ steps.appcast.outputs.appcast_path }}
           prerelease: true
           make_latest: "false"  # don't displace tagged semver releases as 'Latest' on the repo homepage
           body: |
@@ -157,11 +261,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create tagged GitHub Release with .dmg
+      - name: Create tagged GitHub Release with .dmg + appcast
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.dmg.outputs.dmg_path }}
+          files: |
+            ${{ steps.dmg.outputs.dmg_path }}
+            ${{ steps.appcast.outputs.appcast_path }}
           name: LilJustin ${{ github.ref_name }}
           generate_release_notes: true
           prerelease: true

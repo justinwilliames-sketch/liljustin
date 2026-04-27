@@ -50,6 +50,44 @@ The placeholder generator script lives at `/tmp/lil_justin_placeholders.py` if y
 
 **Tip for ChatGPT prompting:** ask for one character in the HubSpot pixel-people aesthetic, generate one pose at a time using the same character reference, and ensure the output is on a transparent background. The walk GIF is the hardest part — you may want to generate two or three slightly different walking-pose PNGs and combine them into a GIF using `ffmpeg` or an online tool, since most image models won't produce animated GIFs natively.
 
+## ⚠️ One-time setup: enable Sparkle auto-update (5 min)
+
+LilJustin's Info.plist now points Sparkle at GitHub Releases for auto-update. The CI workflow will sign each `.dmg` with an Ed25519 private key and attach an `appcast.xml` to the release — but only if a repo secret is in place. Until you add it, the auto-update flow is dormant (no harm — Sparkle is also disabled at launch via `startingUpdater: false`, so users see no failed-update dialogs).
+
+**Step 1 — add the Sparkle private key as a GitHub Actions secret.**
+
+```
+gh secret set SPARKLE_ED_PRIVATE_KEY --repo justinwilliames-sketch/liljustin
+# When prompted, paste this exact value (no trailing newline):
+#
+# tUcOK106eyR21Dv8seUo/51i1xaHYdwwGzUfIakTynU=
+```
+
+Or via the web UI: **Settings → Secrets and variables → Actions → New repository secret** → name `SPARKLE_ED_PRIVATE_KEY`, value `tUcOK106eyR21Dv8seUo/51i1xaHYdwwGzUfIakTynU=`.
+
+The matching public key (`y8IBcvAX6fDANqJoBUE7yIjj1IRt29nARObljFqXsIo=`) is already baked into `LilAgents/Info.plist` as `SUPublicEDKey`. Do NOT change it — Sparkle will refuse to install updates signed with a different key.
+
+**Step 2 — re-enable Sparkle's launch-time check.** Once the secret is set and at least one tagged release has shipped a signed `.dmg` + `appcast.xml`:
+
+In `LilAgents/App/LilAgentsApp.swift`, change:
+```swift
+updaterController = SPUStandardUpdaterController(
+    startingUpdater: false,    // ← change to true
+    updaterDelegate: nil,
+    userDriverDelegate: self
+)
+```
+
+And in the same file, unhide the **Check for Updates…** menu item (remove the `updateItem.isHidden = true` line).
+
+**Step 3 — tag and ship.** Push a fresh semver tag (`git tag v0.1.4 && git push origin v0.1.4`). CI will sign the new `.dmg`, generate `appcast.xml` referencing it, and attach both to the release. Older installs will see "Update available" within 24 hours of next launch (or immediately if the user clicks "Check for Updates…" once you've unhidden it).
+
+**Sparkle + unsigned-app caveat:** because LilJustin is unsigned (no Apple Developer ID), Sparkle still works for *the update mechanism itself* — Sparkle's bundled XPC service is signed by the Sparkle project — but the new `.app` will still be quarantined by Gatekeeper on first relaunch. Users will need to re-run the `xattr -dr com.apple.quarantine` command after each update. That's the cost of unsigned distribution.
+
+**Don't lose the private key.** It's in this `NEXT_STEPS.md` for now, but once you set the GitHub Actions secret you can't read it back. If you ever lose it, you'll need to generate a new keypair, update `SUPublicEDKey` in `Info.plist`, and ship a new release — but existing installs won't be able to verify updates signed with the new key, so they'll silently stop receiving updates. Don't lose it.
+
+---
+
 ## Future enhancement: bundle the Orbit guide corpus
 
 The current architecture leaves the upstream `LocalArchive.swift` / `ClaudeSessionTransport+Archive.swift` / `StarterArchive/` plumbing in place. None of it is invoked at runtime today, but it's the natural home for a bundled Orbit guide corpus if you want Mini Justin to ground answers in actual guide content (not just topical knowledge).

@@ -8,12 +8,26 @@
     <string>LilJustin</string>
     <key>CFBundleName</key>
     <string>LilJustin</string>
-    <!--
-        Sparkle auto-update keys removed deliberately. The upstream Lenny fork
-        pointed at hbshih's GitHub appcast.xml — leaving that in would auto-pull
-        updates from someone else's release channel. If you want auto-update
-        for LilJustin, publish your own signed Sparkle releases and add
-        SUFeedURL + SUPublicEDKey back in pointing at your own appcast.
-    -->
+
+    <!-- Sparkle auto-update — feed URL + Ed25519 public key.
+
+         The feed URL points at GitHub Releases' /latest/download/ pattern,
+         which redirects to whichever semver tag is currently 'Latest'.
+         Each release attaches an appcast.xml asset (built by CI) that
+         references THAT release's signed .dmg, so Sparkle on an older
+         install fetches the latest appcast, compares versions, and
+         prompts the user to update.
+
+         The Ed25519 public key here pairs with the SPARKLE_ED_PRIVATE_KEY
+         GitHub Actions secret used by CI to sign each .dmg. Sparkle
+         refuses to install an update without a matching signature. -->
+    <key>SUFeedURL</key>
+    <string>https://github.com/justinwilliames-sketch/liljustin/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>y8IBcvAX6fDANqJoBUE7yIjj1IRt29nARObljFqXsIo=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
 </dict>
 </plist>
