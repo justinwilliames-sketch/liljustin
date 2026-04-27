@@ -30,6 +30,13 @@ extension WalkerCharacter {
 
         let imageView = NSImageView(frame: hostView.bounds)
         imageView.imageScaling = .scaleProportionallyUpOrDown
+        // Anchor every pose to the bottom of the character window. Upright
+        // GIFs (320×570 portrait) already fill the height so this is a
+        // no-op for them. The sleeping GIF (522×292 landscape) would
+        // otherwise centre-vertically and float above the Dock with empty
+        // space below — bottom alignment plants it flush with the same
+        // walking line as the upright sprites.
+        imageView.imageAlignment = .alignBottom
         imageView.animates = true
         imageView.autoresizingMask = [.width, .height]
         hostView.addSubview(imageView)
