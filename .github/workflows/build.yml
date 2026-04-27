@@ -14,6 +14,13 @@ on:
       - 'v*.*.*'
   workflow_dispatch: {}
 
+# Default GITHUB_TOKEN on public repos is read-only. Creating a Release
+# (and asking the API for auto-generated release notes) needs write
+# access to the repo's contents. This is a per-workflow override; nothing
+# leaves the repo's own scope.
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build & package .dmg
