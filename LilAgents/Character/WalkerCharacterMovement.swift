@@ -64,14 +64,36 @@ extension WalkerCharacter {
     func enterPause() {
         isWalking = false
         isPaused = true
-        // Idle facing variety — most pauses face the camera, but ~30%
-        // of the time LilJustin turns his back (looking out at the
-        // wallpaper, picking which way to go next). Adds life without
-        // requiring extra animation work.
-        let facing: WalkerFacing = Double.random(in: 0...1) < 0.30 ? .back : .front
+        // Idle facing variety — most pauses face the camera, ~40% turn
+        // their back (looking out at the wallpaper). Mid-pause, the
+        // facing re-rolls every ~3–5s (see update()) so longer pauses
+        // visibly cycle through facings instead of locking on one.
+        let facing: WalkerFacing = Double.random(in: 0...1) < 0.40 ? .back : .front
         setFacing(facing)
+        let now = CACurrentMediaTime()
         let delay = Double.random(in: 5.0...12.0)
-        pauseEndTime = CACurrentMediaTime() + delay
+        pauseEndTime = now + delay
+        nextIdleFacingRollAt = now + Double.random(in: 3.0...5.0)
+    }
+
+    /// Mid-pause facing re-roll. Called from update() while the
+    /// character is paused. Picks front or back at random with a
+    /// modest bias toward the OPPOSITE of the current facing so the
+    /// user actually sees the change rather than rolling the same
+    /// face twice in a row most of the time.
+    func rerollIdleFacingIfDue() {
+        let now = CACurrentMediaTime()
+        guard now >= nextIdleFacingRollAt else { return }
+        // 60% chance to flip to the OPPOSITE facing, 40% to stay /
+        // re-pick from scratch — keeps it from feeling metronomic.
+        let currentlyBack = (imageView?.image === directionalImages[.back])
+        if Double.random(in: 0...1) < 0.60 {
+            setFacing(currentlyBack ? .front : .back)
+        } else {
+            let next: WalkerFacing = Double.random(in: 0...1) < 0.40 ? .back : .front
+            setFacing(next)
+        }
+        nextIdleFacingRollAt = now + Double.random(in: 3.0...5.0)
     }
 
     func movementPosition(at videoTime: CFTimeInterval) -> CGFloat {
@@ -181,6 +203,11 @@ extension WalkerCharacter {
             if now >= pauseEndTime {
                 startWalk()
             } else {
+                // Mid-pause facing re-roll — periodically swap between
+                // front and back so longer idle stretches cycle through
+                // facings instead of locking on the one chosen at
+                // pause start.
+                rerollIdleFacingIfDue()
                 let x = horizontalMetrics.minX + currentTravelDistance * positionProgress + flipXOffset
                 let bottomPadding = displayHeight * 0.15
                 let y = dockTopY - bottomPadding + yOffset

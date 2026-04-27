@@ -86,6 +86,12 @@ final class WalkerCharacter {
     static let minSleepDuration: TimeInterval = 30
     static let maxSleepDuration: TimeInterval = 120
 
+    // ── Idle facing variety ────────────────────────────────────────
+    // During long idle pauses, periodically re-roll between front and
+    // back facing so LilJustin doesn't just stare at the camera the
+    // whole time. Driven from the per-tick update().
+    var nextIdleFacingRollAt: CFTimeInterval = 0
+
     /// Build the speech-bubble outline as a single closed CGPath:
     /// rounded body on top + downward-pointing tail below. Drawing the
     /// whole thing as one path eliminates the visible seam where a
