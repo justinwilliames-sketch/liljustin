@@ -42,7 +42,26 @@ LilJustin does not run a model locally. Connect one provider in Settings → Mod
 
 Automatic mode prefers Claude Code or Codex when detected, otherwise falls back to OpenAI when `OPENAI_API_KEY` (or a saved key in Settings) is available.
 
-## Building
+## Install (recommended)
+
+The easiest path for end users — no Xcode required:
+
+1. Grab the latest `.dmg` from [GitHub Releases](https://github.com/justinwilliames-sketch/liljustin/releases).
+2. Open it, drag **LilJustin** to your Applications folder.
+3. **First-launch step.** This build is unsigned (free side-project, no Apple Developer ID), so macOS will refuse to launch it without one of these:
+
+    ```bash
+    # Easiest: paste this once in Terminal to remove the quarantine flag.
+    xattr -dr com.apple.quarantine /Applications/LilJustin.app
+    ```
+
+    Or right-click the app → **Open** → confirm. Or System Settings → Privacy & Security → "Open Anyway".
+
+4. Launch from Applications. Mini Justin appears above your Dock.
+
+## Building from source (Xcode)
+
+If you'd rather build it yourself — required if you want to change the personality, sprites, or anything else.
 
 Open `lil-agents.xcodeproj` in Xcode 16+ on macOS 14+ and run the `LilAgents` scheme.
 
@@ -53,6 +72,20 @@ xcodebuild -project lil-agents.xcodeproj -scheme LilAgents -configuration Debug 
 ```
 
 > See [NEXT_STEPS.md](NEXT_STEPS.md) for the manual Xcode tasks needed before the first build (target/scheme rename, bundle identifier, app icon).
+
+## Releasing a new version (GitHub Actions)
+
+Releases are built automatically by [`.github/workflows/build.yml`](.github/workflows/build.yml) on every `v*.*.*` tag push. The workflow runs on a stock GitHub-hosted macOS runner — no local Xcode required.
+
+```bash
+# From a clean main branch:
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+CI will build an unsigned `LilJustin.app`, wrap it in `LilJustin-v0.1.0.dmg`, and publish a GitHub Release with the `.dmg` attached and install instructions in the body. Takes ~5–8 minutes.
+
+To dry-run without tagging — go to the [Actions tab](https://github.com/justinwilliames-sketch/liljustin/actions) and use **Run workflow** on the Build workflow. The .dmg lands as a workflow artifact (downloadable for 30 days) but no Release is created.
 
 ## Sprites
 

@@ -1,0 +1,138 @@
+name: Build LilJustin
+
+# Builds an unsigned LilJustin.app, wraps it in a .dmg, and (when triggered by
+# a v*.*.* tag) attaches the .dmg to a GitHub Release.
+#
+# No Apple Developer ID required. The output is unsigned — users will see a
+# Gatekeeper prompt on first launch and need to bypass it once with
+# `xattr -dr com.apple.quarantine /Applications/LilJustin.app` (documented in
+# the README and in each release's auto-generated body).
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build & package .dmg
+    runs-on: macos-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: List available targets and schemes (debug)
+        run: |
+          xcodebuild -list -project lil-agents.xcodeproj || true
+
+      - name: Resolve Swift Package Manager dependencies
+        run: |
+          xcodebuild \
+            -project lil-agents.xcodeproj \
+            -target LilAgents \
+            -resolvePackageDependencies
+
+      - name: Build LilJustin (unsigned, Release configuration)
+        run: |
+          xcodebuild build \
+            -project lil-agents.xcodeproj \
+            -target LilAgents \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_REQUIRED=NO \
+            CODE_SIGN_ENTITLEMENTS="" \
+            PRODUCT_NAME=LilJustin \
+            PRODUCT_BUNDLE_IDENTIFIER=team.yourorbit.LilJustin \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Locate built .app
+        id: locate
+        run: |
+          set -e
+          APP_PATH=$(find build -name "LilJustin.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::Could not find LilJustin.app under build/"
+            find build -name "*.app" -type d
+            exit 1
+          fi
+          echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
+          echo "Found .app at: $APP_PATH"
+          ls -la "$APP_PATH"
+
+      - name: Build .dmg via hdiutil
+        id: dmg
+        run: |
+          set -e
+          APP_PATH="${{ steps.locate.outputs.app_path }}"
+          VERSION="${GITHUB_REF_NAME:-dev-$(date +%Y%m%d-%H%M%S)}"
+          DMG_NAME="LilJustin-${VERSION}.dmg"
+
+          mkdir -p dist dmg-staging
+          cp -R "$APP_PATH" dmg-staging/
+          ln -s /Applications dmg-staging/Applications
+
+          hdiutil create \
+            -volname "LilJustin" \
+            -srcfolder dmg-staging \
+            -ov \
+            -format UDZO \
+            "dist/${DMG_NAME}"
+
+          echo "dmg_path=dist/${DMG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "dmg_name=${DMG_NAME}" >> "$GITHUB_OUTPUT"
+          ls -la dist/
+
+      - name: Upload .dmg as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.dmg.outputs.dmg_name }}
+          path: ${{ steps.dmg.outputs.dmg_path }}
+          retention-days: 30
+
+      - name: Create GitHub Release with .dmg
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.dmg.outputs.dmg_path }}
+          name: LilJustin ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: true
+          body: |
+            **Mini Justin — the founder of [Orbit](https://get.yourorbit.team), on your desktop.**
+
+            ## Install
+
+            1. Download `${{ steps.dmg.outputs.dmg_name }}` below.
+            2. Open the `.dmg`, drag **LilJustin** into your Applications folder.
+            3. **First-launch step** — this build is unsigned (free side-project, no Apple Developer ID), so macOS will block it. Run this in Terminal once to remove the quarantine flag:
+
+                ```bash
+                xattr -dr com.apple.quarantine /Applications/LilJustin.app
+                ```
+
+                The right-click → **Open** route also works, as does System Settings → Privacy & Security → "Open Anyway".
+            4. Open Mini Justin from Applications. He'll appear above your Dock.
+
+            ## Setup
+
+            Mini Justin is a personality skin on top of whichever model provider you connect in **Settings → Models**:
+
+            - **Claude Code** — already installed and logged in? Mini Justin will detect it.
+            - **Codex / ChatGPT** — same deal.
+            - **OpenAI API** — paste your key.
+
+            ## What this is
+
+            A free, open-source easter-egg companion to the main [Orbit MCP extension](https://get.yourorbit.team/download). Click the dock character to chat with the founder about lifecycle marketing, deliverability, Braze, retention. Direct, no-fluff, in Justin's voice.
+
+            For the deeper, structured Orbit tooling (95 guides, 50+ skills, native Braze integration) install the full [Orbit MCP](https://get.yourorbit.team/download).
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
