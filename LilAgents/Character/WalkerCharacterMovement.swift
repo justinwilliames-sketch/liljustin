@@ -64,7 +64,12 @@ extension WalkerCharacter {
     func enterPause() {
         isWalking = false
         isPaused = true
-        setFacing(.front)
+        // Idle facing variety — most pauses face the camera, but ~30%
+        // of the time LilJustin turns his back (looking out at the
+        // wallpaper, picking which way to go next). Adds life without
+        // requiring extra animation work.
+        let facing: WalkerFacing = Double.random(in: 0...1) < 0.30 ? .back : .front
+        setFacing(facing)
         let delay = Double.random(in: 5.0...12.0)
         pauseEndTime = CACurrentMediaTime() + delay
     }
