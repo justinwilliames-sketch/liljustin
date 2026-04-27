@@ -460,53 +460,48 @@ extension WalkerCharacter {
         let isDark = brightness < 0.5
         win.appearance = NSAppearance(named: isDark ? .darkAqua : .aqua)
 
-        // Speech-bubble shell: transparent host that holds the rounded body
-        // (top portion) and a downward-pointing tail (bottom strip) so the
-        // popover reads as dialogue from Mini Justin.
+        // Speech-bubble shell as a SINGLE continuous outline path.
+        //
+        // Earlier version drew the rounded body and the triangular tail as
+        // two separate CAShapeLayers — visually correct individually, but
+        // the body's stroked bottom edge plus the tail's stroked top base
+        // stacked into a hairline seam exactly where they met. Now the
+        // entire bubble (rounded rect + tail jut) is a single CGPath with
+        // one fill and one stroke — no seam possible.
         let host = NSView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: totalHeight))
         host.wantsLayer = true
         host.autoresizingMask = [.width, .height]
 
-        // Tail strip — pinned to host bottom (autoresizes top margin only).
-        // Filled with the same popoverBg as the body so it reads as one shape.
-        let tailHost = NSView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: tailHeight))
-        tailHost.wantsLayer = true
-        tailHost.autoresizingMask = [.width, .maxYMargin]
-        let tailLayer = CAShapeLayer()
-        let tailCenterX = popoverWidth / 2
-        let tailPath = CGMutablePath()
-        // The triangle's top base sits flush against the body's bottom edge
-        // (at y = tailHeight in tailHost-local coords). The apex points down.
-        // We deliberately stop just inside the body's stroke so the joint
-        // reads as continuous fill rather than as two outlines stacked.
-        tailPath.move(to: CGPoint(x: tailCenterX - tailWidth / 2, y: tailHeight + 0.5))
-        tailPath.addLine(to: CGPoint(x: tailCenterX, y: 0))
-        tailPath.addLine(to: CGPoint(x: tailCenterX + tailWidth / 2, y: tailHeight + 0.5))
-        tailLayer.path = tailPath
-        tailLayer.fillColor = t.popoverBg.cgColor
-        tailLayer.strokeColor = t.popoverBorder.cgColor
-        tailLayer.lineWidth = t.popoverBorderWidth
-        tailLayer.lineJoin = .round
-        // Drop a soft shadow on the tail to match the body's window-level shadow.
-        tailLayer.shadowColor = NSColor.black.cgColor
-        tailLayer.shadowOpacity = 0.08
-        tailLayer.shadowRadius = 4
-        tailLayer.shadowOffset = CGSize(width: 0, height: -1)
-        tailHost.layer?.addSublayer(tailLayer)
-        host.addSubview(tailHost)
+        let bubbleShape = CAShapeLayer()
+        bubbleShape.frame = host.bounds
+        bubbleShape.path = WalkerCharacter.bubbleShellPath(
+            size: CGSize(width: popoverWidth, height: totalHeight),
+            tailHeight: tailHeight,
+            tailWidth: tailWidth,
+            cornerRadius: shellCornerRadius
+        )
+        bubbleShape.fillColor = t.popoverBg.cgColor
+        bubbleShape.strokeColor = t.popoverBorder.cgColor
+        bubbleShape.lineWidth = t.popoverBorderWidth
+        bubbleShape.lineJoin = .round
+        bubbleShape.shadowColor = NSColor.black.cgColor
+        bubbleShape.shadowOpacity = 0.10
+        bubbleShape.shadowRadius = 6
+        bubbleShape.shadowOffset = CGSize(width: 0, height: -2)
+        host.layer?.addSublayer(bubbleShape)
+        popoverBubbleShape = bubbleShape
 
-        // Body container — sits ABOVE the tail strip. Existing layout maths
-        // (subview Y positions, expand/close height changes) all operate
-        // against `popoverHeight` (the body height), so no churn elsewhere.
-        // Springs-and-struts: width and height flexible, both Y margins
-        // FIXED → top margin stays at 0, bottom margin stays at tailHeight.
+        // Body container — sits inside the bubble's body region (above the
+        // tail strip) and clips inner subviews (terminal text, title bar,
+        // controls) to the rounded body. Background and border are now
+        // OWNED by `bubbleShape`; the container is a transparent overlay.
+        // Springs-and-struts: top fixed at 0, bottom fixed at tailHeight,
+        // height flexible — so the body grows when the popover expands.
         let container = NSView(frame: NSRect(x: 0, y: tailHeight, width: popoverWidth, height: popoverHeight))
         container.wantsLayer = true
-        container.layer?.backgroundColor = t.popoverBg.cgColor
+        container.layer?.backgroundColor = NSColor.clear.cgColor
         container.layer?.cornerRadius = shellCornerRadius
         container.layer?.masksToBounds = true
-        container.layer?.borderWidth = t.popoverBorderWidth
-        container.layer?.borderColor = t.popoverBorder.cgColor
         container.autoresizingMask = [.width, .height]
 
         let titleBarHeight: CGFloat = 52

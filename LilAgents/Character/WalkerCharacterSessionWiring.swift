@@ -300,7 +300,10 @@ extension WalkerCharacter {
         let charFrame = window.frame
         let popoverSize = popover.frame.size
         var x = charFrame.midX - popoverSize.width / 2
-        let y = charFrame.maxY - 10
+        // Tail tip floats just above the top of the character window so it
+        // points at the head pixels (the GIF has transparent space above
+        // the hair, so +4 reads as "speech coming from above his head").
+        let y = charFrame.maxY + 4
 
         let visibleFrame = screen.visibleFrame
         x = max(visibleFrame.minX + 4, min(x, visibleFrame.maxX - popoverSize.width - 4))

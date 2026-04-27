@@ -66,6 +66,46 @@ final class WalkerCharacter {
     static let popoverTailHeight: CGFloat = 14
     static let popoverTailWidth: CGFloat = 28
 
+    // Backing layer for the speech-bubble outline (rounded body + tail
+    // as one continuous shape). Stored so we can rebuild its path when
+    // the popover resizes.
+    var popoverBubbleShape: CAShapeLayer?
+
+    /// Build the speech-bubble outline as a single closed CGPath:
+    /// rounded body on top + downward-pointing tail below. Drawing the
+    /// whole thing as one path eliminates the visible seam where a
+    /// separate body and tail used to meet.
+    static func bubbleShellPath(
+        size: CGSize,
+        tailHeight: CGFloat,
+        tailWidth: CGFloat,
+        cornerRadius r: CGFloat
+    ) -> CGPath {
+        // Cocoa flipped Y: origin bottom-left. Body sits from y=tailHeight
+        // up to y=size.height; tail apex points down to y=0 at horizontal
+        // centre. Path traces clockwise from the top-left corner-curve
+        // start, rounds each corner via tangent-end arcs, and breaks the
+        // bottom edge at the tail attachment points.
+        let w = size.width
+        let h = size.height
+        let bodyBottom = tailHeight
+        let bodyTop = h
+        let cx = w / 2
+        let halfTail = tailWidth / 2
+
+        let p = CGMutablePath()
+        p.move(to: CGPoint(x: 0, y: bodyTop - r))
+        p.addArc(tangent1End: CGPoint(x: 0, y: bodyTop), tangent2End: CGPoint(x: r, y: bodyTop), radius: r)
+        p.addArc(tangent1End: CGPoint(x: w, y: bodyTop), tangent2End: CGPoint(x: w, y: bodyTop - r), radius: r)
+        p.addArc(tangent1End: CGPoint(x: w, y: bodyBottom), tangent2End: CGPoint(x: w - r, y: bodyBottom), radius: r)
+        p.addLine(to: CGPoint(x: cx + halfTail, y: bodyBottom))
+        p.addLine(to: CGPoint(x: cx, y: 0))
+        p.addLine(to: CGPoint(x: cx - halfTail, y: bodyBottom))
+        p.addArc(tangent1End: CGPoint(x: 0, y: bodyBottom), tangent2End: CGPoint(x: 0, y: bodyBottom + r), radius: r)
+        p.closeSubpath()
+        return p
+    }
+
     var isClaudeBusy: Bool { claudeSession?.isBusy ?? false }
 
     var directionalImages: [WalkerFacing: NSImage] = [:]
