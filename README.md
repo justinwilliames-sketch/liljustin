@@ -1,10 +1,12 @@
 # LilJustin
 
-A tiny macOS dock companion that talks like Justin Williames.
+The founder of [Orbit](https://get.yourorbit.team), on your desktop.
 
-LilJustin lives above your Dock as a small pixel-art character (Mini Justin). Click him, and a terminal-style popover opens — ask anything about CRM, lifecycle marketing, AI workflows, or scaling a GTM function, and the response is shaped to mimic Justin's voice: direct, sharp, no fluff.
+Mini Justin lives above your Dock as a small pixel-art character. Click him, and a terminal-style popover opens — ask anything about lifecycle marketing, deliverability, Braze, retention economics, or anything else from the Orbit playbook, and the response comes back in Justin's founder voice: direct, sharp, mechanism-first.
 
-This is a **personality skin**, not a RAG system. There's no archive, no retrieval, no external knowledge base. It's a system prompt tuned to mimic Justin's voice and domain expertise on top of whichever model provider you connect (Claude Code, Codex, or the OpenAI API).
+It's a **gimmick** — a downloadable easter-egg companion to the main Orbit MCP extension. The serious work happens inside Claude with the [Orbit MCP](https://get.yourorbit.team/download) installed (95+ guides, 50+ skills, native Braze integration, all the real tooling). Mini Justin is the dock-pinned, conversational version of "ask the founder a quick question."
+
+Under the hood it's a personality layer on top of whichever model provider you connect in Settings (Claude Code, Codex, or OpenAI API) — no RAG, no archive baked into the app itself. If you have the Orbit MCP installed in Claude Code, Mini Justin will prefer those tools when grounding answers in current Orbit guide content.
 
 ## Credits
 
@@ -19,14 +21,14 @@ Licensed MIT, like both upstream projects.
 
 ## What it does
 
-- Renders Mini Justin as an animated dock-side character (currently placeholder sprites — see "Replacing the sprites" below).
+- Renders Mini Justin as an animated 36-frame dock-side character (4 directions: front, back, walk-left, walk-right).
 - Opens a native macOS popover chat when you click him.
 - Routes your messages through whichever provider you connect in Settings.
-- Responds in Justin's voice — Australian English, CRM/lifecycle expertise, dry, opinionated, no sycophancy.
+- Responds in Justin's founder voice — Australian English, lifecycle/CRM/deliverability expertise, mechanism over generality, no sycophancy.
 
 ## What it does NOT do
 
-- No archive, no RAG, no retrieval. It will not pretend to look things up.
+- No archive, no RAG, no retrieval inside this app itself. For deep grounding in the full Orbit guide library, install the [Orbit MCP](https://get.yourorbit.team/download) for Claude Desktop — Mini Justin will prefer those tools when they're available.
 - No expert handoffs (the upstream Lenny "let Elena Verna take this one" feature was removed).
 - No external auto-updates. Sparkle config was stripped from `Info.plist` because the upstream pointed at someone else's release channel.
 
@@ -52,45 +54,27 @@ xcodebuild -project lil-agents.xcodeproj -scheme LilAgents -configuration Debug 
 
 > See [NEXT_STEPS.md](NEXT_STEPS.md) for the manual Xcode tasks needed before the first build (target/scheme rename, bundle identifier, app icon).
 
-## Replacing the sprites
+## Sprites
 
-The `LilAgents/CharacterSprites/` folder currently holds **placeholder** Mini Justin sprites — basic geometric figures with "PLACEHOLDER" labels so the app runs end-to-end before real art is ready.
-
-The runtime expects exactly these six files:
+`LilAgents/CharacterSprites/` ships four hand-authored 36-frame animated GIFs (idle front, idle back, walk-left, walk-right). The runtime expects these exact filenames:
 
 | File | Purpose |
 | --- | --- |
-| `main-front.png` | Idle / front-facing pose |
-| `main-back.png` | Back-facing pose (used when walking away) |
-| `main-left.png` | Static left-facing fallback |
-| `main-right.png` | Static right-facing fallback |
-| `lil-justin-walk-left.gif` | Animated walk cycle, left-facing |
-| `lil-justin-walk-right.gif` | Animated walk cycle, right-facing |
+| `main-front.gif` | Idle front-facing animation (breathing, slight movement) |
+| `main-back.gif` | Idle back-facing animation |
+| `lil-justin-walk-left.gif` | Walk cycle, left-facing |
+| `lil-justin-walk-right.gif` | Walk cycle, right-facing |
 
-**Asset spec for the real sprites:**
-
-- Canvas size: `304 × 415` pixels (RGBA, transparent background)
-- Format: PNG for static poses, animated GIF for walk cycles
-- Anchor: character vertically centered, feet roughly 16px above the bottom edge
-- Style: HubSpot/Lenny-adjacent pixel-art aesthetic
-- Walk GIF: 2–4 frame loop, ~240ms per frame, transparent background preserved
-
-Drop replacement files into `LilAgents/CharacterSprites/` with the exact filenames above. No code changes needed — the runtime loads them by name from the bundle.
+`NSImageView.animates = true` is set in `WalkerCharacterCore.swift`, so Cocoa plays the multi-frame GIFs automatically. To swap the character, drop replacement GIFs in with the same filenames.
 
 ## Where the personality lives
 
-The Justin system prompt is in:
+The Justin system prompt is in `LilAgents/Session/ClaudeSessionState.swift` (`func buildInstructions`). It encodes the Orbit founder framing, the five voice pillars (Linus Tech Tips, Marques Brownlee, Ricky Gervais, Lenny's Newsletter, Elena Verna — tone only, never their content), nine writing rules, and the slop-detector anti-patterns. The canonical voice document this is distilled from lives in the [get-orbit repo](https://github.com/justinwilliames-sketch/get-orbit) at `lib/admin/voice-guidelines.ts`.
 
-```
-LilAgents/Session/ClaudeSessionState.swift
-```
-
-Look for `func buildInstructions(...)`. To retune the voice, edit the prompt block. The function signature retains `expert` and `expectMCP` parameters for upstream compatibility but ignores them — LilJustin is single-persona and has no archive RAG.
-
-If you want to fork this for *your own* personality:
+If you want to fork this for *your own* founder companion:
 
 1. Replace the system prompt with your voice and domain.
-2. Replace the sprites in `CharacterSprites/`.
+2. Replace the GIFs in `CharacterSprites/`.
 3. Update bundle display name in `LilAgents/Info.plist` and the welcome copy in `LilAgents/Terminal/TerminalView+TranscriptBehavior.swift`.
 
 ## Privacy

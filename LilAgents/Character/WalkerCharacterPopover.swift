@@ -28,9 +28,9 @@ extension WalkerCharacter {
         }
 
         let welcome = """
-        Ask Mini Justin about CRM, lifecycle marketing, AI workflows, or scaling a GTM function.
+        Mini Justin — founder of Orbit, on your desktop.
 
-        A direct, no-fluff dock companion.
+        Ask about lifecycle, deliverability, Braze, retention. The Orbit playbook, in dock form.
         """
         terminalView?.appendStreamingText(welcome)
         terminalView?.endStreaming()

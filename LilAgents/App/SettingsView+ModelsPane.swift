@@ -76,16 +76,19 @@ extension SettingsView {
                 }
             }
 
-            SettingsSectionCard(title: "About Mini Justin", subtitle: "What this is, and what it isn't.") {
+            SettingsSectionCard(title: "About Mini Justin", subtitle: "Founder of Orbit, on your desktop.") {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Mini Justin is a tiny dock companion that talks like Justin Williames — a CRM and lifecycle marketing operator based on the Sunshine Coast, Queensland.")
+                    Text("Mini Justin is the dock-pinned companion version of Orbit's founder, Justin Williames. He talks like Justin and answers from Justin's playbook — lifecycle marketing, deliverability, Braze, retention economics.")
                         .settingsCaption()
 
-                    Text("This is a personality skin on top of whichever model provider you connect in Settings. There is no archive, no RAG, no external knowledge base — just a system prompt tuned to mimic Justin's voice and domain expertise (CRM, lifecycle, AI workflows, GTM).")
+                    Link("Orbit · The lifecycle marketing OS for Claude", destination: URL(string: "https://get.yourorbit.team")!)
+                        .font(.subheadline.weight(.medium))
+
+                    Text("This is a personality layer on whichever provider you connect in Settings — not an archive, not RAG. For deeper grounding in the full Orbit guide library, install the Orbit MCP for Claude Desktop.")
                         .settingsCaption()
 
-                    Text("If you want a version trained on your own writing, fork this and swap the system prompt in Session/ClaudeSessionState.swift.")
-                        .settingsCaption()
+                    Link("Install Orbit (.mcpb · pay-what-it's-worth)", destination: URL(string: "https://get.yourorbit.team/download")!)
+                        .font(.subheadline.weight(.medium))
                 }
             }
         }

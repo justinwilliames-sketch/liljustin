@@ -120,17 +120,19 @@ class WelcomeChipsView: NSView {
 
     private let suggestions: [(String, String, String)]
 
+    // Prompt chips are mapped to real Orbit guide topics — practitioner-grounded
+    // questions Mini Justin can credibly answer in his founder voice.
     static let defaultSuggestionPool: [(String, String, String)] = [
-        ("envelope.badge",            "Build a lifecycle programme from scratch",      "How would you build a lifecycle marketing programme from scratch for an early-stage consumer app?"),
-        ("arrow.triangle.2.circlepath", "Win-back flow that actually performs",        "What does a win-back flow that actually performs look like in 2026?"),
-        ("rectangle.split.3x3",       "Braze vs HubSpot for a Series A startup",       "Braze vs HubSpot for a Series A consumer startup — how would you pick?"),
-        ("person.crop.square.filled.and.at.rectangle", "Liquid personalisation patterns I should know", "What Liquid personalisation patterns should I know for serious lifecycle work?"),
-        ("chart.bar.xaxis",           "How to measure CRM impact properly",             "How should I measure CRM impact properly without the usual vanity metrics?"),
-        ("waveform.path.ecg",         "Where AI workflows actually pay off in CRM",     "Where do AI workflows actually pay off in a lifecycle marketing function today?"),
-        ("hammer",                    "AI for trades businesses — where to start",      "If I run a trades business, where should I start with AI workflows?"),
-        ("person.2.wave.2",           "Activation funnel diagnostic checklist",         "Give me a checklist for diagnosing a broken activation funnel."),
-        ("creditcard",                "Subscription churn — first three things to look at", "Subscription churn is creeping up. What are the first three places I should look?"),
-        ("briefcase",                 "Path to Head of CRM",                            "What's the realistic path from CRM Manager to Head of CRM?")
+        ("envelope.open",             "Apple MPP four years in — what should we change?",          "Four years after Apple Mail Privacy Protection, what should we actually change in our lifecycle programs?"),
+        ("rectangle.split.3x3",       "Braze naming convention that survives contact",             "What's a Braze naming convention that survives contact with reality, not the one that lives in a Notion page nobody reads?"),
+        ("arrow.triangle.2.circlepath", "Win-back flow that actually performs",                    "What does a win-back flow that actually performs look like in 2026?"),
+        ("checkerboard.shield",       "List hygiene without burning engaged users",                "How do I write a list hygiene policy that doesn't burn the engaged users in the cleanup?"),
+        ("chart.bar.xaxis",           "Click rate vs open rate — what to A/B test on",             "Should I be A/B testing on click rate or open rate? Pick one and tell me why."),
+        ("creditcard",                "Retention economics — modelling LTV properly",              "How should I actually model LTV for a consumer subscription business — and what's the trap most teams fall into?"),
+        ("paperplane",                "Send-time optimisation in 2026 — still useful?",            "Is send-time optimisation still useful in 2026 with Apple pre-fetching, or should I stop bothering?"),
+        ("bolt.horizontal",           "72-hour aha-moment flow — how to design it",                "How do you design a 72-hour aha-moment flow for an early-stage consumer app?"),
+        ("envelope.arrow.triangle.branch", "Onboarding sequence first principles",                 "What are the first principles of an onboarding email sequence that actually drives activation?"),
+        ("person.3.sequence",         "Building a lifecycle team — first three hires",             "If I'm building a lifecycle team from scratch, who are the first three hires and in what order?")
     ]
 
     // Kept for upstream compatibility — never surfaced now that LilJustin has no archive mode.

@@ -228,9 +228,9 @@ extension TerminalView {
         let t = theme
         let greeting: String
         if requiresInitialConnectionSetup {
-            greeting = "Hi, I'm Mini Justin. Open Settings to connect Claude, ChatGPT, or OpenAI, then come back here and ask me anything."
+            greeting = "Mini Justin here — founder of Orbit, on your desktop. Connect Claude Code or Codex in Settings and we'll get into it."
         } else {
-            greeting = "Hi, I'm Mini Justin. Ask me about CRM, lifecycle marketing, AI workflows, or scaling a GTM function. I'll think it through with you — no fluff."
+            greeting = "Mini Justin here — founder of Orbit. Ask about lifecycle, deliverability, Braze, retention economics — anything from the Orbit playbook. I'll lead with the sharpest answer and go deeper if you want it."
         }
         _ = archiveMode
         let attrText = NSAttributedString(string: greeting, attributes: [

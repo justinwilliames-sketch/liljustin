@@ -280,10 +280,14 @@ extension WalkerCharacter {
     }
 
     private func loadDirectionalImages() {
-        directionalImages[.front] = loadImage(named: "main-front.png")
-        directionalImages[.left] = loadImage(named: "lil-justin-walk-left.gif", fallback: "main-left.png")
+        // All four poses are animated 36-frame GIFs in LilJustin (vs the
+        // upstream Lenny mix of static PNG idles + GIF walks). NSImageView
+        // is already configured with `animates = true`, so multi-frame GIFs
+        // animate automatically when assigned to `imageView.image`.
+        directionalImages[.front] = loadImage(named: "main-front.gif", fallback: "main-front.png")
+        directionalImages[.left]  = loadImage(named: "lil-justin-walk-left.gif",  fallback: "main-left.png")
         directionalImages[.right] = loadImage(named: "lil-justin-walk-right.gif", fallback: "main-right.png")
-        directionalImages[.back] = loadImage(named: "main-back.png")
+        directionalImages[.back]  = loadImage(named: "main-back.gif",  fallback: "main-back.png")
     }
 
     private func loadImage(named name: String, fallback: String? = nil) -> NSImage {

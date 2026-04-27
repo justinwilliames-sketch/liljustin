@@ -5,14 +5,14 @@ This document covers the manual work that remains before LilJustin builds and sh
 ## What's already done
 
 - ✅ Lenny fork copied to `/Users/justin/LilJustin` (outside iCloud — required for stable Xcode builds).
-- ✅ Heavy Lenny data deleted: `ExpertAvatars/` (16MB of headshots), `StarterArchive/` (~5MB of newsletter/podcast content), and Lenny demo media (`Lenny-Ads.mp4`, `LennyDemo.gif`, `hero-thumbnail.png`).
+- ✅ Heavy Lenny data deleted: `ExpertAvatars/` (16MB of headshots), `StarterArchive/` (~5MB of newsletter/podcast content), and Lenny demo media.
 - ✅ All user-facing "Lil-Lenny" branding strings renamed to "LilJustin" / "Mini Justin".
-- ✅ The Justin system prompt is wired into `LilAgents/Session/ClaudeSessionState.swift` — Australian voice, CRM/lifecycle/AI workflow expertise, no archive references, no expert handoffs, anti-sycophancy guards.
-- ✅ Welcome copy and prompt chip suggestions rewritten for Justin's domain (CRM, lifecycle, Braze/HubSpot, AI workflows, trades vertical).
-- ✅ The "Lenny source" Settings tab is hidden (the archive-mode toggle has no purpose without an archive). The pane file remains in the tree for upstream merge compatibility.
-- ✅ Sparkle auto-update keys stripped from `Info.plist` — the upstream pointed at hbshih's GitHub release channel, which would have auto-updated LilJustin from someone else's repo. Security risk closed.
+- ✅ Justin system prompt rewritten for **Orbit founder framing** in `LilAgents/Session/ClaudeSessionState.swift` — encodes the five Orbit voice pillars (Linus Tech Tips, Marques Brownlee, Ricky Gervais, Lenny's Newsletter, Elena Verna — tone only), nine Orbit writing rules, and the slop-detector anti-patterns. Canonical source: [get-orbit `lib/admin/voice-guidelines.ts`](https://github.com/justinwilliames-sketch/get-orbit/blob/main/lib/admin/voice-guidelines.ts).
+- ✅ Welcome copy, popover subtitle, settings About panel, and prompt chips all retuned for Orbit positioning. Prompt chips map to real Orbit guide topics (Apple MPP, Braze naming, win-back flows, list hygiene, send-time optimisation, 72-hour aha-moment, retention economics).
+- ✅ The "Lenny source" Settings tab is hidden. The pane file remains in the tree for upstream merge compatibility.
+- ✅ Sparkle auto-update keys stripped from `Info.plist`.
 - ✅ `CFBundleDisplayName` and `CFBundleName` set to "LilJustin" in `Info.plist`.
-- ✅ Placeholder Mini Justin sprites generated in `LilAgents/CharacterSprites/` so the app runs end-to-end before real art arrives.
+- ✅ **Hand-authored animated Mini Justin sprites installed** — four 36-frame GIFs (front, back, walk-left, walk-right) in `LilAgents/CharacterSprites/`. The runtime loader was updated to load GIFs for all four directions; `NSImageView.animates` was already true upstream.
 
 ## ⚠️ Required before first build (in Xcode)
 
@@ -49,6 +49,20 @@ LilAgents/CharacterSprites/lil-justin-walk-right.gif  304 × 415 GIF, transparen
 The placeholder generator script lives at `/tmp/lil_justin_placeholders.py` if you ever want to regenerate them. It uses Python PIL.
 
 **Tip for ChatGPT prompting:** ask for one character in the HubSpot pixel-people aesthetic, generate one pose at a time using the same character reference, and ensure the output is on a transparent background. The walk GIF is the hardest part — you may want to generate two or three slightly different walking-pose PNGs and combine them into a GIF using `ffmpeg` or an online tool, since most image models won't produce animated GIFs natively.
+
+## Future enhancement: bundle the Orbit guide corpus
+
+The current architecture leaves the upstream `LocalArchive.swift` / `ClaudeSessionTransport+Archive.swift` / `StarterArchive/` plumbing in place. None of it is invoked at runtime today, but it's the natural home for a bundled Orbit guide corpus if you want Mini Justin to ground answers in actual guide content (not just topical knowledge).
+
+The path would be:
+
+1. In `get-orbit`, run the existing markdown export utility (`lib/guides/markdown-export.ts`) over the 95 TSX guides to produce a folder of `.md` files.
+2. Drop the resulting markdown into `LilJustin/LilAgents/StarterArchive/guides/` matching the existing folder structure (one `.md` per guide).
+3. Re-show the "Lenny source" Settings tab (rename to "Orbit guides") by removing the `static var allCases` override in `SettingsView.swift`.
+4. Update the system prompt to tell the model "you have an Orbit guide archive available — query it via the `read_excerpt` MCP tool when answering specific guide-shaped questions."
+5. Update the welcome copy to mention the bundled guides.
+
+This would give Mini Justin true grounding in current guide content without requiring users to install the Orbit MCP separately. Worth doing once v0.1 validates demand. Not before.
 
 ## v2 cleanup (optional, not blocking)
 
