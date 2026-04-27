@@ -521,17 +521,20 @@ extension WalkerCharacter {
         titleLabel.usesSingleLineMode = true
         popoverTitleLabel = titleLabel
 
+        // Expert switcher button — Mini Justin is the only persona in
+        // LilJustin, so the switcher dropdown has nothing meaningful to
+        // offer. Created (so the rest of the layout maths still has the
+        // reference) but hidden + disabled. Removing it entirely would
+        // require rewiring layout constraints throughout the title bar.
         let switcherButton = HoverButton(title: "", target: self, action: #selector(toggleExpertSwitcher))
         switcherButton.translatesAutoresizingMaskIntoConstraints = false
         switcherButton.isBordered = false
         switcherButton.wantsLayer = true
         switcherButton.normalBg = NSColor.clear.cgColor
-        switcherButton.hoverBg = t.separatorColor.withAlphaComponent(0.18).cgColor
+        switcherButton.hoverBg = NSColor.clear.cgColor
         switcherButton.layer?.backgroundColor = NSColor.clear.cgColor
-        switcherButton.layer?.cornerRadius = 10
-        switcherButton.toolTip = "Switch conversation"
-        switcherButton.imageScaling = .scaleProportionallyDown
-        switcherButton.contentTintColor = t.textDim
+        switcherButton.isHidden = true
+        switcherButton.isEnabled = false
         popoverExpertSwitcherButton = switcherButton
 
         let subtitle = NSTextField(labelWithString: focusedExpert?.title ?? "Founder of Orbit, on your desktop.")

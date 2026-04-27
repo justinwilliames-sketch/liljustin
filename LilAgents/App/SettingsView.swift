@@ -99,7 +99,7 @@ struct SettingsView: View {
         }
         .onChange(of: debugLoggingEnabled) { _, enabled in
             if !enabled && selectedPane == .developer {
-                selectedPane = .source
+                selectedPane = .models
             }
         }
         .alert("Reset LilJustin data?", isPresented: $showResetConfirmation) {
@@ -134,7 +134,9 @@ struct SettingsView: View {
     }
 
     private var visiblePanes: [SettingsPane] {
-        var panes: [SettingsPane] = [.source, .models, .about]
+        // Lenny `.source` pane is intentionally absent — LilJustin doesn't
+        // use the upstream archive at all.
+        var panes: [SettingsPane] = [.models, .about]
         if AppSettings.showsDeveloperTools {
             panes.append(.developer)
         }
@@ -145,7 +147,10 @@ struct SettingsView: View {
     private var currentPaneView: some View {
         switch selectedPane {
         case .source:
-            sourcePane
+            // Hidden pane — defensive empty view in case anything routes to
+            // it (e.g. corrupted persisted selection). visiblePanes never
+            // exposes .source, so this branch should be unreachable.
+            EmptyView()
         case .models:
             modelsPane
         case .about:
