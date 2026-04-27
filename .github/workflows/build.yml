@@ -35,14 +35,14 @@ jobs:
         run: |
           xcodebuild \
             -project lil-agents.xcodeproj \
-            -target LilAgents \
+            -scheme LilAgents \
             -resolvePackageDependencies
 
       - name: Build LilJustin (unsigned, Release configuration)
         run: |
           xcodebuild build \
             -project lil-agents.xcodeproj \
-            -target LilAgents \
+            -scheme LilAgents \
             -configuration Release \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
