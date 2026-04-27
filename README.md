@@ -15,7 +15,7 @@ LilJustin is forked from two excellent open-source projects:
 - **[lil-agents](https://github.com/ryanstephen/lil-agents)** by Ryan Stephen — the original macOS dock companion concept.
 - **[lenny-lil-agents](https://github.com/hbshih/lenny-lil-agents)** by Ben Shih — the Lil-Lenny fork that introduced the pixel-art sprite layer and terminal-style popover.
 
-LilJustin keeps the dock window plumbing, click hit-testing, popover UI, and multi-provider session layer from those projects, and replaces the Lenny-archive personality and content layer with a Justin Williames personality skin.
+LilJustin keeps the dock window plumbing, click hit-testing, popover UI, and multi-provider session layer from those projects, and replaces the Lenny-archive personality and content layer with an Orbit founder personality.
 
 Licensed MIT, like both upstream projects.
 

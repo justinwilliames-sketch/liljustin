@@ -22,7 +22,7 @@ These are easier in the Xcode UI than via hand-editing `project.pbxproj`. Open `
    Product → Scheme → Manage Schemes → select `LilAgents` → rename to `LilJustin`.
 
 2. **Set the bundle identifier.**
-   Click the `LilAgents` target → Signing & Capabilities tab → set Bundle Identifier to something like `com.justinwilliames.LilJustin` or `ai.sophiie.LilJustin`. The current value is whatever Ben Shih had — you cannot ship under his identifier.
+   Click the `LilAgents` target → Signing & Capabilities tab → set Bundle Identifier to something like `team.yourorbit.LilJustin` or `com.justinwilliames.LilJustin`. The current value is whatever Ben Shih had — you cannot ship under his identifier.
 
 3. **Set the signing team.**
    Same tab → Team → select your Apple Developer account. Without this, the app will only run unsigned via Xcode (fine for local development).
@@ -89,7 +89,7 @@ Expect this cleanup to take 2–3 hours of focused Swift refactoring. Don't both
 
 The prompt in `ClaudeSessionState.swift` deliberately:
 
-- Tells the model to **never invent specific anecdotes** about your former employers ("at Linktree we did X..."). Without this guard, models hallucinate confidently. Keep this rule if you publish the repo.
+- Tells the model to **never volunteer your CV or name former employers**. Working history is explicitly out of scope — the credibility frame is Orbit's depth (95 guides, structured methodologies), not the founder's resume. Without this guard, models will reach for it confidently.
 - Tells the model to **never break character** when asked what model it is.
 - **Mirrors the Caldwell working style** from your `CLAUDE.md` — direct, no sycophancy, willing to disagree. Side effect: Mini Justin will tell users when they're wrong, including potentially in ways that feel blunt to people who aren't expecting it.
 - **Forces JSON output** with a single message in the `kind: "lenny"` schema. The string `"lenny"` is the internal parser key inherited from upstream and renaming it would break the transcript renderer. If you ever do v2 cleanup, you can rename the parser kind too.
@@ -100,7 +100,7 @@ If you want to test the prompt without rebuilding the app, paste the prompt into
 
 1. **Is this open-source?** If yes, before pushing to GitHub: confirm you're comfortable with the personality file being public (it's mostly your CLAUDE.md profile distilled), and add a short personal note in `README.md`'s Credits section.
 2. **App icon.** The dock-bar character is one thing — the macOS app icon (Finder, Launchpad) is another. You'll want a separate, recognisable icon. A simple "LJ" monogram or a Mini Justin headshot would both work.
-3. **Eventually, voice grounding (#2 personality tier).** If Mini Justin starts feeling generic, the natural next step is RAG over your published CRM articles and Sophiie content. The Lenny fork's archive plumbing is still in the tree — you could repurpose it instead of deleting it.
+3. **Eventually, voice grounding via the Orbit corpus.** If Mini Justin starts feeling generic, the natural next step is bundling the Orbit guide markdown export so he can ground answers in actual guide content. See the "Future enhancement: bundle the Orbit guide corpus" section above. The dormant upstream archive plumbing makes this a content-only change rather than a refactor.
 
 ## Verify the build
 
