@@ -91,7 +91,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
         menu.addItem(char1Item)
         self.char1Item = char1Item
 
-        let backToCharacterItem = NSMenuItem(title: "Back to LilJustin", action: #selector(backToLenny), keyEquivalent: "")
+        let backToCharacterItem = NSMenuItem(title: "Back to Mini Justin", action: #selector(backToCharacter), keyEquivalent: "")
         backToCharacterItem.isEnabled = false
         menu.addItem(backToCharacterItem)
         self.backToCharacterItem = backToCharacterItem
