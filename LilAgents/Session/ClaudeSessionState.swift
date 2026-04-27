@@ -300,6 +300,14 @@ extension ClaudeSession {
     """
 
     func buildUserPrompt(message: String, attachments: [SessionAttachment], expert: ResponderExpert?, archiveContext: String? = nil) -> String {
+        // archiveContext was the upstream Lenny path for splicing
+        // retrieved-archive snippets into every user message — leaking
+        // "Archive context:" into the prompt and pushing the model to
+        // narrate archive lookups. LilJustin doesn't have an archive,
+        // so we ignore the parameter (kept for upstream signature
+        // compatibility).
+        _ = archiveContext
+
         let baseMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? "Please analyze the attached file(s) and answer based on them."
             : message
@@ -312,12 +320,10 @@ extension ClaudeSession {
             attachmentContext = "\n\nAttached files: \(names)"
         }
 
-        let archiveSection = archiveContext.map { "\n\nArchive context:\n\($0)" } ?? ""
-
         if let expert {
-            return "Follow-up focus: \(expert.name)\nAnswer from \(expert.name)'s perspective.\nQuestion: \(baseMessage)\(attachmentContext)\(archiveSection)"
+            return "Follow-up focus: \(expert.name)\nAnswer from \(expert.name)'s perspective.\nQuestion: \(baseMessage)\(attachmentContext)"
         }
-        return baseMessage + attachmentContext + archiveSection
+        return baseMessage + attachmentContext
     }
 
     func expertContextPrompt(_ context: String) -> String {
@@ -401,11 +407,14 @@ extension ClaudeSession {
             sections.append("Attachment context:\n\(attachmentContext)")
         }
 
-        if expectMCP {
-            sections.append("Retrieve information ONLY using the archive MCP tools. Do not use WebFetch, WebSearch, or any other tool. Do not draw on training data for archive-specific content. Start with `index.md` for fast routing, then narrow to the right person/source, then read deeper only as needed. In expert mode, route through `index.md` to that person first. Return only the JSON object described above.")
-        } else {
-            sections.append("Retrieve information ONLY from the GitHub URLs explicitly provided above (the index.json and the podcast/newsletter files). Do not use WebSearch. Do not fetch from any other website. Do not use training knowledge for archive-specific content. Answer based solely on what you retrieved. Return only the JSON object described above.")
-        }
+        // The upstream Lenny app appended hard "retrieve ONLY from the
+        // archive" instructions here on every turn — overriding the
+        // system prompt's "never mention archive" rule and forcing the
+        // model to talk about archive lookups even though LilJustin
+        // doesn't have one. Keep these instructions OUT of every
+        // conversation. The expectMCP flag is preserved for upstream
+        // signature compatibility but ignored.
+        _ = expectMCP
         return sections.joined(separator: "\n\n")
     }
 
