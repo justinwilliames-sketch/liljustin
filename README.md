@@ -1,119 +1,146 @@
+<div align="center">
+
 # LilJustin
 
-The founder of [Orbit](https://get.yourorbit.team), on your desktop.
+### The founder of [Orbit](https://get.yourorbit.team), on your desktop.
 
-Mini Justin lives above your Dock as a small pixel-art character. Click him, and a terminal-style popover opens — ask anything about lifecycle marketing, deliverability, Braze, retention economics, or anything else from the Orbit playbook, and the response comes back in Justin's founder voice: direct, sharp, mechanism-first.
+A free macOS dock companion that talks like Justin Williames — the founder of Orbit. Click him, ask anything about lifecycle marketing, deliverability, Braze, retention. Direct, no-fluff answers in the founder voice, with real Orbit guides cited as sources.
 
-It's a **gimmick** — a downloadable easter-egg companion to the main Orbit MCP extension. The serious work happens inside Claude with the [Orbit MCP](https://get.yourorbit.team/download) installed (95+ guides, 50+ skills, native Braze integration, all the real tooling). Mini Justin is the dock-pinned, conversational version of "ask the founder a quick question."
+[![Latest release](https://img.shields.io/github/v/release/justinwilliames-sketch/liljustin?include_prereleases&label=latest&color=6366F1)](https://github.com/justinwilliames-sketch/liljustin/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-6366F1)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-14%2B-6366F1)](https://www.apple.com/macos/)
 
-Under the hood it's a personality layer on top of whichever model provider you connect in Settings (Claude Code, Codex, or OpenAI API) — no RAG, no archive baked into the app itself. If you have the Orbit MCP installed in Claude Code, Mini Justin will prefer those tools when grounding answers in current Orbit guide content.
+[**↓ Download LilJustin**](https://github.com/justinwilliames-sketch/liljustin/releases/latest)
 
-## Credits
+</div>
 
-LilJustin is forked from two excellent open-source projects:
+---
 
-- **[lil-agents](https://github.com/ryanstephen/lil-agents)** by Ryan Stephen — the original macOS dock companion concept.
-- **[lenny-lil-agents](https://github.com/hbshih/lenny-lil-agents)** by Ben Shih — the Lil-Lenny fork that introduced the pixel-art sprite layer and terminal-style popover.
+## Install in 3 steps
 
-LilJustin keeps the dock window plumbing, click hit-testing, popover UI, and multi-provider session layer from those projects, and replaces the Lenny-archive personality and content layer with an Orbit founder personality.
+### 1. Download the `.dmg`
 
-Licensed MIT, like both upstream projects.
+Grab the **latest** `.dmg` from [the Releases page](https://github.com/justinwilliames-sketch/liljustin/releases/latest) and open it.
 
-## What it does
+### 2. Drag **LilJustin** into Applications
 
-- Renders Mini Justin as an animated 36-frame dock-side character (4 directions: front, back, walk-left, walk-right).
-- Opens a native macOS popover chat when you click him.
-- Routes your messages through whichever provider you connect in Settings.
-- Responds in Justin's founder voice — Australian English, lifecycle/CRM/deliverability expertise, mechanism over generality, no sycophancy.
+Drag the LilJustin icon into the **Applications** shortcut inside the mounted DMG window.
 
-## What it does NOT do
+### 3. ⚠️ Run this in Terminal once
 
-- No archive, no RAG, no retrieval inside this app itself. For deep grounding in the full Orbit guide library, install the [Orbit MCP](https://get.yourorbit.team/download) for Claude Desktop — Mini Justin will prefer those tools when they're available.
-- No expert handoffs (the upstream Lenny "let Elena Verna take this one" feature was removed).
-- No external auto-updates. Sparkle config was stripped from `Info.plist` because the upstream pointed at someone else's release channel.
-
-## Provider setup
-
-LilJustin does not run a model locally. Connect one provider in Settings → Models:
-
-- **Claude Code** — answers via the Claude Code CLI if installed and logged in.
-- **Codex / ChatGPT** — answers via the Codex CLI.
-- **OpenAI API** — direct API calls; requires an API key.
-
-Automatic mode prefers Claude Code or Codex when detected, otherwise falls back to OpenAI when `OPENAI_API_KEY` (or a saved key in Settings) is available.
-
-## Install (recommended)
-
-The easiest path for end users — no Xcode required:
-
-1. Grab the latest `.dmg` from [GitHub Releases](https://github.com/justinwilliames-sketch/liljustin/releases).
-2. Open it, drag **LilJustin** to your Applications folder.
-3. **First-launch step.** This build is unsigned (free side-project, no Apple Developer ID), so macOS will refuse to launch it without one of these:
-
-    ```bash
-    # Easiest: paste this once in Terminal to remove the quarantine flag.
-    xattr -dr com.apple.quarantine /Applications/LilJustin.app
-    ```
-
-    Or right-click the app → **Open** → confirm. Or System Settings → Privacy & Security → "Open Anyway".
-
-4. Launch from Applications. Mini Justin appears above your Dock.
-
-## Building from source (Xcode)
-
-If you'd rather build it yourself — required if you want to change the personality, sprites, or anything else.
-
-Open `lil-agents.xcodeproj` in Xcode 16+ on macOS 14+ and run the `LilAgents` scheme.
-
-Or from the command line:
+LilJustin is unsigned (free side-project, no Apple Developer ID), so macOS Gatekeeper will block it on first launch. Open **Terminal** and paste:
 
 ```bash
-xcodebuild -project lil-agents.xcodeproj -scheme LilAgents -configuration Debug build
+xattr -dr com.apple.quarantine /Applications/LilJustin.app
 ```
 
-> See [NEXT_STEPS.md](NEXT_STEPS.md) for the manual Xcode tasks needed before the first build (target/scheme rename, bundle identifier, app icon).
+Then double-click LilJustin in Applications. Mini Justin appears above your Dock.
 
-## Releasing a new version (GitHub Actions)
+> **Don't want to use Terminal?** Right-click `LilJustin.app` in Applications → **Open** → confirm. Or System Settings → Privacy & Security → "Open Anyway". Either works.
 
-Releases are built automatically by [`.github/workflows/build.yml`](.github/workflows/build.yml) on every `v*.*.*` tag push. The workflow runs on a stock GitHub-hosted macOS runner — no local Xcode required.
+---
 
-```bash
-# From a clean main branch:
-git tag v0.1.0
-git push origin v0.1.0
-```
+## What you can ask
 
-CI will build an unsigned `LilJustin.app`, wrap it in `LilJustin-v0.1.0.dmg`, and publish a GitHub Release with the `.dmg` attached and install instructions in the body. Takes ~5–8 minutes.
+Click Mini Justin. The popover shows 4 random prompt chips drawn from Orbit's full guide library — try one, or type your own. He answers in the founder voice with sources from the Orbit guide library when relevant.
 
-To dry-run without tagging — go to the [Actions tab](https://github.com/justinwilliames-sketch/liljustin/actions) and use **Run workflow** on the Build workflow. The .dmg lands as a workflow artifact (downloadable for 30 days) but no Release is created.
+Some examples of what he'll handle well:
 
-## Sprites
+- **Lifecycle programs** — onboarding flows, win-back, abandoned cart, replenishment, post-purchase, sunset
+- **Deliverability** — Apple MPP, Gmail clipping, SPF/DKIM/DMARC, BIMI, reputation recovery, list hygiene
+- **Channel craft** — subject lines, preheaders, dark mode, mobile design, accessibility, Liquid templating
+- **Strategy & economics** — retention ROI, LTV, CRM vs CDP, building a lifecycle team, cadence
+- **Measurement** — A/B test sample sizes, holdouts, incrementality, false positives, churn cohorts
+- **Tools** — Braze, Iterable, Customer.io, HubSpot — what each gets right and wrong
 
-`LilAgents/CharacterSprites/` ships four hand-authored 36-frame animated GIFs (idle front, idle back, walk-left, walk-right). The runtime expects these exact filenames:
+For deeper, structured Orbit tooling (95 guides, 50+ skills, native Braze API), install the full **[Orbit MCP for Claude Desktop](https://get.yourorbit.team/download)**. Mini Justin will use those tools when they're available.
 
-| File | Purpose |
-| --- | --- |
-| `main-front.gif` | Idle front-facing animation (breathing, slight movement) |
-| `main-back.gif` | Idle back-facing animation |
-| `lil-justin-walk-left.gif` | Walk cycle, left-facing |
-| `lil-justin-walk-right.gif` | Walk cycle, right-facing |
+## Connect a model provider
 
-`NSImageView.animates = true` is set in `WalkerCharacterCore.swift`, so Cocoa plays the multi-frame GIFs automatically. To swap the character, drop replacement GIFs in with the same filenames.
+Mini Justin needs a model. Open **Settings → Models** and pick one:
 
-## Where the personality lives
+| Provider | What you need |
+|---|---|
+| **Claude Code** | The CLI installed and logged in. Auto-detected. Free with your Claude.ai subscription. |
+| **Codex / ChatGPT** | The Codex CLI installed and logged in. Auto-detected. Free with your ChatGPT Plus subscription. |
+| **OpenAI API** | An API key. Pay-as-you-go via OpenAI. |
 
-The Justin system prompt is in `LilAgents/Session/ClaudeSessionState.swift` (`func buildInstructions`). It encodes the Orbit founder framing, the five voice pillars (Linus Tech Tips, Marques Brownlee, Ricky Gervais, Lenny's Newsletter, Elena Verna — tone only, never their content), nine writing rules, and the slop-detector anti-patterns. The canonical voice document this is distilled from lives in the [get-orbit repo](https://github.com/justinwilliames-sketch/get-orbit) at `lib/admin/voice-guidelines.ts`.
-
-If you want to fork this for *your own* founder companion:
-
-1. Replace the system prompt with your voice and domain.
-2. Replace the GIFs in `CharacterSprites/`.
-3. Update bundle display name in `LilAgents/Info.plist` and the welcome copy in `LilAgents/Terminal/TerminalView+TranscriptBehavior.swift`.
+Automatic mode prefers Claude Code → Codex → OpenAI in that order, depending on what you have available.
 
 ## Privacy
 
-LilJustin does not run its own backend, has no analytics pipeline, and stores nothing remotely. All settings (provider choice, API keys, onboarding state) live in macOS `UserDefaults` on this Mac. Provider traffic goes only to whichever provider you connected.
+- **No analytics, no telemetry, no backend** — LilJustin runs entirely on your Mac.
+- **Settings stay local** — provider choice, API keys, onboarding state all live in macOS `UserDefaults`.
+- **Conversation traffic** goes only to the provider you connected (Claude / Codex / OpenAI). Not to me.
+- **MIT licensed** — fork it, audit it, change it.
 
-## License
+---
 
-MIT. See [LICENSE](LICENSE).
+<details>
+<summary><b>Developer notes — building from source, customising the personality, releasing</b></summary>
+
+### Build from source
+
+Clone, open in Xcode 16+ on macOS 14+, run the `LilAgents` scheme. Or from the command line:
+
+```bash
+git clone https://github.com/justinwilliames-sketch/liljustin.git
+cd liljustin
+xcodebuild -project lil-agents.xcodeproj -scheme LilAgents -configuration Debug build
+```
+
+See [NEXT_STEPS.md](NEXT_STEPS.md) for the one-time Xcode setup (scheme rename, bundle identifier, signing team, app icon).
+
+### Customise the personality
+
+The system prompt lives in [`LilAgents/Session/ClaudeSessionState.swift`](LilAgents/Session/ClaudeSessionState.swift) (`func buildInstructions`). It encodes the Orbit founder framing, five voice pillars, nine writing rules, the slop-detector anti-patterns, and the full slug→title manifest of all 87 Orbit guides for source citation. The canonical voice document this is distilled from lives in [`get-orbit/lib/admin/voice-guidelines.ts`](https://github.com/justinwilliames-sketch/get-orbit/blob/main/lib/admin/voice-guidelines.ts).
+
+To fork this for your own founder companion:
+
+1. Swap the system prompt for your voice and domain.
+2. Replace the GIFs in `LilAgents/CharacterSprites/` (front, back, walk-left, walk-right, sleeping — same filenames).
+3. Update bundle display name in `LilAgents/Info.plist`, welcome copy in `LilAgents/Terminal/TerminalView+TranscriptBehavior.swift`, and Settings → About in `LilAgents/App/SettingsView+ModelsPane.swift`.
+
+### Sprites
+
+The runtime expects these GIF filenames in `LilAgents/CharacterSprites/`:
+
+- `main-front.gif` — idle front-facing animation
+- `main-back.gif` — idle back-facing animation
+- `lil-justin-walk-left.gif` — walk cycle, left-facing
+- `lil-justin-walk-right.gif` — walk cycle, right-facing
+- `main-sleeping.gif` — idle sleeping animation (used after a stretch of inactivity)
+
+`NSImageView.animates = true` is set so multi-frame GIFs play automatically. Drop replacements in and rebuild.
+
+### Releasing
+
+Releases are built and published automatically by [`.github/workflows/build.yml`](.github/workflows/build.yml):
+
+- **Every push to `main`** → CI builds a fresh `.dmg` and refreshes the rolling `latest` release.
+- **Every `v*.*.*` tag push** → CI publishes a new tagged release that becomes the canonical "Latest" on the homepage.
+
+```bash
+# From a clean main branch:
+git tag v0.1.2
+git push origin v0.1.2
+```
+
+The CI run takes ~3 minutes. The `.dmg` ships unsigned with the install instructions baked into each release body.
+
+### Credits
+
+LilJustin builds on two open-source predecessors, both MIT-licensed and credited in [LICENSE](LICENSE):
+
+- **[lil-agents](https://github.com/ryanstephen/lil-agents)** by Ryan Stephen — original macOS dock companion concept.
+- **[lenny-lil-agents](https://github.com/hbshih/lenny-lil-agents)** by Ben Shih — pixel-art sprite layer + terminal-style popover.
+
+</details>
+
+---
+
+<div align="center">
+
+**Made by [Justin Williames](https://get.yourorbit.team) · MIT licensed · macOS 14+**
+
+</div>
