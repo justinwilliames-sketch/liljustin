@@ -9,9 +9,16 @@ name: Build LilJustin
 # the README and in each release's auto-generated body).
 
 on:
+  # Run on every push to main — produces a fresh .dmg as a workflow artifact
+  # (downloadable for 30 days). Useful for fast iteration: every commit gets
+  # built, you can grab the artifact from the run page without tagging.
   push:
+    branches: [main]
     tags:
       - 'v*.*.*'
+  # And on tag pushes — additionally publishes a public GitHub Release.
+  # The Release-creation step is gated on `startsWith(github.ref, 'refs/tags/v')`
+  # so commits to main don't accidentally create Releases.
   workflow_dispatch: {}
 
 # Default GITHUB_TOKEN on public repos is read-only. Creating a Release

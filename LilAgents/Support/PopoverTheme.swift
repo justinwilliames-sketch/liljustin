@@ -180,31 +180,35 @@ struct PopoverTheme {
     )
 
     static let harbor = PopoverTheme(
-        name: "Justin",
-        // Warm parchment background — kept from upstream Lil-Lenny harbour palette
-        popoverBg: NSColor(red: 0.984, green: 0.958, blue: 0.918, alpha: 1.0),
-        popoverBorder: NSColor(red: 0.820, green: 0.678, blue: 0.488, alpha: 0.28),
+        name: "Orbit",
+        // Orbit brand palette — clean neutrals with indigo accent (#6366F1).
+        // Matches the design tokens at get-orbit/app/globals.css:
+        //   --orbit-brand: #6366F1, --orbit-active: #F59E0B,
+        //   --orbit-complete: #10B981. Neutral surfaces from Tailwind
+        //   neutral-50/100/200/500/900.
+        popoverBg: NSColor(red: 0.980, green: 0.980, blue: 0.984, alpha: 1.0),     // neutral-50
+        popoverBorder: NSColor(red: 0.388, green: 0.400, blue: 0.945, alpha: 0.20),  // indigo at low alpha
         popoverBorderWidth: 1.0,
-        popoverCornerRadius: 28,
-        titleBarBg: NSColor(red: 0.978, green: 0.948, blue: 0.904, alpha: 1.0),
-        titleText: NSColor(red: 0.100, green: 0.068, blue: 0.025, alpha: 1.0),
-        titleFont: NSFont.systemFont(ofSize: 13, weight: .semibold),
-        titleString: "LilJustin",
-        separatorColor: NSColor(red: 0.820, green: 0.710, blue: 0.568, alpha: 0.38),
+        popoverCornerRadius: 22,
+        titleBarBg: NSColor(red: 0.965, green: 0.965, blue: 0.971, alpha: 1.0),    // neutral-100
+        titleText: NSColor(red: 0.039, green: 0.039, blue: 0.043, alpha: 1.0),     // neutral-950
+        titleFont: NSFont.systemFont(ofSize: 14, weight: .semibold),
+        titleString: "Mini Justin",
+        separatorColor: NSColor(red: 0.886, green: 0.890, blue: 0.910, alpha: 0.60),  // neutral-200
         font: NSFont.systemFont(ofSize: 14, weight: .regular),
         fontBold: NSFont.systemFont(ofSize: 14, weight: .semibold),
-        textPrimary: NSColor(red: 0.112, green: 0.075, blue: 0.028, alpha: 1.0),
-        textDim: NSColor(red: 0.535, green: 0.448, blue: 0.335, alpha: 1.0),
-        accentColor: NSColor(red: 0.878, green: 0.478, blue: 0.067, alpha: 1.0),  // Lenny orange
-        errorColor: NSColor(red: 0.748, green: 0.218, blue: 0.148, alpha: 1.0),
-        successColor: NSColor(red: 0.228, green: 0.558, blue: 0.388, alpha: 1.0),
-        inputBg: NSColor(red: 0.995, green: 0.985, blue: 0.964, alpha: 1.0),
+        textPrimary: NSColor(red: 0.063, green: 0.063, blue: 0.071, alpha: 1.0),    // neutral-900
+        textDim: NSColor(red: 0.439, green: 0.439, blue: 0.478, alpha: 1.0),        // neutral-500
+        accentColor: NSColor(red: 0.388, green: 0.400, blue: 0.945, alpha: 1.0),    // #6366F1 orbit-brand
+        errorColor: NSColor(red: 0.937, green: 0.267, blue: 0.267, alpha: 1.0),     // red-500
+        successColor: NSColor(red: 0.063, green: 0.725, blue: 0.506, alpha: 1.0),   // #10B981 orbit-complete
+        inputBg: NSColor(red: 1.000, green: 1.000, blue: 1.000, alpha: 1.0),        // white
         inputCornerRadius: 22,
-        bubbleBg: NSColor(red: 1.000, green: 0.985, blue: 0.960, alpha: 1.0),
-        bubbleBorder: NSColor(red: 0.820, green: 0.710, blue: 0.568, alpha: 0.32),
-        bubbleText: NSColor(red: 0.440, green: 0.360, blue: 0.268, alpha: 1.0),
-        bubbleCompletionBorder: NSColor(red: 0.228, green: 0.698, blue: 0.418, alpha: 0.50),
-        bubbleCompletionText: NSColor(red: 0.148, green: 0.548, blue: 0.318, alpha: 1.0),
+        bubbleBg: NSColor(red: 1.000, green: 1.000, blue: 1.000, alpha: 1.0),       // white
+        bubbleBorder: NSColor(red: 0.886, green: 0.890, blue: 0.910, alpha: 0.60),  // neutral-200
+        bubbleText: NSColor(red: 0.063, green: 0.063, blue: 0.071, alpha: 1.0),     // neutral-900
+        bubbleCompletionBorder: NSColor(red: 0.063, green: 0.725, blue: 0.506, alpha: 0.50),
+        bubbleCompletionText: NSColor(red: 0.040, green: 0.588, blue: 0.408, alpha: 1.0),
         bubbleFont: NSFont.systemFont(ofSize: 11, weight: .medium),
         bubbleCornerRadius: 18
     )

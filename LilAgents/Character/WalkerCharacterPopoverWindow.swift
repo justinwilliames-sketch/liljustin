@@ -115,12 +115,20 @@ private final class ExpertSwitcherRowView: NSTableCellView {
             avatarView.image = image
             avatarView.isHidden = false
             fallbackIcon.isHidden = true
+        } else if entry.isLenny, let orbitLogo = NSImage(named: "OrbitLogo") {
+            // Mini Justin row → show the Orbit logo (bundled imageset, white
+            // mark on transparent). Tinted with the theme accent so it picks
+            // up the indigo brand colour against the row background.
+            avatarView.image = nil
+            avatarView.isHidden = true
+            fallbackIcon.isHidden = false
+            fallbackIcon.image = orbitLogo
+            fallbackIcon.contentTintColor = theme.accentColor
         } else {
             avatarView.image = nil
             avatarView.isHidden = true
             fallbackIcon.isHidden = false
-            let symbolName = entry.isLenny ? "sparkles" : "person.crop.circle.fill"
-            if let fallback = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) {
+            if let fallback = NSImage(systemSymbolName: "person.crop.circle.fill", accessibilityDescription: nil) {
                 let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
                 fallbackIcon.image = fallback.withSymbolConfiguration(config)
             }
@@ -429,11 +437,14 @@ extension WalkerCharacter {
     func createPopoverWindow() {
         let t = resolvedTheme
         let popoverWidth: CGFloat = 468
-        let popoverHeight: CGFloat = WalkerCharacter.defaultPopoverHeight
+        let totalHeight: CGFloat = WalkerCharacter.defaultPopoverHeight                      // 574
+        let tailHeight: CGFloat = WalkerCharacter.popoverTailHeight                         //  14
+        let tailWidth: CGFloat = WalkerCharacter.popoverTailWidth                           //  28
+        let popoverHeight: CGFloat = totalHeight - tailHeight                               // 560 — body height
         let shellCornerRadius: CGFloat = 18
 
         let win = KeyableWindow(
-            contentRect: CGRect(x: 0, y: 0, width: popoverWidth, height: popoverHeight),
+            contentRect: CGRect(x: 0, y: 0, width: popoverWidth, height: totalHeight),
             styleMask: .borderless,
             backing: .buffered,
             defer: false
@@ -449,7 +460,47 @@ extension WalkerCharacter {
         let isDark = brightness < 0.5
         win.appearance = NSAppearance(named: isDark ? .darkAqua : .aqua)
 
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: popoverHeight))
+        // Speech-bubble shell: transparent host that holds the rounded body
+        // (top portion) and a downward-pointing tail (bottom strip) so the
+        // popover reads as dialogue from Mini Justin.
+        let host = NSView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: totalHeight))
+        host.wantsLayer = true
+        host.autoresizingMask = [.width, .height]
+
+        // Tail strip — pinned to host bottom (autoresizes top margin only).
+        // Filled with the same popoverBg as the body so it reads as one shape.
+        let tailHost = NSView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: tailHeight))
+        tailHost.wantsLayer = true
+        tailHost.autoresizingMask = [.width, .maxYMargin]
+        let tailLayer = CAShapeLayer()
+        let tailCenterX = popoverWidth / 2
+        let tailPath = CGMutablePath()
+        // The triangle's top base sits flush against the body's bottom edge
+        // (at y = tailHeight in tailHost-local coords). The apex points down.
+        // We deliberately stop just inside the body's stroke so the joint
+        // reads as continuous fill rather than as two outlines stacked.
+        tailPath.move(to: CGPoint(x: tailCenterX - tailWidth / 2, y: tailHeight + 0.5))
+        tailPath.addLine(to: CGPoint(x: tailCenterX, y: 0))
+        tailPath.addLine(to: CGPoint(x: tailCenterX + tailWidth / 2, y: tailHeight + 0.5))
+        tailLayer.path = tailPath
+        tailLayer.fillColor = t.popoverBg.cgColor
+        tailLayer.strokeColor = t.popoverBorder.cgColor
+        tailLayer.lineWidth = t.popoverBorderWidth
+        tailLayer.lineJoin = .round
+        // Drop a soft shadow on the tail to match the body's window-level shadow.
+        tailLayer.shadowColor = NSColor.black.cgColor
+        tailLayer.shadowOpacity = 0.08
+        tailLayer.shadowRadius = 4
+        tailLayer.shadowOffset = CGSize(width: 0, height: -1)
+        tailHost.layer?.addSublayer(tailLayer)
+        host.addSubview(tailHost)
+
+        // Body container — sits ABOVE the tail strip. Existing layout maths
+        // (subview Y positions, expand/close height changes) all operate
+        // against `popoverHeight` (the body height), so no churn elsewhere.
+        // Springs-and-struts: width and height flexible, both Y margins
+        // FIXED → top margin stays at 0, bottom margin stays at tailHeight.
+        let container = NSView(frame: NSRect(x: 0, y: tailHeight, width: popoverWidth, height: popoverHeight))
         container.wantsLayer = true
         container.layer?.backgroundColor = t.popoverBg.cgColor
         container.layer?.cornerRadius = shellCornerRadius
@@ -678,7 +729,8 @@ extension WalkerCharacter {
         terminal.setReturnToLennyVisible(focusedExpert != nil)
         container.addSubview(terminal)
 
-        win.contentView = container
+        host.addSubview(container)
+        win.contentView = host
         popoverWindow = win
         terminalView = terminal
         refreshPopoverHeader()

@@ -58,7 +58,13 @@ final class WalkerCharacter {
     var expertSwitcherPopover: NSPopover?
     var isPopoverExpanded = false
     var isPopoverPinned = false
-    static let defaultPopoverHeight: CGFloat = 560
+    // Total popover window height. The bubble body is
+    // `defaultPopoverHeight - popoverTailHeight` tall; the bottom
+    // `popoverTailHeight` pixels host the speech-bubble tail pointing
+    // down at the character.
+    static let defaultPopoverHeight: CGFloat = 574
+    static let popoverTailHeight: CGFloat = 14
+    static let popoverTailWidth: CGFloat = 28
 
     var isClaudeBusy: Bool { claudeSession?.isBusy ?? false }
 
