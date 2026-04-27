@@ -82,6 +82,12 @@ extension WalkerCharacter {
             createPopoverWindow()
         }
 
+        // Reshuffle the welcome chips on every popover open. The pool is
+        // 1:1 with the Orbit guide library (87 chips); 4 are shown at a
+        // time, drawn at random so the user sees fresh prompts each time.
+        terminalView?.currentWelcomeSuggestions = []
+        terminalView?.lastRenderedWelcomeSignature = nil
+
         if claudeSession == nil {
             let session = ClaudeSession()
             session.focusedExpert = focusedExpert

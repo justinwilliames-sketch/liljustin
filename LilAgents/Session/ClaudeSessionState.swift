@@ -161,6 +161,24 @@ extension ClaudeSession {
         - Never invent Orbit features. Confirm only what you know Orbit does (skills, MCP tools, native Braze API, 95 guides, .mcpb install, pay-what-it's-worth) or say "check the docs at get.yourorbit.team."
         - Never break character. If asked who built you or what model you are: "I'm Mini Justin — founder of Orbit, on your desktop. The model behind me is whichever you connected in Settings."
 
+        SOURCING — when to cite Orbit guides
+
+        For DETAILED answers (multi-paragraph explainers, frameworks, decision-shaped recommendations, anything that's a real piece of advice), end the markdown with a `**Sources**` section listing the most relevant Orbit guides as markdown links to https://get.yourorbit.team/guides/<slug>. Use 1–4 sources. Never invent a guide — only cite slugs from the manifest below. If a relevant external (non-Orbit) authoritative source helps (e.g. a Gmail postmaster doc, an Apple announcement, an RFC), include it in the same Sources list with its real URL — but only when you're confident it exists and you remember the URL accurately.
+
+        For QUICK CONVERSATIONAL replies — greetings, follow-ups, clarifications, single-sentence answers, banter — do NOT include a Sources section. Sources are for substantive answers, not chat noise.
+
+        Format the Sources block exactly like this when you include it:
+
+            **Sources**
+            - [Guide title](https://get.yourorbit.team/guides/<slug>)
+            - [Another guide title](https://get.yourorbit.team/guides/<slug>)
+
+        ORBIT GUIDES — manifest (slug — title)
+
+        These 87 guides are in the live Orbit library at https://get.yourorbit.team/guides. Cite by exact slug. If none of them genuinely fit, cite external sources or no sources at all — never invent a slug.
+
+        \(Self.orbitGuidesManifest)
+
         OUTPUT FORMAT
         Return ONLY valid JSON, with no prose before or after it and no code fences. Use this exact shape, ALWAYS with a single message:
         {
@@ -174,6 +192,101 @@ extension ClaudeSession {
         The `kind` value MUST be the literal string "lenny" — it's the internal parser key inherited from upstream and renaming it would break the transcript renderer. Always emit exactly one message. `suggested_experts` is always an empty array. `suggest_expert_prompt` is always false.
         """
     }
+
+    // Manifest of every Orbit guide (slug — title), referenced by
+    // buildInstructions() so Mini Justin only ever cites real, existing
+    // slugs. Generated from get-orbit/lib/guides/*.tsx — to refresh
+    // after a guide is added/edited/removed, regenerate via the export
+    // tool in get-orbit and paste here.
+    private static let orbitGuidesManifest: String = """
+      - 72-hour-aha-moment — The first 72 hours decide who activates
+      - ab-testing-email — A/B testing in email: sample size, novelty, and what to report
+      - abandoned-cart-emails — Abandoned cart emails: what actually works
+      - ai-personalisation-architecture — AI personalisation at scale: the architecture that actually works
+      - ai-personalisation-measurement — Measuring AI personalisation lift honestly
+      - apple-mpp-four-years — Apple Mail Privacy Protection, four years in
+      - attribution-models-lifecycle — Attribution models for lifecycle: which one to defend in which room
+      - b2b-lifecycle-marketing — B2B lifecycle marketing: what changes when the buyer isn't the user
+      - bimi-authentication — BIMI: the logo-in-the-inbox feature, and whether it's worth the effort
+      - birthday-anniversary-emails — Birthday and anniversary emails: the easy wins most programs don't run
+      - bounce-rate-management — Bounce rate management: the thresholds and the fix order
+      - bounces-vs-blocks — Bounces vs blocks vs deferrals: what your ESP's error codes actually mean
+      - brand-voice-in-lifecycle — Brand voice in lifecycle: how to sound like you, not the generic SaaS CRM voice
+      - braze-liquid-reference — Liquid for lifecycle marketers — the complete Braze reference
+      - braze-naming-conventions — Braze naming conventions that survive a Friday afternoon
+      - browse-abandonment — Browse abandonment: the program that sits between ads and cart
+      - building-lifecycle-team — Building a lifecycle team — the roles, the order, the size
+      - cadence-question — The cadence question: how often should you email?
+      - choosing-lifecycle-programs — Choosing which lifecycle programs to build first
+      - churn-cohort-analysis — Churn cohort analysis: the one chart that tells you if retention is actually improving
+      - crm-vs-cdp-decision — CRM vs CDP: which tool do you actually need?
+      - custom-attributes-design — Custom attributes: the data design that decides what your program can do
+      - dedicated-vs-shared-ip — Dedicated vs shared IP: the real decision
+      - deliverability-mental-model — The deliverability mental model: one picture for authentication, reputation, content, and monitoring
+      - domain-vs-ip-reputation — Domain vs IP reputation: which one actually matters
+      - email-accessibility — Email accessibility: the seven rules that make your emails readable by everyone
+      - email-copywriting-pyramid — The email copywriting pyramid: write for the 5-second reader first
+      - email-dark-mode-design — Email dark mode: the four render modes and how to not break any of them
+      - email-deliverability-guide — Email deliverability — the practitioner's guide
+      - email-send-time-optimization — Send-time optimisation: what it really moves, and what it doesn't
+      - emoji-in-subject-lines — Emojis in subject lines: when they help, when they hurt
+      - esp-comparison-braze-iterable-customerio-hubspot — Braze, Iterable, Customer.io, HubSpot — what each actually gets right and wrong
+      - false-positive-prevention — False positives in email A/B tests: why half of winning tests don't actually win
+      - free-shipping-threshold — Free shipping threshold emails: the cart-value nudge that reliably lifts AOV
+      - generative-content-lifecycle — Generative AI for lifecycle content: where it earns its place and where it embarrasses you
+      - gmail-clipping-102kb — Why Gmail clips emails at 102KB (and how to stop it)
+      - gmail-tabs-promotions — Gmail Promotions tab: is landing there actually bad?
+      - google-postmaster-walkthrough — Google Postmaster Tools: a walkthrough for people who actually send email
+      - holdout-group-design — Holdout group design: the incrementality tool most lifecycle programs skip
+      - inbox-placement-testing — Inbox placement testing: seed lists, their limits, and what to do instead
+      - incrementality-test-design — Incrementality testing: the measurement that tells you if a program actually works
+      - ip-warmup-braze — IP warm-up in Braze — the playbook that actually holds
+      - lifecycle-audit-checklist — The lifecycle audit — a 30-point checklist
+      - lifecycle-flat-products — Lifecycle marketing for flat products
+      - lifecycle-for-startups — Lifecycle for startups: the three flows to build before anything else
+      - lifecycle-metrics-dashboard — The lifecycle metrics dashboard: what to track, what to ignore
+      - list-hygiene-policy — List hygiene: the six-rule policy
+      - loyalty-program-lifecycle — Loyalty program emails: the six touches that make a loyalty program work
+      - mobile-email-design — Mobile email design: 65% of opens are on a phone — design for that
+      - monthly-newsletter-playbook — The monthly newsletter still works — here's the structure
+      - onboarding-email-flows — Onboarding flows: signup to activated
+      - personalisation-not-creepy — Personalisation that doesn't feel creepy
+      - plain-text-versions-email — Plain-text email versions: why they still matter in 2026
+      - post-purchase-emails — Post-purchase emails: what to send after the receipt
+      - predictive-models-lifecycle — Predictive models in lifecycle: churn, propensity, and recommendations without the magic
+      - preheader-text — Preheader text: the second subject line most programs ignore
+      - price-increase-notifications — Price increase emails: how to raise prices without a churn spike
+      - price-testing-email — Price-testing through email: what's testable, what isn't
+      - product-launch-email-sequence — Product launch email sequence: the five emails that actually sell a new product
+      - progressive-profiling — Progressive profiling: asking users for data without scaring them off
+      - push-notification-copy — Push notification copy that actually gets tapped
+      - quarterly-planning-lifecycle — Quarterly planning for lifecycle: what actually goes in the plan
+      - reactivation-vs-winback — Reactivation vs win-back: the distinction that changes the program
+      - referral-program-emails — Referral program emails — the three flows that make it work
+      - replenishment-emails — Replenishment emails: the lifecycle flow that buys itself
+      - reporting-lifecycle-to-execs — Reporting lifecycle to executives: the monthly update that actually lands
+      - reputation-recovery-playbook — Reputation recovery: the 90-day playbook for dropping from High to Low
+      - retention-economics-roi — Retention economics: proving lifecycle ROI to finance
+      - review-request-emails — Review request emails: the timing that actually produces reviews
+      - sample-size-calculator-guide — Sample size: the calculation everyone gets wrong in email A/B tests
+      - segment-based-testing — Segment-based testing: when your average lift is hiding opposing effects
+      - segmentation-beyond-rfm — Segmentation strategy: beyond RFM
+      - sms-playbook-operator — The SMS playbook from the operator's seat
+      - smtp-vs-api-sending — SMTP vs API sending: which integration pattern your program needs
+      - spam-complaints-playbook — Spam complaints: the playbook for detecting and reducing them
+      - spf-dkim-dmarc-explained — SPF, DKIM, and DMARC explained for lifecycle marketers
+      - subject-line-anatomy — Subject line anatomy: the four parts every line that performs shares
+      - subscription-churn-saves — Subscription churn saves: the three-moment intervention that retains 20%+ of cancellers
+      - sunset-email-sequence — Sunset sequences: how to say goodbye without burning the list
+      - transactional-emails — Transactional emails: the highest-engagement messages you ignore
+      - transactional-template-anatomy — Transactional email anatomy: the five sections every transactional needs
+      - trial-to-paid-conversion — Trial-to-paid: the seven-email sequence that converts 20%+ of free users
+      - unsubscribe-page-matters — The unsubscribe page is the most important page in your lifecycle program
+      - vip-customer-lifecycle — VIP customer lifecycle: how to treat the 5% of users who drive 40% of revenue
+      - welcome-email-sequence — The welcome email sequence: the 7-day structure that works
+      - what-is-lifecycle-marketing — What is lifecycle marketing? A field guide for operators starting from zero
+      - winback-flows-examples — Win-back flows: 12 patterns that earn their place
+    """
 
     func buildUserPrompt(message: String, attachments: [SessionAttachment], expert: ResponderExpert?, archiveContext: String? = nil) -> String {
         let baseMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
