@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>LSUIElement</key>
+    <true/>
+    <key>CFBundleDisplayName</key>
+    <string>LilJustin</string>
+    <key>CFBundleName</key>
+    <string>LilJustin</string>
+    <!--
+        Sparkle auto-update keys removed deliberately. The upstream Lenny fork
+        pointed at hbshih's GitHub appcast.xml — leaving that in would auto-pull
+        updates from someone else's release channel. If you want auto-update
+        for LilJustin, publish your own signed Sparkle releases and add
+        SUFeedURL + SUPublicEDKey back in pointing at your own appcast.
+    -->
+</dict>
+</plist>

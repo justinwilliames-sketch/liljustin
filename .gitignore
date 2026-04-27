@@ -1,0 +1,44 @@
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/swiftpm/
+xcuserdata/
+
+# SPM
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Archives
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Session logs and scratch notes (may contain sensitive info)
+firebase-debug.log
+*.log
+IMPLEMENTATION_LOG_*.md
+log.md
+log2.md
+newlog.md
+checkmcp.md
+index.md
+implementationplan.md
+nextstep.md
+new.md
+OFFICIAL_MCP_SETUP_NOTES.md
+
+# Sparkle
+*.dmg
+*.zip
+*.xcworkspace/xcshareddata/swiftpm/
+sparkle_private_key
+sparkle_private_key.pem
+*.eddsa_private_key

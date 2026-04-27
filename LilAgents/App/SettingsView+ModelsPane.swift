@@ -1,0 +1,293 @@
+import AppKit
+import SwiftUI
+
+extension SettingsView {
+    var modelsPane: some View {
+        let _ = detectionRefreshID
+        return VStack(alignment: .leading, spacing: 20) {
+            SettingsHeader(
+                title: "Models",
+                subtitle: "Choose how LilJustin should answer on this Mac."
+            )
+
+            SettingsSectionCard(title: "Runtime", subtitle: modelSectionSubtitle) {
+                VStack(alignment: .leading, spacing: 14) {
+                    RuntimeSegmentedControl(
+                        selection: $preferredTransport,
+                        claudeAvailable: $detectedClaudeAvailable,
+                        codexAvailable: $detectedCodexAvailable
+                    )
+
+                    SettingsInfoRow(
+                        icon: selectedRuntimeIcon,
+                        iconColor: .accentColor,
+                        text: selectedRuntimeDescription
+                    )
+
+                    if effectiveModelTransport == .claudeCode {
+                        LabeledModelPicker(
+                            title: "Claude model",
+                            selection: $preferredClaudeModel,
+                            options: AppSettings.ClaudeModel.allCases.map { ($0.label, $0.rawValue) }
+                        )
+                    } else if effectiveModelTransport == .codex {
+                        LabeledModelPicker(
+                            title: "Codex model",
+                            selection: $preferredCodexModel,
+                            options: AppSettings.CodexModel.allCases.map { ($0.label, $0.rawValue) }
+                        )
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LabeledModelPicker(
+                                title: "OpenAI model",
+                                selection: $preferredOpenAIModel,
+                                options: AppSettings.OpenAIModel.allCases.map { ($0.label, $0.rawValue) }
+                            )
+
+                            SecureField("Paste OpenAI API key", text: $openAIAPIKey)
+                                .textFieldStyle(.roundedBorder)
+
+                            Text("Used only when LilJustin needs to fall back to the OpenAI API on this Mac.")
+                                .settingsCaption()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    var aboutPane: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            SettingsHeader(
+                title: "About",
+                subtitle: "Credits, project story, and links to learn more."
+            )
+
+            SettingsSectionCard(title: "Credits", subtitle: "Original projects this builds on.") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("LilJustin is built on top of the original lil agents project by Ryan Stephen, and the Lil-Lenny fork by Ben Shih.")
+                        .settingsCaption()
+
+                    Link("Ryan Stephen · Original lil agents project", destination: URL(string: "https://github.com/ryanstephen/lil-agents")!)
+                        .font(.subheadline.weight(.medium))
+
+                    Link("Ben Shih · Lil-Lenny fork", destination: URL(string: "https://github.com/hbshih/lenny-lil-agents")!)
+                        .font(.subheadline.weight(.medium))
+                }
+            }
+
+            SettingsSectionCard(title: "About Mini Justin", subtitle: "What this is, and what it isn't.") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Mini Justin is a tiny dock companion that talks like Justin Williames — a CRM and lifecycle marketing operator based on the Sunshine Coast, Queensland.")
+                        .settingsCaption()
+
+                    Text("This is a personality skin on top of whichever model provider you connect in Settings. There is no archive, no RAG, no external knowledge base — just a system prompt tuned to mimic Justin's voice and domain expertise (CRM, lifecycle, AI workflows, GTM).")
+                        .settingsCaption()
+
+                    Text("If you want a version trained on your own writing, fork this and swap the system prompt in Session/ClaudeSessionState.swift.")
+                        .settingsCaption()
+                }
+            }
+        }
+    }
+
+    var developerPane: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            SettingsHeader(
+                title: "Developer",
+                subtitle: "Behavior toggles and preview states for local testing."
+            )
+
+            SettingsSectionCard(title: "Developer", subtitle: "Logs and preview behavior.") {
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Toggle("Show detailed session logs in Xcode", isOn: $debugLoggingEnabled)
+                        Text("Sensitive tokens stay redacted in logs.")
+                            .settingsCaption()
+                    }
+
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Welcome preview")
+                            .font(.headline)
+
+                        Picker("Preview mode", selection: $welcomePreviewMode) {
+                            ForEach(AppSettings.WelcomePreviewMode.allCases, id: \.rawValue) { mode in
+                                Text(mode.label).tag(mode.rawValue)
+                            }
+                        }
+                        .pickerStyle(.radioGroup)
+                        .labelsHidden()
+                    }
+
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Reset")
+                            .font(.headline)
+
+                        Text("Clear LilJustin's local settings and remove its Claude/Codex LennyData MCP configuration so you can test the setup flow from a clean state.")
+                            .settingsCaption()
+
+                        Button("Reset all local data…", role: .destructive) {
+                            showResetConfirmation = true
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Model/transport helpers
+
+    var effectiveModelTransport: AppSettings.PreferredTransport {
+        if !AppSettings.hasExplicitPreferredTransportChoice {
+            if detectedClaudeAvailable == true { return .claudeCode }
+            if detectedCodexAvailable == true  { return .codex }
+            return .openAIAPI
+        }
+
+        if let selected = AppSettings.PreferredTransport(rawValue: preferredTransport), selected != .automatic {
+            return selected
+        }
+        // Use async-detected results — never call detection synchronously on the main thread
+        if detectedClaudeAvailable == true { return .claudeCode }
+        if detectedCodexAvailable == true  { return .codex }
+        return .openAIAPI
+    }
+
+    var modelSectionSubtitle: String {
+        switch effectiveModelTransport {
+        case .claudeCode: return "LilJustin will answer through Claude Code."
+        case .codex:      return "LilJustin will answer through Codex."
+        case .openAIAPI:  return "LilJustin will answer through the OpenAI API."
+        case .automatic:  return "Detecting available runtimes…"
+        }
+    }
+
+    var selectedRuntimeDescription: String {
+        switch effectiveModelTransport {
+        case .claudeCode: return "Choose which Claude model LilJustin should use."
+        case .codex:      return "Choose which Codex model LilJustin should use."
+        case .openAIAPI:  return "Choose which OpenAI model LilJustin should use and add an API key below."
+        case .automatic:  return "Detecting available runtimes…"
+        }
+    }
+
+    var selectedRuntimeIcon: String {
+        switch effectiveModelTransport {
+        case .claudeCode: return "person.crop.square.fill"
+        case .codex:      return "terminal.fill"
+        case .openAIAPI:  return "network.badge.shield.half.filled"
+        case .automatic:  return "arrow.triangle.branch"
+        }
+    }
+}
+
+// MARK: - Custom segmented runtime control
+
+private struct RuntimeSegment {
+    let label: String
+    let tag: String
+    /// nil = still detecting, true/false = result known
+    let available: Bool?
+}
+
+struct RuntimeSegmentedControl: View {
+    @Binding var selection: String
+    @Binding var claudeAvailable: Bool?
+    @Binding var codexAvailable: Bool?
+
+    private var segments: [RuntimeSegment] {
+        [
+            RuntimeSegment(label: "Claude Code", tag: AppSettings.PreferredTransport.claudeCode.rawValue, available: claudeAvailable),
+            RuntimeSegment(label: "Codex",       tag: AppSettings.PreferredTransport.codex.rawValue,      available: codexAvailable),
+            RuntimeSegment(label: "OpenAI API",  tag: AppSettings.PreferredTransport.openAIAPI.rawValue,  available: true),
+        ]
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(segments, id: \.tag) { segment in
+                segmentButton(segment)
+                    .overlay(alignment: .trailing) {
+                        if segment.tag != segments.last?.tag {
+                            Rectangle()
+                                .fill(Color(NSColor.separatorColor).opacity(0.6))
+                                .frame(width: 0.5)
+                        }
+                    }
+            }
+        }
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(NSColor.separatorColor), lineWidth: 0.5))
+        .task {
+            async let claude = Task.detached(priority: .userInitiated) { AppSettings.hasDetectedClaudeLogin }.value
+            async let codex  = Task.detached(priority: .userInitiated) { AppSettings.hasDetectedCodexLogin  }.value
+            let (c, d) = await (claude, codex)
+            claudeAvailable = c
+            codexAvailable  = d
+
+            // Keep auto-resolving the best runtime until the user explicitly picks one.
+            if !AppSettings.hasExplicitPreferredTransportChoice {
+                if c {
+                    selection = AppSettings.PreferredTransport.claudeCode.rawValue
+                } else if d {
+                    selection = AppSettings.PreferredTransport.codex.rawValue
+                } else {
+                    selection = AppSettings.PreferredTransport.openAIAPI.rawValue
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func segmentButton(_ segment: RuntimeSegment) -> some View {
+        let isSelected   = selection == segment.tag
+        let isDetecting  = segment.available == nil
+        let isAvailable  = segment.available == true
+
+        Button {
+            AppSettings.hasExplicitPreferredTransportChoice = true
+            selection = segment.tag
+        } label: {
+            VStack(spacing: 2) {
+                Text(segment.label)
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(labelColor(isSelected: isSelected, isAvailable: isAvailable, isDetecting: isDetecting))
+
+                if isDetecting {
+                    // Placeholder to keep row height stable while checking
+                    Text("Checking…")
+                        .font(.system(size: 9.5))
+                        .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                } else if !isAvailable {
+                    Text("Not installed")
+                        .font(.system(size: 9.5))
+                        .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background {
+                if isSelected && isAvailable {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.accentColor.opacity(0.18))
+                        .padding(2)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(!isAvailable && !isDetecting)
+    }
+
+    private func labelColor(isSelected: Bool, isAvailable: Bool, isDetecting: Bool) -> Color {
+        if isDetecting   { return Color(NSColor.secondaryLabelColor) }
+        if !isAvailable  { return Color(NSColor.tertiaryLabelColor) }
+        if isSelected    { return Color.accentColor }
+        return Color(NSColor.labelColor)
+    }
+}

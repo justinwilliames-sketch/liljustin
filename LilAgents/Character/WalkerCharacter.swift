@@ -1,0 +1,83 @@
+import AppKit
+import Lottie
+
+final class WalkerCharacter {
+    let videoName: String
+    var window: NSWindow!
+    var imageView: NSImageView!
+
+    let displayHeight: CGFloat = 96
+    let displayWidth: CGFloat = 96
+
+    var accelStart: CFTimeInterval = 3.0
+    var fullSpeedStart: CFTimeInterval = 3.75
+    var decelStart: CFTimeInterval = 7.5
+    var walkStop: CFTimeInterval = 8.25
+    var walkAmountRange: ClosedRange<CGFloat> = 0.25...0.5
+    var yOffset: CGFloat = 0
+    var flipXOffset: CGFloat = 0
+    var characterColor: NSColor = .gray
+
+    var walkStartTime: CFTimeInterval = 0
+    var positionProgress: CGFloat = 0.0
+    var isWalking = false
+    var isPaused = true
+    var pauseEndTime: CFTimeInterval = 0
+    var movementLocked = false
+    var goingRight = true
+    var walkStartPos: CGFloat = 0.0
+    var walkEndPos: CGFloat = 0.0
+    var currentTravelDistance: CGFloat = 500.0
+    var walkStartPixel: CGFloat = 0.0
+    var walkEndPixel: CGFloat = 0.0
+
+    var isOnboarding = false
+    var isIdleForPopover = false
+    var popoverWindow: NSWindow?
+    var terminalView: TerminalView?
+    var claudeSession: ClaudeSession?
+    var clickOutsideMonitor: Any?
+    var escapeKeyMonitor: Any?
+    weak var controller: LilAgentsController?
+    var themeOverride: PopoverTheme?
+    var thinkingBubbleWindow: NSWindow?
+    var focusedExpert: ResponderExpert?
+    var representedExpert: ResponderExpert?
+    var isCompanionAvatar = false
+    var handoffEffectWindow: NSWindow?
+    var handoffEffectAnimationView: LottieAnimationView?
+    var expertNameWindow: NSWindow?
+    var popoverTitleLabel: NSTextField?
+    var popoverSubtitleLabel: NSTextField?
+    var popoverExpertSwitcherButton: HoverButton?
+    var popoverReturnButton: NSButton?
+    var popoverSettingsButton: HoverButton?
+    var popoverExpandButton: HoverButton?
+    var popoverPinButton: HoverButton?
+    var popoverCloseButton: HoverButton?
+    var expertSwitcherPopover: NSPopover?
+    var isPopoverExpanded = false
+    var isPopoverPinned = false
+    static let defaultPopoverHeight: CGFloat = 560
+
+    var isClaudeBusy: Bool { claudeSession?.isBusy ?? false }
+
+    var directionalImages: [WalkerFacing: NSImage] = [:]
+    var persona: WalkerPersona = .lenny
+
+    var lastPhraseUpdate: CFTimeInterval = 0
+    var currentPhrase = ""
+    var completionBubbleExpiry: CFTimeInterval = 0
+    var showingCompletion = false
+    var phraseAnimating = false
+    var currentActivityStatus = ""
+    var liveStatusFallbackTimer: Timer?
+    var lastLiveStatusEventAt: Date?
+    var liveStatusFallbackIndex = 0
+    var isDraggingHorizontally = false
+    var usesExpandedHorizontalRange = false
+
+    init(videoName: String) {
+        self.videoName = videoName
+    }
+}
