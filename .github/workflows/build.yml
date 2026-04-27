@@ -111,7 +111,53 @@ jobs:
           path: ${{ steps.dmg.outputs.dmg_path }}
           retention-days: 30
 
-      - name: Create GitHub Release with .dmg
+      # Rolling 'latest' release — refreshed on every push to main so the
+      # GitHub Releases page always carries the freshest .dmg. Sits
+      # alongside semver-tagged releases (v0.1.0, v0.2.0, etc); the
+      # `latest` tag force-moves to the current commit each time.
+      - name: Update rolling 'latest' release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "LilJustin — latest dev build"
+          files: ${{ steps.dmg.outputs.dmg_path }}
+          prerelease: true
+          make_latest: "false"  # don't displace tagged semver releases as 'Latest' on the repo homepage
+          body: |
+            **Mini Justin — the founder of [Orbit](https://get.yourorbit.team), on your desktop.** This is the rolling latest dev build, refreshed on every push to `main`. For tagged stable releases see the [Releases list](https://github.com/justinwilliames-sketch/liljustin/releases).
+
+            Built from commit [`${{ github.sha }}`](https://github.com/justinwilliames-sketch/liljustin/commit/${{ github.sha }}).
+
+            > [!IMPORTANT]
+            > **You MUST run a Terminal command before this app will open.**
+            > LilJustin is unsigned (free side-project, no Apple Developer ID), so macOS Gatekeeper will refuse to launch it with an error like "*LilJustin can't be opened because Apple cannot check it for malicious software*" or "*LilJustin is damaged and can't be opened*".
+            >
+            > **The fix is one command. Skip it and the app will not open.**
+
+            ## Install — three steps, do all of them
+
+            ### 1. Download the .dmg below
+
+            ### 2. Drag LilJustin into Applications
+
+            Open the `.dmg`, drag the **LilJustin** icon into the **Applications** shortcut.
+
+            ### 3. ⚠️ REQUIRED — run this in Terminal
+
+            ```bash
+            xattr -dr com.apple.quarantine /Applications/LilJustin.app
+            ```
+
+            One-time per install. Right-click → **Open** also works, as does System Settings → Privacy & Security → "Open Anyway".
+
+            ### 4. Launch from Applications
+
+            Mini Justin will appear above your Dock as an animated character.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create tagged GitHub Release with .dmg
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
