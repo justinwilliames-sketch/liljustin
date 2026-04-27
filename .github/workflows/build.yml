@@ -122,26 +122,49 @@ jobs:
           body: |
             **Mini Justin — the founder of [Orbit](https://get.yourorbit.team), on your desktop.**
 
-            ## Install
+            > [!IMPORTANT]
+            > **You MUST run a Terminal command before this app will open.**
+            > LilJustin is unsigned (free side-project, no Apple Developer ID), so macOS Gatekeeper will refuse to launch it with an error like "*LilJustin can't be opened because Apple cannot check it for malicious software*" or "*LilJustin is damaged and can't be opened*".
+            >
+            > **The fix is one command. Skip it and the app will not open.**
 
-            1. Download `${{ steps.dmg.outputs.dmg_name }}` below.
-            2. Open the `.dmg`, drag **LilJustin** into your Applications folder.
-            3. **First-launch step** — this build is unsigned (free side-project, no Apple Developer ID), so macOS will block it. Run this in Terminal once to remove the quarantine flag:
+            ## Install — three steps, do all of them
 
-                ```bash
-                xattr -dr com.apple.quarantine /Applications/LilJustin.app
-                ```
+            ### 1. Download the .dmg
 
-                The right-click → **Open** route also works, as does System Settings → Privacy & Security → "Open Anyway".
-            4. Open Mini Justin from Applications. He'll appear above your Dock.
+            Click `${{ steps.dmg.outputs.dmg_name }}` below.
+
+            ### 2. Drag LilJustin into Applications
+
+            Open the `.dmg`, drag the **LilJustin** icon into the **Applications** shortcut.
+
+            ### 3. ⚠️ REQUIRED — run this in Terminal to allow the app to open
+
+            Open the **Terminal** app (Spotlight → "Terminal") and paste this exact command, then press Enter:
+
+            ```bash
+            xattr -dr com.apple.quarantine /Applications/LilJustin.app
+            ```
+
+            This removes Apple's "downloaded from internet" quarantine flag from the app. **Without this step, double-clicking LilJustin will fail.** It's a one-time command per install — you don't need to do it again unless you re-download.
+
+            **Alternatives if you can't use Terminal:**
+            - Right-click `LilJustin.app` in Applications → choose **Open** → confirm the warning. Repeat once and macOS remembers the choice.
+            - System Settings → **Privacy & Security** → scroll down → click "**Open Anyway**" next to the LilJustin block.
+
+            ### 4. Launch from Applications
+
+            Open Mini Justin from your Applications folder. He'll appear above your Dock as an animated character.
+
+            ---
 
             ## Setup
 
-            Mini Justin is a personality skin on top of whichever model provider you connect in **Settings → Models**:
+            Mini Justin needs a model provider. Open **Settings → Models** and pick one:
 
-            - **Claude Code** — already installed and logged in? Mini Justin will detect it.
-            - **Codex / ChatGPT** — same deal.
-            - **OpenAI API** — paste your key.
+            - **Claude Code** — if you already have the CLI installed and logged in, it'll be auto-detected.
+            - **Codex / ChatGPT** — same deal, auto-detected if logged in.
+            - **OpenAI API** — paste your key in Settings.
 
             ## What this is
 
