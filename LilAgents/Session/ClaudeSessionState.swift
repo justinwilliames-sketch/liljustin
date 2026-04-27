@@ -194,6 +194,12 @@ extension ClaudeSession {
           "suggest_expert_prompt": false
         }
 
+        STRICT JSON RULES — the parser will fail and the user will see raw JSON if you violate any of these:
+        - Inside the `markdown` field, every newline MUST be the escaped two-character sequence `\\n`. NEVER emit a raw newline character inside the JSON string. Carriage returns and tabs likewise must be `\\r` and `\\t`.
+        - Every literal double-quote inside the markdown body MUST be escaped as `\\"`.
+        - Every literal backslash inside the markdown body MUST be escaped as `\\\\`.
+        - The whole JSON object stays on as many lines as you like at the OUTER level, but the `markdown` STRING VALUE is a single JSON string. Newlines within it = escaped.
+
         The `kind` value MUST be the literal string "lenny" — it's the internal parser key inherited from upstream and renaming it would break the transcript renderer. Always emit exactly one message. `suggested_experts` is always an empty array. `suggest_expert_prompt` is always false.
         """
     }

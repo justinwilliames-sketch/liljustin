@@ -415,9 +415,23 @@ extension WalkerCharacter {
 
     /// Per-tick check — returns true if currently asleep so the caller
     /// skips movement updates and holds position. Called from update().
+    ///
+    /// Sleep can only fire on TRUE inactivity. Block whenever:
+    /// - the popover is open (active conversation)
+    /// - the model is mid-turn (`isClaudeBusy`) — a long answer is
+    ///   streaming back and Sir is reading or about to read it
+    /// - the character is on screen as a focused expert / companion
+    /// - the character is mid-walk (would look weird snapping to sleep)
     func updateSleepState() -> Bool {
         let now = CACurrentMediaTime()
         if isSleeping {
+            // While sleeping, an in-flight model turn or open popover
+            // should also wake LilJustin immediately so he's not napping
+            // through someone trying to talk to him.
+            if isClaudeBusy || isIdleForPopover {
+                wakeUp()
+                return false
+            }
             if now >= wakeAt {
                 wakeUp()
                 return false
@@ -428,6 +442,7 @@ extension WalkerCharacter {
         if idleFor >= idleSleepThreshold,
            !isWalking,
            !isIdleForPopover,
+           !isClaudeBusy,
            focusedExpert == nil,
            !isCompanionAvatar {
             enterSleep()

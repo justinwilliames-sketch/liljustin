@@ -119,16 +119,32 @@ extension ClaudeSession {
     }
 
     private func decodeStructuredAssistantJSONObjectCandidate(_ candidate: String) -> [String: Any]? {
-        guard let data = candidate.data(using: .utf8),
-              let object = try? JSONSerialization.jsonObject(with: data) else {
-            return nil
+        // Try strict parse first.
+        if let object = parseJSON(candidate) {
+            return interpretStructured(object)
         }
+        // Lenient retry — LLMs often emit raw newlines / tabs inside the
+        // markdown string field instead of escaped \n / \t, which violates
+        // the JSON spec and makes strict parsing fail. Walk the candidate
+        // tracking quote state and escape raw control chars inside strings,
+        // then retry. If this still fails, fall through to nil.
+        let sanitised = sanitiseJSONStrings(candidate)
+        if sanitised != candidate, let object = parseJSON(sanitised) {
+            return interpretStructured(object)
+        }
+        return nil
+    }
 
+    private func parseJSON(_ candidate: String) -> Any? {
+        guard let data = candidate.data(using: .utf8) else { return nil }
+        return try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+    }
+
+    private func interpretStructured(_ object: Any) -> [String: Any]? {
         if let json = object as? [String: Any],
            json["answer_markdown"] is String || json["messages"] is [[String: Any]] {
             return json
         }
-
         if let wrapped = object as? String {
             let trimmed = wrapped.trimmingCharacters(in: .whitespacesAndNewlines)
             if let nested = decodeStructuredAssistantJSONObjectCandidate(trimmed) {
@@ -138,8 +154,49 @@ extension ClaudeSession {
                 return decodeStructuredAssistantJSONObjectCandidate(nestedCandidate)
             }
         }
-
         return nil
+    }
+
+    /// Escape raw newlines / carriage returns / tabs that appear INSIDE
+    /// JSON string literals. Tracks quote-and-backslash state across the
+    /// candidate so we don't accidentally escape control chars in the
+    /// outer JSON whitespace (which is already legal there).
+    ///
+    /// The model is supposed to escape these itself per the system
+    /// prompt's OUTPUT FORMAT rules, but in practice LLMs forget when
+    /// emitting long markdown bodies. This makes us robust to that.
+    private func sanitiseJSONStrings(_ input: String) -> String {
+        var output = ""
+        output.reserveCapacity(input.count)
+        var inString = false
+        var escaped = false
+        for char in input {
+            if escaped {
+                output.append(char)
+                escaped = false
+                continue
+            }
+            if char == "\\" {
+                output.append(char)
+                escaped = true
+                continue
+            }
+            if char == "\"" {
+                inString.toggle()
+                output.append(char)
+                continue
+            }
+            if inString {
+                switch char {
+                case "\n": output.append("\\n"); continue
+                case "\r": output.append("\\r"); continue
+                case "\t": output.append("\\t"); continue
+                default: break
+                }
+            }
+            output.append(char)
+        }
+        return output
     }
 
     func extractStructuredJSONCandidate(from outputText: String) -> String? {
