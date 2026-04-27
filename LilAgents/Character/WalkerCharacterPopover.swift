@@ -28,7 +28,7 @@ extension WalkerCharacter {
         }
 
         let welcome = """
-        Mini Justin — founder of Orbit, on your desktop.
+        LilJustin — founder of Orbit, on your desktop.
 
         Ask about lifecycle, deliverability, Braze, retention. The Orbit playbook, in dock form.
         """
@@ -63,6 +63,9 @@ extension WalkerCharacter {
     }
 
     func openPopover() {
+        // Real user interaction → wake from sleep + reset idle timer.
+        noteUserInteraction()
+
         if let siblings = controller?.characters {
             for sibling in siblings where sibling !== self && sibling.isIdleForPopover {
                 if sibling.isPopoverPinned { continue }

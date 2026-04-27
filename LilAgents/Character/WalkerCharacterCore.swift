@@ -288,6 +288,9 @@ extension WalkerCharacter {
         directionalImages[.left]  = loadImage(named: "lil-justin-walk-left.gif",  fallback: "main-left.png")
         directionalImages[.right] = loadImage(named: "lil-justin-walk-right.gif", fallback: "main-right.png")
         directionalImages[.back]  = loadImage(named: "main-back.gif",  fallback: "main-back.png")
+        // Sleeping idle — used by the sleep state machine when the user
+        // hasn't interacted in a while. Cached on first load.
+        sleepingImage = loadImage(named: "main-sleeping.gif", fallback: "main-sleeping.png")
     }
 
     private func loadImage(named name: String, fallback: String? = nil) -> NSImage {
@@ -350,5 +353,79 @@ extension WalkerCharacter {
 
     private func loadExpertAvatar(at path: String) -> NSImage {
         NSImage(contentsOfFile: path) ?? NSImage(size: NSSize(width: displayWidth, height: displayHeight))
+    }
+}
+
+// MARK: - Sleep state machine
+// After ~1.5–4 minutes of no interaction LilJustin curls up for a 30–120s
+// nap (`main-sleeping.gif`). Any click / popover open wakes him; otherwise
+// he wakes on his own and paces again. Cadence is randomised so the
+// rhythm doesn't feel scripted. State vars + tunables live on
+// WalkerCharacter (see WalkerCharacter.swift).
+extension WalkerCharacter {
+
+    /// Bump the last-interaction timestamp, re-randomise the next
+    /// idle-before-sleep threshold, and wake LilJustin if he was asleep.
+    /// Call from any code path representing real user interaction
+    /// (click on the sprite, popover open, drag, message sent).
+    func noteUserInteraction() {
+        lastInteractionAt = CACurrentMediaTime()
+        idleSleepThreshold = TimeInterval.random(
+            in: WalkerCharacter.minIdleBeforeSleep...WalkerCharacter.maxIdleBeforeSleep
+        )
+        if isSleeping { wakeUp() }
+    }
+
+    /// Curl up. Stops walking, displays the sleeping GIF, sets a wake
+    /// time 30–120s out at random.
+    func enterSleep() {
+        guard !isSleeping else { return }
+        isSleeping = true
+        isWalking = false
+        isPaused = true
+        wakeAt = CACurrentMediaTime() + TimeInterval.random(
+            in: WalkerCharacter.minSleepDuration...WalkerCharacter.maxSleepDuration
+        )
+        if let img = sleepingImage { imageView?.image = img }
+        // Hide any active status / completion bubble while asleep — looks
+        // weird with a bubble hovering over a sleeping character.
+        hideBubble()
+    }
+
+    /// Get up. Returns to the front-facing idle pose, takes a brief
+    /// 1–3s pause, then the existing pause→walk loop kicks back in.
+    func wakeUp() {
+        guard isSleeping else { return }
+        isSleeping = false
+        isWalking = false
+        isPaused = true
+        pauseEndTime = CACurrentMediaTime() + TimeInterval.random(in: 1.0...3.0)
+        idleSleepThreshold = TimeInterval.random(
+            in: WalkerCharacter.minIdleBeforeSleep...WalkerCharacter.maxIdleBeforeSleep
+        )
+        setFacing(.front)
+    }
+
+    /// Per-tick check — returns true if currently asleep so the caller
+    /// skips movement updates and holds position. Called from update().
+    func updateSleepState() -> Bool {
+        let now = CACurrentMediaTime()
+        if isSleeping {
+            if now >= wakeAt {
+                wakeUp()
+                return false
+            }
+            return true
+        }
+        let idleFor = now - lastInteractionAt
+        if idleFor >= idleSleepThreshold,
+           !isWalking,
+           !isIdleForPopover,
+           focusedExpert == nil,
+           !isCompanionAvatar {
+            enterSleep()
+            return true
+        }
+        return false
     }
 }

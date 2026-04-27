@@ -71,6 +71,21 @@ final class WalkerCharacter {
     // the popover resizes.
     var popoverBubbleShape: CAShapeLayer?
 
+    // ── Sleep state machine ─────────────────────────────────────────
+    // After ~1.5–4 minutes of no interaction, LilJustin curls up for
+    // a 30–120s nap (`main-sleeping.gif`). Any click / popover open
+    // wakes him immediately; otherwise he wakes on his own and paces
+    // again. Cadence is randomised so the rhythm doesn't feel scripted.
+    var sleepingImage: NSImage?
+    var isSleeping: Bool = false
+    var lastInteractionAt: CFTimeInterval = CACurrentMediaTime()
+    var idleSleepThreshold: TimeInterval = TimeInterval.random(in: 90...240)
+    var wakeAt: CFTimeInterval = 0
+    static let minIdleBeforeSleep: TimeInterval = 90      // 1.5 min
+    static let maxIdleBeforeSleep: TimeInterval = 240     // 4 min
+    static let minSleepDuration: TimeInterval = 30
+    static let maxSleepDuration: TimeInterval = 120
+
     /// Build the speech-bubble outline as a single closed CGPath:
     /// rounded body on top + downward-pointing tail below. Drawing the
     /// whole thing as one path eliminates the visible seam where a

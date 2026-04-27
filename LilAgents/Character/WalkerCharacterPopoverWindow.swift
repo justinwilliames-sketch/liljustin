@@ -37,7 +37,7 @@ private enum ExpertSwitcherCatalog {
         var entries: [ExpertSwitcherEntry] = [
             ExpertSwitcherEntry(
                 id: "lenny",
-                name: "Mini Justin",
+                name: "LilJustin",
                 title: "Founder of Orbit",
                 avatarPath: nil,
                 destination: .lenny
@@ -116,7 +116,7 @@ private final class ExpertSwitcherRowView: NSTableCellView {
             avatarView.isHidden = false
             fallbackIcon.isHidden = true
         } else if entry.isLenny, let orbitLogo = NSImage(named: "OrbitLogo") {
-            // Mini Justin row → show the Orbit logo (bundled imageset, white
+            // LilJustin row → show the Orbit logo (bundled imageset, white
             // mark on transparent). Tinted with the theme accent so it picks
             // up the indigo brand colour against the row background.
             avatarView.image = nil
@@ -521,7 +521,7 @@ extension WalkerCharacter {
         titleLabel.usesSingleLineMode = true
         popoverTitleLabel = titleLabel
 
-        // Expert switcher button — Mini Justin is the only persona in
+        // Expert switcher button — LilJustin is the only persona in
         // LilJustin, so the switcher dropdown has nothing meaningful to
         // offer. Created (so the rest of the layout maths still has the
         // reference) but hidden + disabled. Removing it entirely would

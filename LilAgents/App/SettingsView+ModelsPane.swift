@@ -76,9 +76,9 @@ extension SettingsView {
                 }
             }
 
-            SettingsSectionCard(title: "About Mini Justin", subtitle: "Founder of Orbit, on your desktop.") {
+            SettingsSectionCard(title: "About LilJustin", subtitle: "Founder of Orbit, on your desktop.") {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Mini Justin is the dock-pinned companion version of Orbit's founder. Ask him about lifecycle marketing, deliverability, Braze, retention economics — anything from the Orbit playbook.")
+                    Text("LilJustin is the dock-pinned companion version of Orbit's founder. Ask him about lifecycle marketing, deliverability, Braze, retention economics — anything from the Orbit playbook.")
                         .settingsCaption()
 
                     Link("Orbit · The lifecycle marketing OS for Claude", destination: URL(string: "https://get.yourorbit.team")!)

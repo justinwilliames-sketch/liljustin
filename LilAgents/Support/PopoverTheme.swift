@@ -193,7 +193,7 @@ struct PopoverTheme {
         titleBarBg: NSColor(red: 0.965, green: 0.965, blue: 0.971, alpha: 1.0),    // neutral-100
         titleText: NSColor(red: 0.039, green: 0.039, blue: 0.043, alpha: 1.0),     // neutral-950
         titleFont: NSFont.systemFont(ofSize: 14, weight: .semibold),
-        titleString: "Mini Justin",
+        titleString: "LilJustin",
         separatorColor: NSColor(red: 0.886, green: 0.890, blue: 0.910, alpha: 0.60),  // neutral-200
         font: NSFont.systemFont(ofSize: 14, weight: .regular),
         fontBold: NSFont.systemFont(ofSize: 14, weight: .semibold),

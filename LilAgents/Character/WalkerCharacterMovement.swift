@@ -158,6 +158,18 @@ extension WalkerCharacter {
             return
         }
 
+        // Sleep check — if LilJustin is sleeping (or just transitioned
+        // into sleep), hold position and skip all movement logic. The
+        // sleeping GIF is already swapped in by enterSleep().
+        if updateSleepState() {
+            let x = horizontalMetrics.minX + currentTravelDistance * positionProgress + flipXOffset
+            let bottomPadding = displayHeight * 0.15
+            let y = dockTopY - bottomPadding + yOffset
+            window.setFrameOrigin(NSPoint(x: x, y: y))
+            updateExpertNameTag()
+            return
+        }
+
         let now = CACurrentMediaTime()
 
         if isPaused {
