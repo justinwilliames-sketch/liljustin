@@ -4,7 +4,7 @@ This document covers the manual work that remains before LilJustin builds and sh
 
 ## What's already done
 
-- ✅ Lenny fork copied to `/Users/justin/LilJustin` (outside iCloud — required for stable Xcode builds).
+- ✅ Lenny fork copied to `~/Library/Mobile Documents/com~apple~CloudDocs/claude/LilJustin` (in iCloud Drive, alongside the source GIF assets in `claude/MiniJustin/Justin/`).
 - ✅ Heavy Lenny data deleted: `ExpertAvatars/` (16MB of headshots), `StarterArchive/` (~5MB of newsletter/podcast content), and Lenny demo media.
 - ✅ All user-facing "Lil-Lenny" branding strings renamed to "LilJustin" / "Mini Justin".
 - ✅ Justin system prompt rewritten for **Orbit founder framing** in `LilAgents/Session/ClaudeSessionState.swift` — encodes the five Orbit voice pillars (Linus Tech Tips, Marques Brownlee, Ricky Gervais, Lenny's Newsletter, Elena Verna — tone only), nine Orbit writing rules, and the slop-detector anti-patterns. Canonical source: [get-orbit `lib/admin/voice-guidelines.ts`](https://github.com/justinwilliames-sketch/get-orbit/blob/main/lib/admin/voice-guidelines.ts).
@@ -16,7 +16,7 @@ This document covers the manual work that remains before LilJustin builds and sh
 
 ## ⚠️ Required before first build (in Xcode)
 
-These are easier in the Xcode UI than via hand-editing `project.pbxproj`. Open `/Users/justin/LilJustin/lil-agents.xcodeproj` and:
+These are easier in the Xcode UI than via hand-editing `project.pbxproj`. Open `~/Library/Mobile Documents/com~apple~CloudDocs/claude/LilJustin/lil-agents.xcodeproj` and:
 
 1. **Rename the scheme.**
    Product → Scheme → Manage Schemes → select `LilAgents` → rename to `LilJustin`.
@@ -107,9 +107,11 @@ If you want to test the prompt without rebuilding the app, paste the prompt into
 Once you've done the Xcode renames:
 
 ```bash
-cd /Users/justin/LilJustin
+cd ~/Library/Mobile\ Documents/com~apple~CloudDocs/claude/LilJustin
 xcodebuild -project lil-agents.xcodeproj -scheme LilJustin -configuration Debug build 2>&1 | tail -40
 ```
+
+> **iCloud caveat:** the project lives in iCloud Drive. If you ever see weird Xcode errors about missing files or `.DS_Store` conflicts, force iCloud to fully download the folder via Finder → right-click → "Download Now", and add `.DS_Store` to your global git ignore if it's polluting commits.
 
 If the build succeeds, run the scheme in Xcode. Mini Justin should appear above your Dock. Click him to open the popover and ask a CRM question to verify the Justin voice is coming through.
 
