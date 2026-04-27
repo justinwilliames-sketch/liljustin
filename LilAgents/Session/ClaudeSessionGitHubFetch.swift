@@ -17,8 +17,8 @@ extension ClaudeSession {
     ) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.onToolUse?("Searching Lenny archive", ["summary": "Fetching archive index…"])
-            self.appendHistory(Message(role: .toolUse, text: "Searching Lenny archive: Fetching archive index…"), to: conversationKey)
+            self.onToolUse?("Searching archive", ["summary": "Fetching archive index…"])
+            self.appendHistory(Message(role: .toolUse, text: "Searching archive: Fetching archive index…"), to: conversationKey)
         }
 
         Task {
@@ -50,7 +50,7 @@ extension ClaudeSession {
 
                 let label = top.count == 1 ? "1 episode" : "\(top.count) episodes"
                 DispatchQueue.main.async { [weak self] in
-                    self?.onToolUse?("Searching Lenny archive", ["summary": "Reading \(label)…"])
+                    self?.onToolUse?("Searching archive", ["summary": "Reading \(label)…"])
                 }
 
                 var contextSections: [String] = []

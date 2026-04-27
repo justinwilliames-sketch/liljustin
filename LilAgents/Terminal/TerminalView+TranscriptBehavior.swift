@@ -183,20 +183,9 @@ extension TerminalView {
     }
 
     private func appendOfficialMCPSetupCard() {
-        let setupCard = OfficialMCPConnectCardView(theme: theme, compact: true, showsBackButton: false)
-        setupCard.onOpenWebsite = { [weak self] in
-            self?.openOfficialMCPURL()
-        }
-        setupCard.onSave = { [weak self] in
-            self?.starterPackWelcomeBannerDismissed = true
-            self?.currentWelcomeArchiveMode = nil
-        }
-        transcriptStack.addArrangedSubview(setupCard)
-        setupCard.widthAnchor.constraint(equalTo: transcriptStack.widthAnchor).isActive = true
-
-        if !isReplayingTranscript {
-            scrollTranscriptViewIntoView(setupCard, topPadding: 12, bottomPadding: 28, preferBottomEdge: true)
-        }
+        // LilJustin: archive-auth setup card permanently disabled — see
+        // showOfficialMCPSetupPanel() in TerminalView+WelcomePanel.swift.
+        return
     }
 
     func showWelcomeGreeting(forceRefresh: Bool = false) {

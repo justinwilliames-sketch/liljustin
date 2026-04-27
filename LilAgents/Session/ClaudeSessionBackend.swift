@@ -365,7 +365,7 @@ extension ClaudeSession {
         officialMCPToken(from: environment) != nil || AppSettings.hasDetectedOfficialMCPConfiguration
     }
 
-    /// True when the backend can invoke the Lenny MCP server using its own locally
+    /// True when the backend can invoke the archive MCP server using its own locally
     /// stored credentials (no separate bearer token required from the app).
     func backendHasNativeMCPConfiguration(_ backend: Backend) -> Bool {
         switch backend {

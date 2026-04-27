@@ -267,7 +267,7 @@ extension ClaudeSession {
                 let tools = item["tools"] as? [[String: Any]] ?? []
                 let count = tools.count
                 SessionDebugLogger.log("mcp", "mcp_list_tools returned \(count) tool(s)")
-                let summary = "Connected to Lenny archive, \(count) tools ready"
+                let summary = "Connected to archive, \(count) tools ready"
                 onToolResult?(summary, false)
                 appendHistory(Message(role: .toolResult, text: summary), to: conversationKey)
 

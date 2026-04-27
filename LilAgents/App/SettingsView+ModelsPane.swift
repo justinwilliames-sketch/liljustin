@@ -130,7 +130,7 @@ extension SettingsView {
                         Text("Reset")
                             .font(.headline)
 
-                        Text("Clear LilJustin's local settings and remove its Claude/Codex LennyData MCP configuration so you can test the setup flow from a clean state.")
+                        Text("Clear LilJustin's local settings and remove its Claude/Codex archive MCP configuration so you can test the setup flow from a clean state.")
                             .settingsCaption()
 
                         Button("Reset all local data…", role: .destructive) {

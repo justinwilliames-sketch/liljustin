@@ -27,7 +27,7 @@ enum OfficialMCPInstaller {
         var errorDescription: String? {
             switch self {
             case .emptyToken:
-                return "Paste the auth key from lennysdata.com first."
+                return "Paste the auth key first."
             case let .unableToCreateConfigDirectory(label):
                 return "Couldn't create the local \(label) config folder."
             case let .unableToWriteConfig(label):
@@ -97,13 +97,13 @@ enum OfficialMCPInstaller {
         case (0, _):
             summary = "No Claude Code or Codex install was detected yet. LilJustin will still save the key locally for later."
         case (_, 2):
-            summary = "Claude Code and Codex are already detected. LilJustin will keep any existing LennyData MCP setup and prefer Claude Code first when both are available."
+            summary = "Claude Code and Codex are already detected. LilJustin will keep any existing archive MCP setup and prefer Claude Code first when both are available."
         case (_, 1):
             let detectedLabels = naturalList(detectedTargets.map(\.label))
             let configuredLabels = naturalList(configuredTargets.map(\.label))
-            summary = "\(detectedLabels) \(detectedTargets.count == 1 ? "is" : "are") detected. LilJustin will keep the existing LennyData MCP in \(configuredLabels) and configure the other detected client locally if needed."
+            summary = "\(detectedLabels) \(detectedTargets.count == 1 ? "is" : "are") detected. LilJustin will keep the existing archive MCP in \(configuredLabels) and configure the other detected client locally if needed."
         default:
-            summary = "LilJustin will detect Claude Code and Codex on this Mac, keep any existing LennyData MCP setup, and configure whichever detected clients still need it."
+            summary = "LilJustin will detect Claude Code and Codex on this Mac, keep any existing archive MCP setup, and configure whichever detected clients still need it."
         }
         logInstallTargetDiagnostics(context: "status summary", summary: summary)
         return summary

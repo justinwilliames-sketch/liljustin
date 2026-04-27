@@ -52,7 +52,7 @@ class StarterPackUpsellCardView: NSView {
             stack.addArrangedSubview(eyebrow)
         }
 
-        let title = NSTextField(wrappingLabelWithString: compact ? "Unlock the full archive" : "Get the full Lenny archive")
+        let title = NSTextField(wrappingLabelWithString: compact ? "Unlock the full archive" : "Get the full archive")
         title.font = NSFont.systemFont(ofSize: compact ? 13 : 14, weight: .semibold)
         title.textColor = theme.textPrimary
         title.maximumNumberOfLines = 0
@@ -61,7 +61,7 @@ class StarterPackUpsellCardView: NSView {
 
         let body = NSTextField(wrappingLabelWithString: compact
             ? "Connect a model provider to start chatting."
-            : "Your starter pack covers the essentials. Connect the official Lenny MCP from lennysdata.com to unlock the full archive."
+            : "Your starter pack covers the essentials. Connect a model provider in Settings."
         )
         body.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         body.textColor = theme.textDim

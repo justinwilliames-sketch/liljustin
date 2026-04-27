@@ -131,7 +131,7 @@ class OfficialMCPConnectCardView: NSView {
     }
 
     private func addCompactLayout(to stack: NSStackView) {
-        let body = NSTextField(wrappingLabelWithString: "Paste your auth key from lennysdata.com.")
+        let body = NSTextField(wrappingLabelWithString: "Archive auth-key flow disabled in LilJustin.")
         body.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         body.textColor = theme.textDim
         body.maximumNumberOfLines = 1
@@ -157,7 +157,7 @@ class OfficialMCPConnectCardView: NSView {
     }
 
     private func addFullLayout(to stack: NSStackView) {
-        let body = NSTextField(wrappingLabelWithString: "Open lennysdata.com, copy your auth key, and paste it here to unlock the full archive.")
+        let body = NSTextField(wrappingLabelWithString: "Archive auth-key flow disabled in LilJustin.")
         body.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         body.textColor = theme.textDim
         body.maximumNumberOfLines = 2
@@ -319,7 +319,7 @@ class OfficialMCPConnectCardView: NSView {
         guard !trimmed.isEmpty else {
             detectionLabel.textColor = theme.errorColor
             detectionLabel.isHidden = false
-            detectionLabel.stringValue = "Paste the auth key from lennysdata.com first."
+            detectionLabel.stringValue = "Paste the auth key first."
             return
         }
         SessionDebugLogger.log("token-entry", "banner: user tapped Save and connect. tokenLength=\(trimmed.count) tokenPrefix=\(String(trimmed.prefix(8)))...")

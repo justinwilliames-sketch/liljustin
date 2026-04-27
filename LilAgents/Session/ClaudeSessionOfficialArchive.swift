@@ -55,7 +55,7 @@ extension ClaudeSession {
                     await MainActor.run {
                         completion(.success((
                             promptContext: """
-                            The official Lenny archive search did not return a strong direct match for this query.
+                            The official archive search did not return a strong direct match for this query.
                             Be explicit about uncertainty and avoid inventing specific archive citations.
                             """,
                             experts: [],
@@ -177,7 +177,7 @@ extension ClaudeSession {
         }
 
         return """
-        Use the official Lenny archive context below as the primary evidence for this answer.
+        Use the official archive context below as the primary evidence for this answer.
         Prefer this evidence over generic knowledge and be explicit about uncertainty if the archive context is incomplete.
 
         Relevant archive matches:

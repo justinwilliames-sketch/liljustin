@@ -64,7 +64,7 @@ extension ClaudeSession {
 
             let sourceSummary = archiveMode == .starterPack
                 ? "Source: Lenny's public archive (GitHub)"
-                : "Source: Official Lenny archive"
+                : "Source: Official archive"
             self.onToolResult?(sourceSummary, false)
             self.appendHistory(Message(role: .toolResult, text: sourceSummary), to: conversationKey)
 
@@ -93,8 +93,8 @@ extension ClaudeSession {
                 case let .claudeCodeCLI(path):
                     let archiveContext = self.githubArchiveContext(for: backend, expert: activeExpert)
                     SessionDebugLogger.log("archive", "using GitHub archive context (CLI). backend=\(backend) expert=\(activeExpert?.name ?? "none")")
-                    self.onToolUse?("Searching Lenny archive", ["summary": "Fetching from Lenny's public archive"])
-                    self.appendHistory(Message(role: .toolUse, text: "Searching Lenny archive"), to: conversationKey)
+                    self.onToolUse?("Searching archive", ["summary": "Fetching from Lenny's public archive"])
+                    self.appendHistory(Message(role: .toolUse, text: "Searching archive"), to: conversationKey)
                     self.onToolResult?("Archive ready", false)
                     self.appendHistory(Message(role: .toolResult, text: "Archive ready"), to: conversationKey)
                     self.callClaudeCodeCLI(
@@ -112,8 +112,8 @@ extension ClaudeSession {
                 case let .codexCLI(path):
                     let archiveContext = self.githubArchiveContext(for: backend, expert: activeExpert)
                     SessionDebugLogger.log("archive", "using GitHub archive context (Codex). backend=\(backend) expert=\(activeExpert?.name ?? "none")")
-                    self.onToolUse?("Searching Lenny archive", ["summary": "Fetching from Lenny's public archive"])
-                    self.appendHistory(Message(role: .toolUse, text: "Searching Lenny archive"), to: conversationKey)
+                    self.onToolUse?("Searching archive", ["summary": "Fetching from Lenny's public archive"])
+                    self.appendHistory(Message(role: .toolUse, text: "Searching archive"), to: conversationKey)
                     self.onToolResult?("Archive ready", false)
                     self.appendHistory(Message(role: .toolResult, text: "Archive ready"), to: conversationKey)
                     self.callCodexCLI(
@@ -142,7 +142,7 @@ extension ClaudeSession {
             let hasExplicitToken = self.officialMCPToken(from: environment) != nil
             if archiveMode == .officialMCP, self.backendHasNativeMCPConfiguration(backend), !hasExplicitToken {
                 SessionDebugLogger.log("archive", "native MCP path: backend=\(backend) — dispatching with useOfficialMCP=true, no token injection")
-                self.onToolUse?("Connecting to archive", ["summary": "Connecting to the official Lenny archive"])
+                self.onToolUse?("Connecting to archive", ["summary": "Connecting to the official archive"])
                 self.appendHistory(Message(role: .toolUse, text: "Connecting to archive"), to: conversationKey)
                 self.onToolResult?("Archive ready", false)
                 self.appendHistory(Message(role: .toolResult, text: "Archive ready"), to: conversationKey)
@@ -171,7 +171,7 @@ extension ClaudeSession {
                 // entries in the native config (--strict-mcp-config loads only ours).
                 if case .claudeCodeCLI = backend {
                     SessionDebugLogger.log("archive", "claude CLI settings token: injecting via --mcp-config --strict-mcp-config. token=\(String(token.prefix(8)))...")
-                    self.onToolUse?("Connecting to archive", ["summary": "Connecting to the official Lenny archive"])
+                    self.onToolUse?("Connecting to archive", ["summary": "Connecting to the official archive"])
                     self.appendHistory(Message(role: .toolUse, text: "Connecting to archive"), to: conversationKey)
                     self.onToolResult?("Archive ready", false)
                     self.appendHistory(Message(role: .toolResult, text: "Archive ready"), to: conversationKey)
@@ -265,8 +265,8 @@ extension ClaudeSession {
 
             case let .claudeCodeCLI(path):
                 let archiveContext = self.githubArchiveContext(for: backend, expert: activeExpert)
-                self.onToolUse?("Searching Lenny archive", ["summary": "Fetching from Lenny's public archive"])
-                self.appendHistory(Message(role: .toolUse, text: "Searching Lenny archive"), to: conversationKey)
+                self.onToolUse?("Searching archive", ["summary": "Fetching from Lenny's public archive"])
+                self.appendHistory(Message(role: .toolUse, text: "Searching archive"), to: conversationKey)
                 self.onToolResult?("Archive ready", false)
                 self.appendHistory(Message(role: .toolResult, text: "Archive ready"), to: conversationKey)
                 self.callClaudeCodeCLI(
@@ -282,8 +282,8 @@ extension ClaudeSession {
                 )
             case let .codexCLI(path):
                 let archiveContext = self.githubArchiveContext(for: backend, expert: activeExpert)
-                self.onToolUse?("Searching Lenny archive", ["summary": "Fetching from Lenny's public archive"])
-                self.appendHistory(Message(role: .toolUse, text: "Searching Lenny archive"), to: conversationKey)
+                self.onToolUse?("Searching archive", ["summary": "Fetching from Lenny's public archive"])
+                self.appendHistory(Message(role: .toolUse, text: "Searching archive"), to: conversationKey)
                 self.onToolResult?("Archive ready", false)
                 self.appendHistory(Message(role: .toolResult, text: "Archive ready"), to: conversationKey)
                 self.callCodexCLI(

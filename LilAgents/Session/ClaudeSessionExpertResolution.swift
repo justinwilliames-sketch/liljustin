@@ -243,7 +243,7 @@ extension ClaudeSession {
         }
 
         if unique.isEmpty {
-            return "Use the Lenny archive tools to continue grounding follow-up answers for \(name)."
+            return "Use the archive tools to continue grounding follow-up answers for \(name)."
         }
 
         return Array(unique.prefix(3)).joined(separator: "\n")

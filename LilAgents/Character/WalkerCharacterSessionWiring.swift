@@ -173,11 +173,14 @@ extension WalkerCharacter {
             self?.terminalView?.clearApprovalRequest()
         }
 
-        session.onMCPAuthFailure = { [weak self] in
-            // failTurn was already called before this fires.
-            // Mark reconnect needed (persists across restarts) then show the panel.
-            AppSettings.mcpReconnectNeeded = true
-            self?.terminalView?.showOfficialMCPSetupPanel()
+        session.onMCPAuthFailure = { _ in
+            // LilJustin: the archive MCP auth-failure flow is intentionally a no-op.
+            // LilJustin doesn't use the archive at all and the upstream
+            // session parser will sometimes mis-classify "no Lenny MCP detected"
+            // as "Lenny MCP auth failed", which used to:
+            //   (a) call failTurn so chat appeared to error out, and
+            //   (b) display the lennysdata.com auth-key prompt.
+            // Both behaviours are wrong for LilJustin. Suppress.
         }
     }
 

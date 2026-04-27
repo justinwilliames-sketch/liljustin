@@ -3,12 +3,12 @@ import Combine
 import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case source       // Hidden in LilJustin — Lenny archive mode is not used.
+    case source       // Hidden in LilJustin — archive mode is not used.
     case models
     case about
     case developer
 
-    // LilJustin hides the `.source` pane (Lenny archive switcher) from the sidebar.
+    // LilJustin hides the `.source` pane (archive switcher) from the sidebar.
     // The pane itself stays in the file tree to keep the upstream merge surface small.
     static var allCases: [SettingsPane] { [.models, .about, .developer] }
 
@@ -64,7 +64,7 @@ struct SettingsView: View {
     @State var detectedClaudeAvailable: Bool? = nil
     @State var detectedCodexAvailable: Bool? = nil
 
-    let officialArchiveURL = URL(string: "https://www.lennysdata.com") ?? URL(fileURLWithPath: "/")
+    let officialArchiveURL = URL(string: "https://get.yourorbit.team") ?? URL(fileURLWithPath: "/")
 
     var body: some View {
         NavigationSplitView {
@@ -113,7 +113,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This clears LilJustin's saved token, API keys, model/runtime settings, onboarding state, and removes the `lennysdata` MCP config it wrote for Claude and Codex.")
+            Text("This clears LilJustin's saved token, API keys, model/runtime settings, onboarding state, and removes the archive MCP config it wrote for Claude and Codex.")
         }
         .alert("Reset Failed", isPresented: Binding(
             get: { resetErrorMessage != nil },

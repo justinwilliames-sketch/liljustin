@@ -277,7 +277,7 @@ extension ClaudeSession {
         }
 
         if expectMCP {
-            sections.append("Retrieve information ONLY using the Lenny archive MCP tools. Do not use WebFetch, WebSearch, or any other tool. Do not draw on training data for archive-specific content. Start with `index.md` for fast routing, then narrow to the right person/source, then read deeper only as needed. In expert mode, route through `index.md` to that person first. Return only the JSON object described above.")
+            sections.append("Retrieve information ONLY using the archive MCP tools. Do not use WebFetch, WebSearch, or any other tool. Do not draw on training data for archive-specific content. Start with `index.md` for fast routing, then narrow to the right person/source, then read deeper only as needed. In expert mode, route through `index.md` to that person first. Return only the JSON object described above.")
         } else {
             sections.append("Retrieve information ONLY from the GitHub URLs explicitly provided above (the index.json and the podcast/newsletter files). Do not use WebSearch. Do not fetch from any other website. Do not use training knowledge for archive-specific content. Answer based solely on what you retrieved. Return only the JSON object described above.")
         }

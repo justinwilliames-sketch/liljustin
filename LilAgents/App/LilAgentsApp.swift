@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
     var focusedExpert: ResponderExpert?
     var settingsWindow: NSWindow?
     var char1Item: NSMenuItem?
-    var backToLennyItem: NSMenuItem?
+    var backToCharacterItem: NSMenuItem?
     var installUpdateItem: NSMenuItem?
     var pendingScheduledUpdate = false
     var updaterController: SPUStandardUpdaterController!
@@ -91,10 +91,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
         menu.addItem(char1Item)
         self.char1Item = char1Item
 
-        let backToLennyItem = NSMenuItem(title: "Back to LilJustin", action: #selector(backToLenny), keyEquivalent: "")
-        backToLennyItem.isEnabled = false
-        menu.addItem(backToLennyItem)
-        self.backToLennyItem = backToLennyItem
+        let backToCharacterItem = NSMenuItem(title: "Back to LilJustin", action: #selector(backToLenny), keyEquivalent: "")
+        backToCharacterItem.isEnabled = false
+        menu.addItem(backToCharacterItem)
+        self.backToCharacterItem = backToCharacterItem
 
         menu.addItem(NSMenuItem.separator())
 
@@ -227,7 +227,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
         }
     }
 
-    @objc func backToLenny() {
+    @objc func backToCharacter() {
         controller?.returnToGenie()
     }
 

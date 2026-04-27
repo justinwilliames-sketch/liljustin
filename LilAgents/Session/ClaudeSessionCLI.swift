@@ -69,7 +69,7 @@ extension ClaudeSession {
             body: prompt
         )
 
-        // Tracks whether the Lenny MCP server actually registered tools in this session.
+        // Tracks whether the archive MCP server actually registered tools in this session.
         // Set from the init event so the completion handler can detect a missing server
         // without relying on response-text pattern matching.
         var lennyMCPFoundInInit = false
@@ -87,7 +87,7 @@ extension ClaudeSession {
                     return
                 }
 
-                // Detect the init event and check if the Lenny MCP server loaded.
+                // Detect the init event and check if the archive MCP server loaded.
                 if useOfficialMCP, !lennyMCPFoundInInit,
                    let data = line.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -157,7 +157,7 @@ extension ClaudeSession {
                     SessionDebugLogger.log("claude-cli", "MCP server absent from init — failing turn and firing onMCPAuthFailure")
                     DispatchQueue.main.async {
                         self.failTurn(
-                            "The Lenny archive isn't connected — your auth token may have expired or needs to be set up.",
+                            "The archive isn't connected — your auth token may have expired or needs to be set up.",
                             conversationKey: conversationKey
                         )
                         self.onMCPAuthFailure?()
@@ -171,7 +171,7 @@ extension ClaudeSession {
                     SessionDebugLogger.log("claude-cli", "MCP not-connected detected in response text — failing turn and firing onMCPAuthFailure")
                     DispatchQueue.main.async {
                         self.failTurn(
-                            "The Lenny archive isn't connected — your auth token may have expired or needs to be set up.",
+                            "The archive isn't connected — your auth token may have expired or needs to be set up.",
                             conversationKey: conversationKey
                         )
                         self.onMCPAuthFailure?()
@@ -190,7 +190,7 @@ extension ClaudeSession {
                 SessionDebugLogger.log("claude-cli", "MCP auth failure detected — failing turn and firing onMCPAuthFailure")
                 DispatchQueue.main.async {
                     self.failTurn(
-                        "The Lenny archive isn't connected — your auth token may have expired or needs to be set up.",
+                        "The archive isn't connected — your auth token may have expired or needs to be set up.",
                         conversationKey: conversationKey
                     )
                     self.onMCPAuthFailure?()
@@ -345,7 +345,7 @@ extension ClaudeSession {
                 SessionDebugLogger.log("codex-cli", "MCP auth failure detected — failing turn and firing onMCPAuthFailure")
                 DispatchQueue.main.async {
                     self.failTurn(
-                        "The Lenny archive isn't connected — your auth token may have expired or needs to be set up.",
+                        "The archive isn't connected — your auth token may have expired or needs to be set up.",
                         conversationKey: conversationKey
                     )
                     self.onMCPAuthFailure?()

@@ -7,10 +7,10 @@ extension SettingsView {
         return VStack(alignment: .leading, spacing: 20) {
             SettingsHeader(
                 title: "Lenny source",
-                subtitle: "Choose whether LilJustin answers from the bundled Starter Pack or the full LennyData archive."
+                subtitle: "Choose whether LilJustin answers from the local archive or the full archive MCP."
             )
 
-            SettingsSectionCard(title: "Answer source", subtitle: "Starter Pack is local and fast. Full LennyData uses the official archive when available.") {
+            SettingsSectionCard(title: "Answer source", subtitle: "Local archive is fast. Remote archive MCP is broader.") {
                 VStack(spacing: 0) {
                     sourceRow(
                         mode: .starterPack,
@@ -22,9 +22,9 @@ extension SettingsView {
 
                     sourceRow(
                         mode: .officialMCP,
-                        title: "Full LennyData",
+                        title: "Full archive",
                         subtitle: "Official archive access",
-                        detail: "Broader and deeper answers from the full LennyData archive.",
+                        detail: "Broader and deeper answers from the remote archive.",
                         isLast: archiveAccessMode != AppSettings.ArchiveAccessMode.officialMCP.rawValue
                     )
                 }
@@ -39,7 +39,7 @@ extension SettingsView {
                             SettingsInfoRow(
                                 icon: "exclamationmark.triangle.fill",
                                 iconColor: .orange,
-                                text: "The Lenny archive connection failed. Your auth token may have expired — enter a new one below to reconnect."
+                                text: "The archive connection failed. Your auth token may have expired — enter a new one below to reconnect."
                             )
                         }
 
@@ -56,7 +56,7 @@ extension SettingsView {
                                 SettingsInfoRow(
                                     icon: "info.circle.fill",
                                     iconColor: Color.secondary,
-                                    text: "Lenny MCP URL detected in your CLI config. Enter an auth key below to activate authentication."
+                                    text: "Archive MCP URL detected in your CLI config. Enter an auth key below to activate authentication."
                                 )
                             }
 
@@ -69,7 +69,7 @@ extension SettingsView {
                                 }
                                 .buttonStyle(.borderedProminent)
 
-                                Button("Open lennysdata.com") {
+                                Button("Open archive site") {
                                     NSWorkspace.shared.open(officialArchiveURL)
                                 }
                                 .buttonStyle(.bordered)
@@ -154,7 +154,7 @@ extension SettingsView {
     private func saveOfficialArchiveToken() {
         let trimmed = officialToken.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            sourcePaneErrorMessage = "Paste the auth key from lennysdata.com first."
+            sourcePaneErrorMessage = "Paste the auth key first."
             return
         }
 

@@ -11,17 +11,17 @@ enum LennyArchiveClientError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidEndpoint:
-            return "The Lenny archive endpoint is invalid."
+            return "The archive endpoint is invalid."
         case .unsupportedResponse:
-            return "The Lenny archive returned an unsupported response."
+            return "The archive returned an unsupported response."
         case .invalidPayload:
-            return "The Lenny archive returned malformed data."
+            return "The archive returned malformed data."
         case let .httpError(statusCode, message):
-            return message.isEmpty ? "The Lenny archive request failed with HTTP \(statusCode)." : message
+            return message.isEmpty ? "The archive request failed with HTTP \(statusCode)." : message
         case let .serverError(message):
             return message
         case .missingToolResult:
-            return "The Lenny archive returned no tool result."
+            return "The archive returned no tool result."
         }
     }
 }
@@ -165,7 +165,7 @@ final class LennyArchiveClient {
         }
 
         if let error = payload["error"] as? [String: Any] {
-            let message = (error["message"] as? String) ?? "The Lenny archive request failed."
+            let message = (error["message"] as? String) ?? "The archive request failed."
             throw LennyArchiveClientError.serverError(message)
         }
 

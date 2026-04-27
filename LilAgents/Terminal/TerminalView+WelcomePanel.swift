@@ -33,14 +33,9 @@ extension TerminalView {
     }
 
     var shouldShowStarterPackUpsell: Bool {
-        switch welcomePreviewMode {
-        case .live:
-            return AppSettings.effectiveArchiveAccessMode == .starterPack && !AppSettings.hasDetectedOfficialMCPConfiguration
-        case .starterPackWithBanner:
-            return true
-        case .starterPackConnected, .officialConnected:
-            return false
-        }
+        // LilJustin has no archive — the Starter Pack / LennyData
+        // upsell is permanently disabled. Always false.
+        false
     }
 
     var shouldPresentStarterPackWelcomeBanner: Bool {
@@ -65,48 +60,11 @@ extension TerminalView {
     }
 
     func showOfficialMCPSetupPanel() {
-        expertSuggestionStack.arrangedSubviews.forEach { view in
-            expertSuggestionStack.removeArrangedSubview(view)
-            view.removeFromSuperview()
-        }
-
-        isShowingOfficialMCPSetupPanel = true
-
-        let setupCard = OfficialMCPConnectCardView(theme: theme, compact: true, showsBackButton: false)
-        setupCard.onOpenWebsite = { [weak self] in
-            self?.openOfficialMCPURL()
-        }
-        setupCard.onBack = { [weak self] in
-            guard let self else { return }
-            self.isShowingOfficialMCPSetupPanel = false
-            self.showWelcomeSuggestionsPanel()
-        }
-        setupCard.onDismiss = { [weak self] in
-            guard let self else { return }
-            AppSettings.mcpReconnectNeeded = false
-            self.isShowingOfficialMCPSetupPanel = false
-            self.mcpSetupBannerDismissedThisSession = true  // suppress proactive banner this session
-            self.showWelcomeSuggestionsPanel()
-        }
-        setupCard.onUseStarterPack = { [weak self] in
-            guard let self else { return }
-            AppSettings.mcpReconnectNeeded = false
-            AppSettings.archiveAccessMode = .starterPack
-            self.isShowingOfficialMCPSetupPanel = false
-            self.refreshFirstRunStateIfNeeded(forceRefresh: true)
-            self.showWelcomeSuggestionsPanel()
-        }
-        setupCard.onSave = { [weak self] in
-            self?.completeOfficialMCPSetupFlow()
-        }
-
-        expertSuggestionLabel.isHidden = true
-        expertSuggestionStack.addArrangedSubview(setupCard)
-        setupCard.widthAnchor.constraint(equalTo: expertSuggestionStack.widthAnchor).isActive = true
-        welcomeChipsView = nil
-        expertSuggestionContainer.isHidden = false
-        expertSuggestionContainer.alphaValue = 1
-        relayoutPanels()
+        // LilJustin: the lennysdata.com auth-key card is permanently disabled.
+        // Orbit content is free; LilJustin should never block the user behind
+        // an auth prompt for an upstream service it doesn't even use.
+        AppSettings.mcpReconnectNeeded = false
+        isShowingOfficialMCPSetupPanel = false
     }
 
     func openAppSettings() {
