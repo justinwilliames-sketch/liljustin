@@ -21,6 +21,15 @@ extension WalkerCharacter {
     static var soundsEnabled = true
 
     func updateThinkingBubble() {
+        // Hard suppression — when the chat popover is open, no ambient
+        // bubbles ever show. The popover is the conversation surface;
+        // a status/completion bubble next to it competes for attention
+        // and looks like a leak.
+        if popoverWindow?.isVisible == true {
+            hideBubble()
+            return
+        }
+
         if isClaudeBusy && !currentActivityStatus.isEmpty {
             hideBubble()
             return
@@ -88,6 +97,12 @@ extension WalkerCharacter {
     }
 
     func showBubble(text: String, isCompletion: Bool) {
+        // Hard suppression — never show an ambient bubble while the chat
+        // popover is open (the popover IS the conversation surface).
+        if popoverWindow?.isVisible == true {
+            return
+        }
+
         let t = resolvedTheme
         if thinkingBubbleWindow == nil {
             createThinkingBubble()
@@ -96,8 +111,14 @@ extension WalkerCharacter {
         let h = Self.bubbleH
         let padding: CGFloat = 16
         let font = t.bubbleFont
+
+        // Cap bubble width so unexpectedly long status strings don't
+        // grow off-screen. Anything beyond this gets ellipsis-truncated
+        // by the label's lineBreakMode below.
+        let maxBubbleW: CGFloat = 220
         let textSize = (text as NSString).size(withAttributes: [.font: font])
-        let bubbleW = max(ceil(textSize.width) + padding * 2, 48)
+        let measuredW = ceil(textSize.width) + padding * 2
+        let bubbleW = min(maxBubbleW, max(measuredW, 48))
         let bubbleRadius = h / 2
 
         let charFrame = window.frame
@@ -117,9 +138,21 @@ extension WalkerCharacter {
                 label.font = font
                 let lineH = ceil(textSize.height)
                 let labelY = round((h - lineH) / 2) - 1
-                label.frame = NSRect(x: 0, y: labelY, width: bubbleW, height: lineH + 2)
+                // Leave horizontal padding inside the bubble so the
+                // ellipsis doesn't get crushed against the rounded edge.
+                let labelW = bubbleW - padding
+                let labelX = (bubbleW - labelW) / 2
+                label.frame = NSRect(x: labelX, y: labelY, width: labelW, height: lineH + 2)
                 label.stringValue = text
                 label.textColor = textColor
+                // Ellipsis-truncate at the end if the string is wider than
+                // the (capped) bubble — clean "diggi…" rather than visually
+                // chopping at a random pixel column.
+                label.lineBreakMode = .byTruncatingTail
+                label.maximumNumberOfLines = 1
+                label.cell?.wraps = false
+                label.cell?.isScrollable = false
+                label.alignment = .center
             }
         }
 
