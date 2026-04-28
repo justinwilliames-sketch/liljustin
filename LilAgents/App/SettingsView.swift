@@ -5,12 +5,13 @@ import SwiftUI
 enum SettingsPane: String, CaseIterable, Identifiable {
     case source       // Hidden in LilJustin — archive mode is not used.
     case models
+    case businessContext
     case about
     case developer
 
     // LilJustin hides the `.source` pane (archive switcher) from the sidebar.
     // The pane itself stays in the file tree to keep the upstream merge surface small.
-    static var allCases: [SettingsPane] { [.models, .about, .developer] }
+    static var allCases: [SettingsPane] { [.models, .businessContext, .about, .developer] }
 
     var id: String { rawValue }
 
@@ -18,6 +19,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .source: return "Source"
         case .models: return "Models"
+        case .businessContext: return "Business context"
         case .about: return "About"
         case .developer: return "Developer"
         }
@@ -27,6 +29,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .source: return "Hidden"
         case .models: return "Runtime and model choices"
+        case .businessContext: return "Tell me about your program"
         case .about: return "Credits and release notes"
         case .developer: return "Logs and preview states"
         }
@@ -36,6 +39,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .source: return "books.vertical.fill"
         case .models: return "cpu.fill"
+        case .businessContext: return "building.2.crop.circle.fill"
         case .about: return "person.text.rectangle.fill"
         case .developer: return "wrench.and.screwdriver.fill"
         }
@@ -100,6 +104,14 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshDetectionStateAndDefaults()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .liLJustinOpenSettingsPane)) { note in
+            // Deep-link from the welcome panel "Tell me about your program"
+            // card and any future settings shortcuts. Object is the
+            // `SettingsPane.rawValue` to route to.
+            if let raw = note.object as? String, let pane = SettingsPane(rawValue: raw), visiblePanes.contains(pane) {
+                selectedPane = pane
+            }
+        }
         .onChange(of: debugLoggingEnabled) { _, enabled in
             if !enabled && selectedPane == .developer {
                 selectedPane = .models
@@ -139,7 +151,7 @@ struct SettingsView: View {
     private var visiblePanes: [SettingsPane] {
         // Lenny `.source` pane is intentionally absent — LilJustin doesn't
         // use the upstream archive at all.
-        var panes: [SettingsPane] = [.models, .about]
+        var panes: [SettingsPane] = [.models, .businessContext, .about]
         if AppSettings.showsDeveloperTools {
             panes.append(.developer)
         }
@@ -156,6 +168,8 @@ struct SettingsView: View {
             EmptyView()
         case .models:
             modelsPane
+        case .businessContext:
+            businessContextPane
         case .about:
             aboutPane
         case .developer:

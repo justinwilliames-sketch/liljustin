@@ -328,7 +328,7 @@ extension WalkerCharacter {
             setFacing(.front)
             setPersona(.expert(expert))
         } else {
-            setPersona(.lenny)
+            setPersona(.justin)
             if wasExpertMode, !movementLocked, !isDraggingHorizontally, !isOnboarding {
                 isPaused = true
                 isWalking = false
@@ -496,7 +496,7 @@ extension WalkerCharacter {
         self.persona = persona
 
         switch persona {
-        case .lenny:
+        case .justin:
             loadDirectionalImages()
             characterColor = NSColor(red: 0.96, green: 0.63, blue: 0.23, alpha: 1.0)
 

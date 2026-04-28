@@ -19,7 +19,7 @@ struct ResponderExpert: Equatable {
 }
 
 enum TranscriptSpeakerKind: String, Codable, Equatable {
-    case lenny
+    case justin
     case expert
     case status
     case assistant
@@ -79,7 +79,7 @@ struct TranscriptSpeakerMessage: Codable, Equatable {
             return trimmed
         }
         switch kind {
-        case .lenny:
+        case .justin:
             return "LilJustin"
         case .expert:
             return followUpExpertName ?? "Expert"
@@ -172,7 +172,7 @@ struct ConversationState {
 
 struct TranscriptSpeaker: Equatable {
     enum Kind: Equatable {
-        case lenny
+        case justin
         case expert
         case user
         case system

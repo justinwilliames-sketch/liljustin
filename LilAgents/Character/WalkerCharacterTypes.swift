@@ -8,7 +8,7 @@ enum WalkerFacing {
 }
 
 enum WalkerPersona {
-    case lenny
+    case justin
     case expert(ResponderExpert)
 }
 

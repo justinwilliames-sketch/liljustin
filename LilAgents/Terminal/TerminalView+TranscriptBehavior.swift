@@ -93,7 +93,8 @@ extension TerminalView {
         followUpExpert: ResponderExpert? = nil,
         textInsets: NSSize = NSSize(width: 14, height: 12),
         showsCopyAction: Bool = true,
-        showsSpeakerHeader: Bool = true
+        showsSpeakerHeader: Bool = true,
+        markdownSource: String? = nil
     ) {
         let followUpHandler: (() -> Void)? = {
             guard let followUpExpert, !self.isExpertMode else { return nil }
@@ -110,6 +111,7 @@ extension TerminalView {
             theme: theme,
             showsSpeakerHeader: showsSpeakerHeader,
             textInsets: textInsets,
+            markdownSource: markdownSource,
             onCopy: showsCopyAction ? {
                 WalkerCharacter.playSelectionSound()
             } : nil,
@@ -226,7 +228,7 @@ extension TerminalView {
             .font: t.font,
             .foregroundColor: t.textPrimary,
         ])
-        appendBubble(text: attrText, isUser: false, speaker: TranscriptSpeaker(name: "LilJustin", avatarPath: nil, kind: .lenny))
+        appendBubble(text: attrText, isUser: false, speaker: TranscriptSpeaker(name: "LilJustin", avatarPath: nil, kind: .justin))
 
         lastObservedFirstRunConfigurationSignature = firstRunConfigurationSignature()
         lastRenderedWelcomeSignature = welcomeSignature
@@ -293,11 +295,13 @@ extension TerminalView {
             if let lastBubble = transcriptStack.arrangedSubviews.last as? ChatBubbleView {
                 let formatted = TerminalMarkdownRenderer.render(currentAssistantText, theme: theme)
                 lastBubble.setText(formatted)
+                lastBubble.setMarkdownSource(currentAssistantText)
             } else {
                 beginAssistantTurn(name: theme.titleString)
                 if let lastBubble = transcriptStack.arrangedSubviews.last as? ChatBubbleView {
                     let formatted = TerminalMarkdownRenderer.render(currentAssistantText, theme: theme)
                     lastBubble.setText(formatted)
+                    lastBubble.setMarkdownSource(currentAssistantText)
                 }
             }
             // Only scroll if already near bottom; don't force scroll while reading
@@ -309,7 +313,7 @@ extension TerminalView {
 
     func beginAssistantTurn(name: String?) {
         let labelName = name ?? theme.titleString
-        let speaker = TranscriptSpeaker(name: labelName, avatarPath: nil, kind: labelName.lowercased() == "lil-lenny" ? .lenny : .system)
+        let speaker = TranscriptSpeaker(name: labelName, avatarPath: nil, kind: labelName.lowercased() == "liljustin" ? .justin : .system)
         appendBubble(text: NSAttributedString(string: ""), isUser: false, speaker: speaker)
     }
 
@@ -438,9 +442,9 @@ extension TerminalView {
                 appendUser(msg.text)
             case .assistant:
                 assistantCount += 1
-                let speaker = msg.speaker ?? TranscriptSpeaker(name: t.titleString, avatarPath: nil, kind: .lenny)
+                let speaker = msg.speaker ?? TranscriptSpeaker(name: t.titleString, avatarPath: nil, kind: .justin)
                 let formatted = TerminalMarkdownRenderer.render(msg.text, theme: t)
-                appendBubble(text: formatted, isUser: false, speaker: speaker, followUpExpert: msg.followUpExpert)
+                appendBubble(text: formatted, isUser: false, speaker: speaker, followUpExpert: msg.followUpExpert, markdownSource: msg.text)
             case .error:
                 appendError(msg.text)
             case .toolUse:

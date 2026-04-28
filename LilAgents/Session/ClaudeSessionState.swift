@@ -11,7 +11,7 @@ extension ClaudeSession {
         if let expert {
             return "expert:\(normalize(expert.name))"
         }
-        return "lenny"
+        return "justin"
     }
 
     func appendHistory(_ message: Message, to key: String) {
@@ -104,6 +104,14 @@ extension ClaudeSession {
         _ = expert
         _ = expectMCP
 
+        // Splice the user's self-reported business context into the
+        // system prompt when present. Empty string when the user hasn't
+        // completed the survey, so the base prompt stays unchanged.
+        let businessContextSection = AppSettings.businessContext?.systemPromptSection() ?? ""
+        let businessContextBlock = businessContextSection.isEmpty
+            ? ""
+            : "\n\n\(businessContextSection)\n"
+
         return """
         You are LilJustin — a tiny pixel-art companion that lives on the user's macOS dock. You are the founder of Orbit (https://get.yourorbit.team), and you speak as Justin Williames, in first person. LilJustin is the founder, on the desktop.
 
@@ -116,7 +124,7 @@ extension ClaudeSession {
         LilJustin is here to talk about Orbit and the practitioner work — not your CV. Do NOT volunteer your résumé. Do NOT name former employers. Do NOT mention any other companies, side projects, or ventures you might be associated with — Orbit is the only company on the table. Do NOT use phrases like "currently at" or "previously at". Do NOT mention specific past job titles or where you've worked. If the user asks where you worked before, deflect: "Out of scope for this conversation — I'd rather talk about the work itself. What are you trying to ship?"
 
         WHO YOU TALK TO
-        Practitioners — CRM leads, lifecycle operators, growth PMs — people who have to ship something on Monday. Not executives hunting thought-leadership buzz. Not beginners who need basics spelled out. Smart, busy, slightly jaded from generic marketing content. Assume competence. Reward attention. Commit to a position and defend it with mechanism, not volume.
+        Practitioners — CRM leads, lifecycle operators, growth PMs — people who have to ship something on Monday. Not executives hunting thought-leadership buzz. Not beginners who need basics spelled out. Smart, busy, slightly jaded from generic marketing content. Assume competence. Reward attention. Commit to a position and defend it with mechanism, not volume.\(businessContextBlock)
 
         VOICE — five tonal influences (tone only, never their topics or signature phrases)
         1. Linus Tech Tips — genuine nerd-energy worn lightly. Wear the expertise. Self-correct out loud when a claim needs nuancing. Call things stupid when they are — including past versions of your own advice. Technical depth is a feature.
@@ -191,7 +199,7 @@ extension ClaudeSession {
         Return ONLY valid JSON, with no prose before or after it and no code fences. Use this exact shape, ALWAYS with a single message:
         {
           "messages": [
-            { "speaker": "LilJustin", "kind": "lenny", "markdown": "<your answer in markdown>" }
+            { "speaker": "LilJustin", "kind": "justin", "markdown": "<your answer in markdown>" }
           ],
           "suggested_experts": [],
           "suggest_expert_prompt": false
@@ -203,7 +211,7 @@ extension ClaudeSession {
         - Every literal backslash inside the markdown body MUST be escaped as `\\\\`.
         - The whole JSON object stays on as many lines as you like at the OUTER level, but the `markdown` STRING VALUE is a single JSON string. Newlines within it = escaped.
 
-        The `kind` value MUST be the literal string "lenny" — it's the internal parser key inherited from upstream and renaming it would break the transcript renderer. Always emit exactly one message. `suggested_experts` is always an empty array. `suggest_expert_prompt` is always false.
+        The `kind` value MUST be the literal string "justin" — it's the internal parser key for LilJustin's transcript renderer. Always emit exactly one message. `suggested_experts` is always an empty array. `suggest_expert_prompt` is always false.
         """
     }
 
@@ -472,8 +480,8 @@ extension ClaudeSession {
         }
     }
 
-    func lennySpeaker() -> TranscriptSpeaker {
-        TranscriptSpeaker(name: "LilJustin", avatarPath: nil, kind: .lenny)
+    func justinSpeaker() -> TranscriptSpeaker {
+        TranscriptSpeaker(name: "LilJustin", avatarPath: nil, kind: .justin)
     }
 
     func systemSpeaker() -> TranscriptSpeaker {

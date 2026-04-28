@@ -112,6 +112,43 @@ extension TerminalView {
             return
         }
 
+        // First-launch (or post-version-bump-with-empty-context) survey
+        // nudge. Lives above the chips so users see it the first time
+        // they open the popover. Skip stamps the current version so it
+        // doesn't reappear until the next update.
+        if AppSettings.shouldPromptForBusinessContext, !businessContextPromptDismissedThisSession {
+            let card = BusinessContextPromptCardView(theme: theme)
+            card.onSetupTapped = { [weak self] in
+                guard let self else { return }
+                // Open Settings first so the SwiftUI view is mounted
+                // and its .onReceive subscriber is registered. Then
+                // post the pane-switch on the next runloop tick — if
+                // we post first, a freshly-constructed view misses
+                // the notification.
+                self.openAppSettings()
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(
+                        name: .liLJustinOpenSettingsPane,
+                        object: SettingsPane.businessContext.rawValue
+                    )
+                }
+            }
+            card.onSkipTapped = { [weak self] in
+                guard let self else { return }
+                AppSettings.markBusinessContextPromptShown()
+                self.businessContextPromptDismissedThisSession = true
+                self.showWelcomeSuggestionsPanel()
+            }
+            expertSuggestionLabel.isHidden = true
+            expertSuggestionStack.addArrangedSubview(card)
+            card.widthAnchor.constraint(equalTo: expertSuggestionStack.widthAnchor).isActive = true
+            welcomeChipsView = nil
+            expertSuggestionContainer.isHidden = false
+            expertSuggestionContainer.alphaValue = 1
+            relayoutPanels()
+            return
+        }
+
         if shouldPresentStarterPackWelcomeBanner {
             let upsell = StarterPackUpsellCardView(theme: theme, compact: true, showsSkipButton: true)
             upsell.onConnectTapped = { [weak self] in
@@ -160,7 +197,9 @@ extension TerminalView {
             "official:\(AppSettings.hasDetectedOfficialMCPConfiguration ? "1" : "0")",
             "token:\(AppSettings.officialLennyMCPToken != nil ? "1" : "0")",
             "openai:\(AppSettings.openAIAPIKey != nil ? "1" : "0")",
-            "setup:\(requiresInitialConnectionSetup ? "1" : "0")"
+            "setup:\(requiresInitialConnectionSetup ? "1" : "0")",
+            "bizctx:\(AppSettings.businessContext != nil ? "1" : "0")",
+            "bizctx-prompt:\(AppSettings.shouldPromptForBusinessContext ? "1" : "0")"
         ].joined(separator: "|")
     }
 

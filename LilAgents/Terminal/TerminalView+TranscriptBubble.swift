@@ -19,6 +19,11 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
     var textHeightConstraint: NSLayoutConstraint?
     var onCopy: (() -> Void)?
     var onFollowUp: (() -> Void)?
+    /// Original markdown source for the bubble's contents. Carried so
+    /// the copy button can produce a Slack-formatted version of the
+    /// reply, not just the rendered plain text from `textView.string`.
+    /// Updated by `setMarkdownSource(_:)` during streaming.
+    var markdownSource: String?
 
     init(
         text: NSAttributedString,
@@ -27,6 +32,7 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         theme: PopoverTheme,
         showsSpeakerHeader: Bool = true,
         textInsets: NSSize = NSSize(width: 14, height: 12),
+        markdownSource: String? = nil,
         onCopy: (() -> Void)? = nil,
         onFollowUp: (() -> Void)? = nil
     ) {
@@ -34,6 +40,7 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         self.showsSpeakerHeader = showsSpeakerHeader
         self.theme = theme
         self.textInsets = textInsets
+        self.markdownSource = markdownSource
         self.onCopy = onCopy
         self.onFollowUp = onFollowUp
         super.init(frame: .zero)
@@ -235,7 +242,7 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         let image: NSImage?
         if let avatarPath = speaker.avatarPath {
             image = resolvedAvatarImage(at: avatarPath)
-        } else if speaker.kind == .lenny {
+        } else if speaker.kind == .justin {
             image = resolvedLennyAvatarImage()
         } else {
             image = nil
@@ -258,7 +265,7 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         }
 
         let icon = NSImageView()
-        let symbolName = speaker.kind == .lenny ? "sparkles" : "person.crop.circle.fill"
+        let symbolName = speaker.kind == .justin ? "sparkles" : "person.crop.circle.fill"
         if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) {
             let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
             icon.image = image.withSymbolConfiguration(config)
@@ -280,7 +287,11 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
             $0.removeFromSuperview()
         }
 
-        if speaker.kind == .expert, onCopy != nil {
+        // Show copy button for both .justin (LilJustin himself) and
+        // .expert speakers. Originally upstream gated on .expert only —
+        // LilJustin's own replies were never copyable, which silently
+        // killed the most common copy case for users.
+        if (speaker.kind == .justin || speaker.kind == .expert), onCopy != nil {
             configureCopyAction(copyButton, action: #selector(copyTapped))
             actionRow.addArrangedSubview(copyButton)
         }

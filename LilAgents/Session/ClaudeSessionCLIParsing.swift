@@ -63,8 +63,9 @@ extension ClaudeSession {
         }
 
         let cleaned = cleanedAssistantText(outputText)
-        let fallbackMessage = Message(role: .assistant, text: cleaned, speaker: lennySpeaker(), followUpExpert: nil)
-        return ([fallbackMessage], cleaned)
+        let linkified = CitationLinkifier.linkify(cleaned)
+        let fallbackMessage = Message(role: .assistant, text: linkified, speaker: justinSpeaker(), followUpExpert: nil)
+        return ([fallbackMessage], linkified)
     }
 
     func parseStructuredAssistantResponse(from outputText: String) -> (segments: [AssistantSegment], suggestedExperts: [ResponderExpert], suggestExpertPrompt: Bool)? {
@@ -81,7 +82,7 @@ extension ClaudeSession {
             .compactMap { expertSuggestion(named: $0) }
         let suggestExpertPrompt = extractStructuredBoolean(forKey: "suggest_expert_prompt", from: outputText) ?? !suggestedExperts.isEmpty
         let segments = sanitizedOrchestrationSegments(
-            [AssistantSegment(speaker: lennySpeaker(), markdown: answerMarkdown, followUpExpert: nil)],
+            [AssistantSegment(speaker: justinSpeaker(), markdown: CitationLinkifier.linkify(answerMarkdown), followUpExpert: nil)],
             suggestedExperts: Array(suggestedExperts.prefix(3))
         )
         return (segments, Array(suggestedExperts.prefix(3)), suggestExpertPrompt)

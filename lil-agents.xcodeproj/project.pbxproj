@@ -93,6 +93,12 @@
 		F7A0C2AA9D5941F1B950A8A1 /* GuestTitles.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A0C2A99D5941F1B950A8A1 /* GuestTitles.swift */; };
 		F7A0C2AB9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A0C2AC9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift */; };
 		F7A0C2AD9D5941F1B950A8A3 /* OrbitGuidesEmbeddings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A0C2AE9D5941F1B950A8A3 /* OrbitGuidesEmbeddings.swift */; };
+		BC0000010000000000000001 /* BusinessContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000001 /* BusinessContext.swift */; };
+		BC0000010000000000000002 /* AppSettings+BusinessContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000002 /* AppSettings+BusinessContext.swift */; };
+		BC0000010000000000000003 /* SettingsView+BusinessContextPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000003 /* SettingsView+BusinessContextPane.swift */; };
+		BC0000010000000000000004 /* BusinessContextPromptCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000004 /* BusinessContextPromptCardView.swift */; };
+		BC0000010000000000000005 /* MarkdownToSlack.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000005 /* MarkdownToSlack.swift */; };
+		BC0000010000000000000006 /* CitationLinkifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000006 /* CitationLinkifier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -183,6 +189,12 @@
 		F7A0C2A99D5941F1B950A8A1 /* GuestTitles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestTitles.swift; sourceTree = "<group>"; };
 		F7A0C2AC9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitGuidesCorpus.swift; sourceTree = "<group>"; };
 		F7A0C2AE9D5941F1B950A8A3 /* OrbitGuidesEmbeddings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitGuidesEmbeddings.swift; sourceTree = "<group>"; };
+		BC0000020000000000000001 /* BusinessContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessContext.swift; sourceTree = "<group>"; };
+		BC0000020000000000000002 /* AppSettings+BusinessContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppSettings+BusinessContext.swift"; sourceTree = "<group>"; };
+		BC0000020000000000000003 /* SettingsView+BusinessContextPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+BusinessContextPane.swift"; sourceTree = "<group>"; };
+		BC0000020000000000000004 /* BusinessContextPromptCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessContextPromptCardView.swift; sourceTree = "<group>"; };
+		BC0000020000000000000005 /* MarkdownToSlack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownToSlack.swift; sourceTree = "<group>"; };
+		BC0000020000000000000006 /* CitationLinkifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitationLinkifier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -258,6 +270,9 @@
 				A10000020000000000000062 /* SettingsComponents.swift */,
 				A10000020000000000000063 /* SettingsView+SourcePane.swift */,
 				A10000020000000000000064 /* SettingsView+ModelsPane.swift */,
+				BC0000020000000000000003 /* SettingsView+BusinessContextPane.swift */,
+				BC0000020000000000000001 /* BusinessContext.swift */,
+				BC0000020000000000000002 /* AppSettings+BusinessContext.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -292,6 +307,8 @@
 				A10000020000000000000071 /* ClaudeSessionGitHubFetch.swift */,
 				A10000020000000000000042 /* LocalArchive.swift */,
 				A10000020000000000000044 /* SessionDebugLogger.swift */,
+				BC0000020000000000000005 /* MarkdownToSlack.swift */,
+				BC0000020000000000000006 /* CitationLinkifier.swift */,
 			);
 			path = Session;
 			sourceTree = "<group>";
@@ -341,6 +358,7 @@
 				A10000020000000000000066 /* HoverButton.swift */,
 				A10000020000000000000061 /* MCPConnectionCards.swift */,
 				A10000020000000000000077 /* MCPConnectionCards+OfficialMCP.swift */,
+				BC0000020000000000000004 /* BusinessContextPromptCardView.swift */,
 			);
 			path = Terminal;
 			sourceTree = "<group>";
@@ -516,6 +534,12 @@
 				A10000010000000000000066 /* HoverButton.swift in Sources */,
 				A10000010000000000000067 /* TerminalView+WelcomePanel.swift in Sources */,
 				A10000010000000000000068 /* TerminalView+LiveStatus.swift in Sources */,
+				BC0000010000000000000001 /* BusinessContext.swift in Sources */,
+				BC0000010000000000000002 /* AppSettings+BusinessContext.swift in Sources */,
+				BC0000010000000000000003 /* SettingsView+BusinessContextPane.swift in Sources */,
+				BC0000010000000000000004 /* BusinessContextPromptCardView.swift in Sources */,
+				BC0000010000000000000005 /* MarkdownToSlack.swift in Sources */,
+				BC0000010000000000000006 /* CitationLinkifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

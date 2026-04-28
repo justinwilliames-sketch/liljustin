@@ -74,6 +74,13 @@ class TerminalView: NSView {
     /// Session-only flag: set when the user explicitly dismisses the proactive
     /// MCP setup banner. Resets on the next app open so they get a reminder.
     var mcpSetupBannerDismissedThisSession = false
+    /// Session-only flag: set when the user clicks "Skip for now" on the
+    /// business-context survey card. Persistent dismissal lives in
+    /// `AppSettings.markBusinessContextPromptShown()` (stamps the current
+    /// app version). This flag avoids re-rendering the card after skip
+    /// within the same session, even though the persistent stamp also
+    /// suppresses it.
+    var businessContextPromptDismissedThisSession = false
     var currentWelcomeArchiveMode: AppSettings.ArchiveAccessMode?
     var currentWelcomeSuggestions: [(String, String, String)] = []
     var lastRenderedWelcomeSignature: String?

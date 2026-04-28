@@ -10,19 +10,20 @@ extension ClaudeSession {
                       let speakerName = (raw["speaker"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
                       !speakerName.isEmpty else { continue }
                 let kind = ((raw["kind"] as? String) ?? "").lowercased()
+                let linkified = CitationLinkifier.linkify(markdown)
                 if kind == "expert", let expert = expertSuggestion(named: speakerName) {
-                    segments.append(AssistantSegment(speaker: speaker(for: expert), markdown: markdown, followUpExpert: expert))
+                    segments.append(AssistantSegment(speaker: speaker(for: expert), markdown: linkified, followUpExpert: expert))
                 } else {
                     let speakerValue = normalize(speakerName) == normalize("LilJustin")
-                        ? lennySpeaker()
+                        ? justinSpeaker()
                         : TranscriptSpeaker(name: speakerName, avatarPath: nil, kind: .system)
-                    segments.append(AssistantSegment(speaker: speakerValue, markdown: markdown, followUpExpert: nil))
+                    segments.append(AssistantSegment(speaker: speakerValue, markdown: linkified, followUpExpert: nil))
                 }
             }
         }
 
         if segments.isEmpty, let answerMarkdown = json["answer_markdown"] as? String {
-            segments = [AssistantSegment(speaker: lennySpeaker(), markdown: answerMarkdown, followUpExpert: nil)]
+            segments = [AssistantSegment(speaker: justinSpeaker(), markdown: CitationLinkifier.linkify(answerMarkdown), followUpExpert: nil)]
         }
 
         guard !segments.isEmpty else { return nil }
@@ -49,7 +50,7 @@ extension ClaudeSession {
         guard !knownExperts.isEmpty else { return segments }
 
         return segments.map { segment in
-            guard segment.speaker.kind == .lenny else { return segment }
+            guard segment.speaker.kind == .justin else { return segment }
             let sanitized = sanitizedOrchestrationMarkdown(segment.markdown, experts: knownExperts)
             guard sanitized != segment.markdown else { return segment }
             return AssistantSegment(speaker: segment.speaker, markdown: sanitized, followUpExpert: segment.followUpExpert)

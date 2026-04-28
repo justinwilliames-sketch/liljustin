@@ -343,9 +343,11 @@ enum AppSettings {
             defaults.removeObject(forKey: key)
         }
 
+        clearBusinessContextState()
         try removeOfficialMCPConfiguration()
         refreshDetectionState()
         NotificationCenter.default.post(name: .liLJustinDidResetData, object: nil)
+        NotificationCenter.default.post(name: .liLJustinBusinessContextDidChange, object: nil)
     }
 }
 

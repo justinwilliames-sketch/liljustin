@@ -16,9 +16,26 @@ extension ChatBubbleView {
     }
 
     @objc func copyTapped() {
+        // Prefer the original markdown source converted to Slack
+        // mrkdwn so the user can paste a properly-formatted message
+        // straight into Slack. Fall back to the rendered plain text
+        // when markdown isn't available (e.g. user bubbles, errors).
+        let payload: String
+        if let source = markdownSource, !source.isEmpty {
+            payload = MarkdownToSlack.convert(source)
+        } else {
+            payload = textView.string
+        }
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(textView.string, forType: .string)
+        NSPasteboard.general.setString(payload, forType: .string)
         onCopy?()
+    }
+
+    /// Update the bubble's markdown source as new content streams in.
+    /// Called from the streaming path so the copy button always
+    /// reflects the latest accumulated markdown.
+    func setMarkdownSource(_ source: String) {
+        markdownSource = source
     }
 
     @objc func followUpTapped() {

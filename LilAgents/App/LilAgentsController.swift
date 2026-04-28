@@ -16,19 +16,19 @@ class LilAgentsController {
     private(set) var focusedExpert: ResponderExpert?
 
     func start() {
-        let lenny = WalkerCharacter(videoName: "lenny")
-        lenny.accelStart = 2.5
-        lenny.fullSpeedStart = 3.2
-        lenny.decelStart = 7.8
-        lenny.walkStop = 8.4
-        lenny.walkAmountRange = 0.35...0.6
-        lenny.yOffset = 4
-        lenny.characterColor = NSColor(red: 0.96, green: 0.63, blue: 0.23, alpha: 1.0)
-        lenny.positionProgress = 0.9
-        lenny.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...2.0)
-        lenny.setup()
+        let justin = WalkerCharacter(videoName: "justin")
+        justin.accelStart = 2.5
+        justin.fullSpeedStart = 3.2
+        justin.decelStart = 7.8
+        justin.walkStop = 8.4
+        justin.walkAmountRange = 0.35...0.6
+        justin.yOffset = 4
+        justin.characterColor = NSColor(red: 0.96, green: 0.63, blue: 0.23, alpha: 1.0)
+        justin.positionProgress = 0.9
+        justin.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...2.0)
+        justin.setup()
 
-        characters = [lenny]
+        characters = [justin]
         characters.forEach { $0.controller = self }
 
         setupDebugLine()

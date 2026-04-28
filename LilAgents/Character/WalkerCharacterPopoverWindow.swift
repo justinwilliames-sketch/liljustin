@@ -2,7 +2,7 @@ import AppKit
 
 private struct ExpertSwitcherEntry: Equatable {
     enum Destination: Equatable {
-        case lenny
+        case justin
         case expert(name: String, avatarPath: String)
     }
 
@@ -16,8 +16,8 @@ private struct ExpertSwitcherEntry: Equatable {
         "\(name) \(title ?? "")".lowercased()
     }
 
-    var isLenny: Bool {
-        if case .lenny = destination { return true }
+    var isJustin: Bool {
+        if case .justin = destination { return true }
         return false
     }
 }
@@ -36,11 +36,11 @@ private enum ExpertSwitcherCatalog {
 
         var entries: [ExpertSwitcherEntry] = [
             ExpertSwitcherEntry(
-                id: "lenny",
+                id: "justin",
                 name: "LilJustin",
                 title: "Founder of Orbit",
                 avatarPath: nil,
-                destination: .lenny
+                destination: .justin
             )
         ]
 
@@ -115,7 +115,7 @@ private final class ExpertSwitcherRowView: NSTableCellView {
             avatarView.image = image
             avatarView.isHidden = false
             fallbackIcon.isHidden = true
-        } else if entry.isLenny, let orbitLogo = NSImage(named: "OrbitLogo") {
+        } else if entry.isJustin, let orbitLogo = NSImage(named: "OrbitLogo") {
             // LilJustin row → show the Orbit logo (bundled imageset, white
             // mark on transparent). Tinted with the theme accent so it picks
             // up the indigo brand colour against the row background.
@@ -599,9 +599,18 @@ extension WalkerCharacter {
         clearButton.hoverBg = t.separatorColor.withAlphaComponent(0.22).cgColor
         clearButton.layer?.backgroundColor = t.separatorColor.withAlphaComponent(0.10).cgColor
         clearButton.layer?.cornerRadius = controlButtonSize / 2
-        if let img = NSImage(systemSymbolName: "square.and.pencil", accessibilityDescription: "New conversation") {
-            let config = NSImage.SymbolConfiguration(pointSize: 11, weight: .medium)
-            clearButton.image = img.withSymbolConfiguration(config)
+        // Prefer the modern "new message" SF Symbol; fall back to the
+        // older compose glyph; fall back again to a literal "+" title
+        // so the button is never visually empty even if SF Symbols are
+        // missing on the running macOS / theme combo.
+        let clearSymbolConfig = NSImage.SymbolConfiguration(pointSize: 12, weight: .medium)
+        if let img = NSImage(systemSymbolName: "plus.message", accessibilityDescription: "New conversation") {
+            clearButton.image = img.withSymbolConfiguration(clearSymbolConfig)
+        } else if let img = NSImage(systemSymbolName: "square.and.pencil", accessibilityDescription: "New conversation") {
+            clearButton.image = img.withSymbolConfiguration(clearSymbolConfig)
+        } else {
+            clearButton.title = "+"
+            clearButton.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
         }
         clearButton.imageScaling = .scaleProportionallyDown
         clearButton.contentTintColor = t.textDim
@@ -780,7 +789,7 @@ extension WalkerCharacter {
         let entries = availableExpertSwitcherEntries()
         guard !entries.isEmpty else { return }
 
-        let currentSelectionID = focusedExpert.map { "expert:\($0.name)" } ?? "lenny"
+        let currentSelectionID = focusedExpert.map { "expert:\($0.name)" } ?? "justin"
         let controller = ExpertSwitcherViewController(
             theme: resolvedTheme,
             entries: entries,
@@ -792,7 +801,7 @@ extension WalkerCharacter {
             WalkerCharacter.playSelectionSound()
 
             switch entry.destination {
-            case .lenny:
+            case .justin:
                 guard self.focusedExpert != nil else { return }
                 self.controller?.returnToGenie()
             case .expert(let name, let avatarPath):
