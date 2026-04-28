@@ -107,13 +107,23 @@ final class WalkerCharacter {
     // or a dry remark. Cadence is a randomised 90–240s gap between
     // bubbles. Each bubble lingers ~12s so Sir actually has time to
     // read it.
-    var nextAmbientBubbleAt: CFTimeInterval = CACurrentMediaTime() + TimeInterval.random(in: 60...180)
+    // First bubble fires 20–90s after launch — Sir wanted LilJustin
+    // to introduce himself sooner rather than waiting 1–3 minutes.
+    var nextAmbientBubbleAt: CFTimeInterval = CACurrentMediaTime() + TimeInterval.random(in: 20...90)
     var ambientBubbleExpiresAt: CFTimeInterval = 0
     var lastAmbientLineIndex: Int = -1
     var isAmbientLLMRequestInFlight: Bool = false
-    static let minAmbientGap: TimeInterval = 90
-    static let maxAmbientGap: TimeInterval = 240
-    static let ambientBubbleLinger: TimeInterval = 12
+    // Steady-state gap between bubbles. Average ~97s = ~37 bubbles/hr
+    // when LilJustin is idle. Tighter than this risks stacking — the
+    // ambient LLM call takes up to 25s and we don't want a new bubble
+    // queueing while the previous one is still rendering or its LLM
+    // dispatch is still in flight.
+    static let minAmbientGap: TimeInterval = 45
+    static let maxAmbientGap: TimeInterval = 150
+    // Linger time on screen. 15s gives Sir comfortable reading time
+    // for a two-line CRM/lifecycle observation without making the
+    // bubble feel sticky.
+    static let ambientBubbleLinger: TimeInterval = 15
 
     /// Build the speech-bubble outline as a single closed CGPath:
     /// rounded body on top + downward-pointing tail below. Drawing the
