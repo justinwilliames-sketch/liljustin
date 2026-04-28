@@ -176,15 +176,37 @@ jobs:
           set -e
           DMG_PATH="${{ steps.dmg.outputs.dmg_path }}"
           DMG_NAME="${{ steps.dmg.outputs.dmg_name }}"
-          # Version: tag name (without leading v) for tag pushes,
-          # otherwise a sortable build number from the run id.
+
+          # Sparkle's two version fields, and why they're DIFFERENT here:
+          #
+          #   <sparkle:version>            → CFBundleVersion (build number).
+          #                                  Used by Sparkle for the actual
+          #                                  comparison "is this newer than
+          #                                  what the user has installed?".
+          #                                  MUST be a monotonically-
+          #                                  increasing integer to compare
+          #                                  correctly. We use the GitHub
+          #                                  Actions run_number — same value
+          #                                  injected as CURRENT_PROJECT_VERSION
+          #                                  during the xcodebuild step.
+          #
+          #   <sparkle:shortVersionString> → CFBundleShortVersionString
+          #                                  (marketing version, e.g. 0.1.25).
+          #                                  User-facing only — shown in
+          #                                  Sparkle's "0.1.25 is the newest
+          #                                  version available" dialog.
+          #
+          # Pre-fix: BOTH fields were set to the marketing version. The user's
+          # installed CFBundleVersion (a large run_number) compared as "newer
+          # than" the appcast's "0.1.25" → Sparkle thought the user was ahead
+          # of the latest release and refused to offer the update.
+          BUILD_NUMBER="${{ github.run_number }}"
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-            SHORT_VERSION="$VERSION"
+            SHORT_VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="0.0.${{ github.run_number }}"
-            SHORT_VERSION="dev-${VERSION}"
+            SHORT_VERSION="dev-${BUILD_NUMBER}"
           fi
+          VERSION="$BUILD_NUMBER"
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${DMG_NAME}"
 
           # Write the private key to a temp file for sign_update -f
@@ -211,12 +233,12 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
             <channel>
-              <title>LilJustin</title>
+              <title>LilJustin by Orbit</title>
               <link>https://github.com/${GITHUB_REPOSITORY}/releases/latest</link>
-              <description>LilJustin — the founder of Orbit, on your desktop.</description>
+              <description>LilJustin by Orbit — the founder, on your desktop.</description>
               <language>en</language>
               <item>
-                <title>LilJustin ${SHORT_VERSION}</title>
+                <title>LilJustin by Orbit ${SHORT_VERSION}</title>
                 <link>https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}</link>
                 <sparkle:version>${VERSION}</sparkle:version>
                 <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>

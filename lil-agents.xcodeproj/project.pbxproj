@@ -638,7 +638,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LilAgents/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Lil-Lenny";
+				INFOPLIST_KEY_CFBundleDisplayName = "LilJustin by Orbit";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSMainNibFile = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -680,7 +680,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LilAgents/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lenny;
+				INFOPLIST_KEY_CFBundleDisplayName = "LilJustin by Orbit";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSMainNibFile = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;

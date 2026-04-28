@@ -4,10 +4,15 @@
 <dict>
     <key>LSUIElement</key>
     <true/>
+    <!-- CFBundleDisplayName is the user-visible app name in Finder, the
+         Dock, alert dialogs, and Sparkle's update prompts. Note: when
+         GENERATE_INFOPLIST_FILE = YES is set in the Xcode build settings,
+         INFOPLIST_KEY_CFBundleDisplayName from project.pbxproj OVERRIDES
+         this static value. Both must match to avoid drift. -->
     <key>CFBundleDisplayName</key>
-    <string>LilJustin</string>
+    <string>LilJustin by Orbit</string>
     <key>CFBundleName</key>
-    <string>LilJustin</string>
+    <string>LilJustin by Orbit</string>
 
     <!-- Sparkle compares the running app's CFBundleShortVersionString
          to sparkle:shortVersionString in the appcast. The CI workflow
