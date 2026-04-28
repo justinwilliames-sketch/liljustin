@@ -167,20 +167,40 @@ extension WalkerCharacter {
             : 0
 
         let target = NSPoint(x: clampedX + flipXOffset, y: dockY)
-        // 0.32s spring-back. Drops the easing through a CAMediaTimingFunction
-        // shaped like a soft spring (0.34, 1.56, 0.64, 1) so it lands
-        // with a subtle settle rather than a hard stop.
+
+        // Gravity-paced fall, not a spring. Sir specifically asked for
+        // realistic falling rather than the elastic settle of the
+        // previous easeOutBack curve.
+        //
+        // Physics: d = ½ * g * t² → t = √(2d / g), where g is in
+        // pixels per second². 2400 px/s² lands close to the felt-
+        // realistic range across typical retina display heights —
+        // tested empirically against a 1000px fall reading as
+        // "one full second" which matches everyday gravity intuition.
+        //
+        // The X clamp above already snaps the target to the closest
+        // valid point along the dock's walkable range, so a release
+        // anywhere on screen lands on the nearest part of the dock.
+        let currentY = window.frame.origin.y
+        let fallDistance = max(currentY - dockY, 0)
+        let g: CGFloat = 2400
+        let physicsDuration = fallDistance > 0 ? sqrt(2 * fallDistance / g) : 0
+        // Clamp duration so a tiny lift still has visible motion and
+        // a giant lift doesn't take an awkward eternity.
+        let duration = max(0.18, min(Double(physicsDuration), 1.2))
+
         NSAnimationContext.runAnimationGroup({ ctx in
-            ctx.duration = 0.32
-            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.34, 1.56, 0.64, 1.0)
+            ctx.duration = duration
+            // Ease-in quadratic — slow start, accelerating finish.
+            // Approximates uniform gravitational acceleration in a
+            // single timing curve. Lands hard at the dock; no overshoot.
+            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.55, 0.0, 0.85, 0.45)
             window.animator().setFrameOrigin(target)
         }, completionHandler: { [weak self] in
             guard let self else { return }
             self.isDraggingHorizontally = false
-            // Pause briefly post-landing before resuming the walk loop
-            // so the spring-back has a moment of stillness — feels less
-            // jittery than dropping straight into a walk cycle.
-            self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 1.2...2.4)
+            // Brief stationary moment after impact before walking resumes.
+            self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.6...1.4)
         })
 
         updatePopoverPosition()
