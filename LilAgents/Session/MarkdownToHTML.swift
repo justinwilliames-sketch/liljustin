@@ -38,6 +38,7 @@ enum MarkdownToHTML {
         var listKind: ListKind? = nil
         var fenceLines: [String] = []
         var inFenced = false
+        var tableLines: [String] = []
 
         func flushParagraph() {
             guard !paragraphLines.isEmpty else { return }
@@ -63,6 +64,20 @@ enum MarkdownToHTML {
             listKind = nil
         }
 
+        func flushTable() {
+            guard !tableLines.isEmpty else { return }
+            // Tables paste catastrophically when run through Slack's
+            // WYSIWYG composer — `<table>` rendering is unpredictable
+            // and HTML→AttributedString conversion in some clients
+            // collapses every cell to plain text on one line. Most
+            // reliable cross-client rendering: emit the markdown
+            // table verbatim inside a <pre><code> block. Monospace
+            // rendering preserves the column alignment, and Slack /
+            // Apple Mail / Notes / Notion all honour it.
+            output.append("<pre><code>\(escape(tableLines.joined(separator: "\n")))</code></pre>")
+            tableLines.removeAll()
+        }
+
         for line in lines {
             // Fenced code block boundary.
             if line.trimmingCharacters(in: .whitespaces).hasPrefix("```") {
@@ -72,6 +87,7 @@ enum MarkdownToHTML {
                 } else {
                     flushParagraph()
                     flushList()
+                    flushTable()
                 }
                 inFenced.toggle()
                 continue
@@ -79,6 +95,20 @@ enum MarkdownToHTML {
             if inFenced {
                 fenceLines.append(line)
                 continue
+            }
+
+            // Markdown table row — `| col | col |` shape. We collect
+            // consecutive `|` lines and emit them as a code block so
+            // the column alignment survives the Slack paste.
+            if line.trimmingCharacters(in: .whitespaces).hasPrefix("|") {
+                flushParagraph()
+                flushList()
+                tableLines.append(line)
+                continue
+            }
+            // Any non-table line ends a pending table.
+            if !tableLines.isEmpty {
+                flushTable()
             }
 
             // Heading. Emit as a bolded paragraph rather than an
@@ -148,6 +178,7 @@ enum MarkdownToHTML {
         // Drain anything still pending at end of input.
         flushParagraph()
         flushList()
+        flushTable()
         if inFenced && !fenceLines.isEmpty {
             output.append("<pre><code>\(escape(fenceLines.joined(separator: "\n")))</code></pre>")
         }
@@ -250,13 +281,32 @@ enum MarkdownToHTML {
     }
 
     private static func applyItalic(_ text: String) -> String {
-        // Match `_X_` underscore italics — safer than `*X*` because
-        // `*` inside text gets used for emphasis-with-context in
-        // ways that produce false positives.
-        let pattern = #"\b_([^_\n]+)_\b"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return text }
-        let range = NSRange(location: 0, length: (text as NSString).length)
-        return regex.stringByReplacingMatches(in: text, range: range, withTemplate: "<em>$1</em>")
+        // Two patterns. Underscore italic is unambiguous; single-
+        // asterisk italic must be careful not to fire on the closing
+        // marker of a `**bold**` run. By the time this function runs,
+        // bold has already been transformed to `<strong>X</strong>`
+        // so any remaining `*` is genuinely italic. We still guard
+        // with negative lookarounds to skip stray asterisks adjacent
+        // to other asterisks (defence in depth).
+        var result = text
+
+        // Underscore form first.
+        if let underscoreRegex = try? NSRegularExpression(pattern: #"\b_([^_\n]+)_\b"#) {
+            let range = NSRange(location: 0, length: (result as NSString).length)
+            result = underscoreRegex.stringByReplacingMatches(in: result, range: range, withTemplate: "<em>$1</em>")
+        }
+
+        // Single-asterisk form. `(?<!\*)\*([^*\n]+)\*(?!\*)` — match
+        // a single `*`, capture the content, match a single `*`,
+        // none of which are adjacent to another `*`. The content
+        // class excludes `*` and newlines so we never gulp across
+        // unintended boundaries.
+        if let asteriskRegex = try? NSRegularExpression(pattern: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#) {
+            let range = NSRange(location: 0, length: (result as NSString).length)
+            result = asteriskRegex.stringByReplacingMatches(in: result, range: range, withTemplate: "<em>$1</em>")
+        }
+
+        return result
     }
 
     private static func autolinkBareURLs(_ text: String) -> String {

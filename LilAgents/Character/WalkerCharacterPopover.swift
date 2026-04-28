@@ -330,51 +330,70 @@ extension WalkerCharacter {
     /// welcome state (4 random prompt chips + greeting). The session's
     /// in-memory history map is wiped for the active expert key, so
     /// the next user message starts a fresh thread with no carry-over
-    /// context. Pending follow-up chips are cleared too. Lives on the
-    /// popover-control axis next to settings/expand/pin/close.
+    /// context. Pending follow-up chips are cleared too.
     @objc func clearConversationTapped() {
-        guard let session = claudeSession else { return }
+        // Don't bail on a missing session — Sir reported the button
+        // was unresponsive, and a silent guard-let return is the
+        // most likely culprit. Reset the terminal-side state
+        // unconditionally; only touch session state when present.
+        SessionDebugLogger.log("ui", "clearConversationTapped fired")
 
-        // Wipe the in-memory history for the current conversation
-        // partition (the focused expert's key, or the default `justin`
-        // key when there's no expert focus — which is always true in
-        // LilJustin since experts are disabled).
-        //
-        // Conversations are intentionally fleeting — they live only
-        // in memory for the lifetime of the session. Reset all
-        // pending state too so the cleared conversation can't
-        // resurrect via a stray follow-up or expert suggestion.
-        let key = session.key(for: focusedExpert)
-        session.conversations[key] = nil
-        session.pendingExperts.removeAll()
-        session.assistantExplicitlyRequestedExperts = false
-        session.livePresenceExperts = []
-        session.liveToolCallsByID.removeAll()
+        if let session = claudeSession {
+            // Wipe the in-memory history for the current conversation
+            // partition. Conversations are intentionally fleeting —
+            // they live only in memory for the lifetime of the
+            // session. Reset all pending state too so the cleared
+            // conversation can't resurrect via a stray follow-up.
+            let key = session.key(for: focusedExpert)
+            session.conversations[key] = nil
+            session.pendingExperts.removeAll()
+            session.assistantExplicitlyRequestedExperts = false
+            session.livePresenceExperts = []
+            session.liveToolCallsByID.removeAll()
+            session.isBusy = false
+        }
+
+        guard let terminalView else { return }
 
         // Reset all transient transcript state — live status, expert
         // suggestions, follow-up chips, attachments, the input field —
         // so the next interaction looks like a fresh popover open.
-        terminalView?.clearFollowUpChips()
-        terminalView?.clearTranscriptSuggestionView()
-        terminalView?.clearLiveStatus()
-        terminalView?.endStreaming()
-        terminalView?.pendingAttachments.removeAll()
-        terminalView?.refreshAttachmentPreviews()
-        terminalView?.inputField.stringValue = ""
-        terminalView?.currentAssistantText = ""
-        terminalView?.deferredExpertSuggestions = []
+        terminalView.clearFollowUpChips()
+        terminalView.clearTranscriptSuggestionView()
+        terminalView.clearLiveStatus()
+        terminalView.endStreaming()
+        terminalView.pendingAttachments.removeAll()
+        terminalView.refreshAttachmentPreviews()
+        terminalView.inputField.stringValue = ""
+        terminalView.currentAssistantText = ""
+        terminalView.deferredExpertSuggestions = []
+
+        // Aggressively reset the welcome-state caches so
+        // showWelcomeGreeting(forceRefresh:) can't take an early-
+        // return shortcut based on stale "we already rendered this"
+        // signatures. v0.1.50 left some of these sticky after the
+        // expand/pin removal, which was very likely the silent
+        // root of Sir's "new conversation button isn't working"
+        // report — clear ran but the welcome cached as already-
+        // shown so chips never re-rendered.
+        terminalView.lastRenderedWelcomeSignature = nil
+        terminalView.lastObservedFirstRunConfigurationSignature = nil
+        terminalView.currentWelcomeSuggestions = []
+        terminalView.currentWelcomeArchiveMode = nil
+        terminalView.starterPackWelcomeBannerDismissed = false
+        terminalView.businessContextPromptDismissedThisSession = false
+        terminalView.isShowingInitialWelcomeState = false
 
         // Re-render with empty history → triggers the welcome state
-        // path with fresh chip suggestions. forceRefresh: true reshuffles
-        // the 4 prompt chips so a cleared conversation never reopens
-        // with the same chip set as the one that was just dismissed.
-        terminalView?.replayConversation([], expertSuggestions: [])
-        terminalView?.showWelcomeGreeting(forceRefresh: true)
+        // path with fresh chip suggestions. forceRefresh: true
+        // reshuffles the 4 prompt chips so a cleared conversation
+        // never reopens with the same chip set as the one that was
+        // just dismissed.
+        terminalView.replayConversation([], expertSuggestions: [])
+        terminalView.showWelcomeGreeting(forceRefresh: true)
 
         // Refocus the input so Sir can immediately type the next thing.
-        if let terminal = terminalView {
-            popoverWindow?.makeFirstResponder(terminal.inputField)
-        }
+        popoverWindow?.makeFirstResponder(terminalView.inputField)
     }
 
     @objc func closePopoverFromButton() {

@@ -190,6 +190,73 @@ final class MarkdownToHTMLTests: XCTestCase {
         XCTAssertLessThan(listEnd.upperBound, paraStart.lowerBound)
     }
 
+    // MARK: - Tables
+
+    func testMarkdownTableRendersAsPreformattedBlock() {
+        // The IP-warmup-style table Sir pasted into Slack got
+        // smashed onto one line because the converter had no table
+        // detection. Now table rows go through a <pre><code> block
+        // so column alignment is preserved by monospace rendering.
+        let input = """
+        | Day | Volume |
+        |-----|--------|
+        | 1 | 200 |
+        | 2 | 500 |
+        """
+        let out = MarkdownToHTML.convert(input)
+        XCTAssertTrue(out.contains("<pre><code>"))
+        // Each table row must appear on its own line inside the block.
+        XCTAssertTrue(out.contains("| Day | Volume |"))
+        XCTAssertTrue(out.contains("|-----|--------|"))
+        XCTAssertTrue(out.contains("| 1 | 200 |"))
+        XCTAssertTrue(out.contains("| 2 | 500 |"))
+        XCTAssertTrue(out.contains("</code></pre>"))
+    }
+
+    func testTableSeparatesFromSurroundingParagraphs() {
+        // The pre-table paragraph and post-table paragraph must
+        // each be their own <p>, not collapsed into the table.
+        let input = """
+        Schedule below.
+
+        | Day | Volume |
+        | 1 | 200 |
+
+        Notes after.
+        """
+        let out = MarkdownToHTML.convert(input)
+        XCTAssertTrue(out.contains("<p>Schedule below.</p>"))
+        XCTAssertTrue(out.contains("<pre><code>"))
+        XCTAssertTrue(out.contains("<p>Notes after.</p>"))
+    }
+
+    // MARK: - Italic forms
+
+    func testSingleAsteriskItalicBecomesEm() {
+        // Sir's writing uses `*X*` for italic. This MUST render as
+        // `<em>X</em>`, not literal asterisks (which is what shipped
+        // in v0.1.49 — `*who*` showed as `*who*` in Slack).
+        XCTAssertEqual(
+            MarkdownToHTML.convert("specifically, *who* gets the send"),
+            "<p>specifically, <em>who</em> gets the send</p>"
+        )
+    }
+
+    func testUnderscoreItalicStillWorks() {
+        XCTAssertEqual(
+            MarkdownToHTML.convert("an _emphasised_ word"),
+            "<p>an <em>emphasised</em> word</p>"
+        )
+    }
+
+    func testItalicDoesNotMisfireInsideBold() {
+        // The closing `*` of `**bold**` after the bold pass becomes
+        // `*` adjacent to other `*` — must not be eaten by italic.
+        let out = MarkdownToHTML.convert("This is **bold** text.")
+        XCTAssertTrue(out.contains("<strong>bold</strong>"))
+        XCTAssertFalse(out.contains("<em>"))
+    }
+
     // MARK: - Blockquote and code block
 
     func testBlockquoteRenders() {
