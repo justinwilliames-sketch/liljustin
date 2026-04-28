@@ -303,12 +303,118 @@ enum AppSettings {
 
         try removeOfficialMCPConfiguration()
         refreshDetectionState()
-        NotificationCenter.default.post(name: .lilLennyDidResetData, object: nil)
+        NotificationCenter.default.post(name: .liLJustinDidResetData, object: nil)
     }
 }
 
 extension Notification.Name {
-    static let lilLennyDidResetData = Notification.Name("LilLennyDidResetData")
+    static let liLJustinDidResetData = Notification.Name("LilJustinDidResetData")
+}
+
+// MARK: - MCP mirror from Claude Desktop → Claude Code
+
+extension AppSettings {
+
+    /// Result of a "Sync MCPs from Claude Desktop" attempt — surfaced
+    /// to the Settings UI so the user can see what happened.
+    struct MCPSyncResult {
+        let added: [String]
+        let skipped: [String]
+        let error: String?
+
+        var summary: String {
+            if let error { return error }
+            if added.isEmpty && skipped.isEmpty {
+                return "No MCP servers found in Claude Desktop's config."
+            }
+            if added.isEmpty {
+                let n = skipped.count
+                return "Already up to date — \(n) MCP\(n == 1 ? "" : "s") already shared with Claude Code."
+            }
+            return "Mirrored \(added.count) MCP\(added.count == 1 ? "" : "s") into Claude Code: \(added.joined(separator: ", "))."
+        }
+    }
+
+    private static var claudeDesktopConfigURL: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support/Claude/claude_desktop_config.json")
+    }
+
+    private static var claudeCodeConfigURL: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".claude.json")
+    }
+
+    /// Read Claude Desktop's MCP server registry and ADD any missing
+    /// entries to Claude Code's `~/.claude.json`. Existing Claude Code
+    /// MCP entries are NEVER overwritten — same-named MCP in both
+    /// configs leaves Claude Code's version untouched. The `claude`
+    /// CLI (which LilJustin spawns for chat) reads `~/.claude.json`,
+    /// so any MCP added here becomes available to LilJustin.
+    ///
+    /// Backs up `~/.claude.json` to `~/.claude.json.liljustin-backup`
+    /// before writing. If Claude Desktop's config is missing or
+    /// either file fails to parse as JSON, returns a descriptive
+    /// error and leaves files untouched.
+    @discardableResult
+    static func mirrorClaudeDesktopMCPs() -> MCPSyncResult {
+        let fm = FileManager.default
+
+        guard fm.fileExists(atPath: claudeDesktopConfigURL.path) else {
+            return MCPSyncResult(added: [], skipped: [], error: "Claude Desktop config not found. Install Claude Desktop and add at least one MCP server to it first.")
+        }
+        guard let desktopData = try? Data(contentsOf: claudeDesktopConfigURL),
+              let desktopJSON = try? JSONSerialization.jsonObject(with: desktopData) as? [String: Any] else {
+            return MCPSyncResult(added: [], skipped: [], error: "Couldn't parse Claude Desktop's config — make sure it's valid JSON.")
+        }
+        let desktopMCPs = (desktopJSON["mcpServers"] as? [String: Any]) ?? [:]
+
+        // Load (or initialise) Claude Code config
+        var codeJSON: [String: Any] = [:]
+        if fm.fileExists(atPath: claudeCodeConfigURL.path) {
+            guard let codeData = try? Data(contentsOf: claudeCodeConfigURL),
+                  let parsed = try? JSONSerialization.jsonObject(with: codeData) as? [String: Any] else {
+                return MCPSyncResult(added: [], skipped: [], error: "Couldn't parse ~/.claude.json — left it untouched.")
+            }
+            codeJSON = parsed
+        }
+        var codeMCPs = (codeJSON["mcpServers"] as? [String: Any]) ?? [:]
+
+        var added: [String] = []
+        var skipped: [String] = []
+        for (name, config) in desktopMCPs {
+            if codeMCPs[name] != nil {
+                skipped.append(name)
+            } else {
+                codeMCPs[name] = config
+                added.append(name)
+            }
+        }
+
+        // Nothing new to add → no write, no backup churn.
+        guard !added.isEmpty else {
+            return MCPSyncResult(added: [], skipped: skipped, error: nil)
+        }
+
+        // Backup existing Code config before mutating.
+        if fm.fileExists(atPath: claudeCodeConfigURL.path) {
+            let backupURL = claudeCodeConfigURL.appendingPathExtension("liljustin-backup")
+            try? fm.removeItem(at: backupURL)
+            try? fm.copyItem(at: claudeCodeConfigURL, to: backupURL)
+        }
+
+        codeJSON["mcpServers"] = codeMCPs
+        guard let merged = try? JSONSerialization.data(withJSONObject: codeJSON, options: [.prettyPrinted, .sortedKeys]) else {
+            return MCPSyncResult(added: [], skipped: skipped, error: "Couldn't serialise merged config — left ~/.claude.json untouched.")
+        }
+        do {
+            try merged.write(to: claudeCodeConfigURL)
+            NSLog("[LilJustin] Mirrored \(added.count) MCPs from Claude Desktop: \(added.joined(separator: ", "))")
+            return MCPSyncResult(added: added, skipped: skipped, error: nil)
+        } catch {
+            return MCPSyncResult(added: [], skipped: skipped, error: "Couldn't write ~/.claude.json: \(error.localizedDescription)")
+        }
+    }
 }
 
 // MARK: - Launch at login (SMAppService)

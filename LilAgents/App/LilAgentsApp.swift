@@ -60,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
         // the Login Items approval prompt in System Settings.
         AppSettings.applyLaunchAtLoginPreference()
         controller = LilAgentsController()
-        NotificationCenter.default.addObserver(self, selector: #selector(handleResetAllData), name: .lilLennyDidResetData, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleResetAllData), name: .liLJustinDidResetData, object: nil)
         controller?.onExpertsChanged = { [weak self] experts in
             self?.updateExpertStatusItems(experts)
         }

@@ -60,6 +60,7 @@ struct SettingsView: View {
     @State var resetErrorMessage: String?
     @State var sourcePaneStatusMessage: String?
     @State var sourcePaneErrorMessage: String?
+    @State var mcpSyncResultMessage: String?
     @State var detectionRefreshID = UUID()
     // Async detection results — nil means "still checking"
     @State var detectedClaudeAvailable: Bool? = nil

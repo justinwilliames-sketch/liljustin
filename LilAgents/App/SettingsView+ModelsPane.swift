@@ -31,6 +31,28 @@ extension SettingsView {
                 }
             }
 
+            SettingsSectionCard(title: "Connectors & extensions", subtitle: "Share MCP servers between Claude Desktop and LilJustin.") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("LilJustin chats through the Claude Code CLI, which uses a separate MCP registry from Claude Desktop. This button copies any MCP servers you've set up in Claude Desktop into Claude Code's config (~/.claude.json) so LilJustin can use them too. Existing entries are never overwritten — only missing ones are added. A backup is written to ~/.claude.json.liljustin-backup before any change.")
+                        .settingsCaption()
+
+                    HStack(spacing: 12) {
+                        Button("Sync MCPs from Claude Desktop") {
+                            let result = AppSettings.mirrorClaudeDesktopMCPs()
+                            mcpSyncResultMessage = result.summary
+                        }
+                        .controlSize(.small)
+
+                        if let msg = mcpSyncResultMessage, !msg.isEmpty {
+                            Text(msg)
+                                .settingsCaption()
+                                .lineLimit(3)
+                                .multilineTextAlignment(.leading)
+                        }
+                    }
+                }
+            }
+
             SettingsSectionCard(title: "Runtime", subtitle: modelSectionSubtitle) {
                 VStack(alignment: .leading, spacing: 14) {
                     RuntimeSegmentedControl(
