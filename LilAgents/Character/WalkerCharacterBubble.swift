@@ -1,19 +1,21 @@
 import AppKit
 
 extension WalkerCharacter {
-    // Sentence case throughout — Sir asked for all speech and
-    // notifications to use sentence case rather than the lowercase
-    // upstream Lenny pattern. "Checking the archive…" was also a
-    // leftover Lenny string referring to RAG that LilJustin doesn't
-    // do — replaced with "Checking the guides…" which matches the
-    // bundled corpus retrieval the app actually performs.
+    // Loading states — single-word human verbs. Sir asked for the
+    // "tooltip / status while busy" cycle to read like things a real
+    // person would be doing rather than the Lenny-era multi-word
+    // archive-flavoured phrases. All sentence case + ellipsis where
+    // the action is ongoing.
     private static let thinkingPhrases = [
-        "Digging…", "Searching…", "Checking the guides…",
-        "One sec…", "Looking…", "Pulling excerpts…",
-        "Finding the best answer…",
+        "Thinking…",
+        "Researching…",
+        "Reading…",
+        "Drafting…",
+        "Typing…",
+        "Looking…",
     ]
 
-    private static let completionPhrases = ["Found one!", "Got it!", "Ready!", "Answer's up", "Here you go"]
+    private static let completionPhrases = ["Done!", "Got it!", "Ready!", "Here you go"]
 
     private static let bubbleH: CGFloat = 26
     static let expertNameTagH: CGFloat = 24
@@ -215,6 +217,15 @@ extension WalkerCharacter {
             }
         }
 
+        // Mouse-event policy depends on bubble type. Ambient tips
+        // (currentAmbientLineText set in showAmbientLine BEFORE this
+        // showBubble call) are interactive — click drills in, hover
+        // pauses the expiry timer. Status / completion bubbles are
+        // pure decoration and pass clicks through to whatever's
+        // underneath them, so the user can click on a Dock icon or
+        // background app without the bubble eating the event.
+        thinkingBubbleWindow?.ignoresMouseEvents = currentAmbientLineText == nil
+
         if !(thinkingBubbleWindow?.isVisible ?? false) {
             thinkingBubbleWindow?.alphaValue = 1.0
             thinkingBubbleWindow?.orderFrontRegardless()
@@ -256,10 +267,21 @@ extension WalkerCharacter {
         win.backgroundColor = .clear
         win.hasShadow = true
         win.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 5)
+        // ignoresMouseEvents is toggled per-bubble in showBubble: ON
+        // for status/completion bubbles (so clicks pass through to
+        // whatever's underneath), OFF for ambient tips (so the user
+        // can click the bubble to drill into the topic, or hover to
+        // pause the expiry timer).
         win.ignoresMouseEvents = true
         win.collectionBehavior = [.canJoinAllSpaces, .stationary]
 
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: w, height: h))
+        let container = BubbleClickView(frame: NSRect(x: 0, y: 0, width: w, height: h))
+        container.onClick = { [weak self] in
+            self?.handleBubbleTapped()
+        }
+        container.onHoverChanged = { [weak self] hovering in
+            self?.handleBubbleHoverChanged(hovering)
+        }
         container.wantsLayer = true
         container.layer?.backgroundColor = t.bubbleBg.cgColor
         container.layer?.cornerRadius = h / 2
@@ -399,6 +421,34 @@ extension WalkerCharacter {
         }
         lastAmbientLineIndex = idx
         return Self.ambientLines[idx]
+    }
+
+    /// Click handler for the bubble. Only meaningful when the bubble
+    /// is currently showing an ambient tip — opens the popover, which
+    /// in turn reads `currentAmbientLineText` and seeds the chat with
+    /// "Tell me more about this — …". Clicks on status / completion
+    /// bubbles are no-ops by design (those bubbles set the window's
+    /// ignoresMouseEvents = true so this handler doesn't even fire).
+    func handleBubbleTapped() {
+        guard currentAmbientLineText != nil else { return }
+        openPopover()
+    }
+
+    /// Hover handler — Sir asked that hovering over a tip pause the
+    /// expiry timer so he has unbounded time to read longer
+    /// observations, with the timer resetting to a full linger window
+    /// when he moves the cursor away. While hovered we push
+    /// `ambientBubbleExpiresAt` an hour into the future (effectively
+    /// pause); on exit we reset it to a fresh `ambientBubbleLinger`
+    /// from now.
+    func handleBubbleHoverChanged(_ hovering: Bool) {
+        guard currentAmbientLineText != nil else { return }
+        let now = CACurrentMediaTime()
+        if hovering {
+            ambientBubbleExpiresAt = now + 3600
+        } else {
+            ambientBubbleExpiresAt = now + WalkerCharacter.ambientBubbleLinger
+        }
     }
 
     private func showAmbientLine(_ line: String, at now: CFTimeInterval) {

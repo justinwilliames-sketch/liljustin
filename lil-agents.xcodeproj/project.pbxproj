@@ -55,6 +55,7 @@
 		A10000010000000000000054 /* TerminalViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000054 /* TerminalViewLayout.swift */; };
 		A10000010000000000000055 /* WalkerCharacterBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000055 /* WalkerCharacterBubble.swift */; };
 		F8A0C2AC9D5941F1B950A8A5 /* WalkerCharacterFollowUps.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A0C2AE9D5941F1B950A8A5 /* WalkerCharacterFollowUps.swift */; };
+		F8A0C2AD9D5941F1B950A8A6 /* BubbleClickView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A0C2AF9D5941F1B950A8A6 /* BubbleClickView.swift */; };
 		A10000010000000000000056 /* WalkerCharacterExpertTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000056 /* WalkerCharacterExpertTag.swift */; };
 		A10000010000000000000057 /* WalkerCharacterPopoverWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000057 /* WalkerCharacterPopoverWindow.swift */; };
 		A10000010000000000000058 /* WalkerCharacterSessionWiring.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000058 /* WalkerCharacterSessionWiring.swift */; };
@@ -143,6 +144,7 @@
 		A10000020000000000000054 /* TerminalViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalViewLayout.swift; sourceTree = "<group>"; };
 		A10000020000000000000055 /* WalkerCharacterBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerCharacterBubble.swift; sourceTree = "<group>"; };
 		F8A0C2AE9D5941F1B950A8A5 /* WalkerCharacterFollowUps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerCharacterFollowUps.swift; sourceTree = "<group>"; };
+		F8A0C2AF9D5941F1B950A8A6 /* BubbleClickView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleClickView.swift; sourceTree = "<group>"; };
 		A10000020000000000000056 /* WalkerCharacterExpertTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerCharacterExpertTag.swift; sourceTree = "<group>"; };
 		A10000020000000000000057 /* WalkerCharacterPopoverWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerCharacterPopoverWindow.swift; sourceTree = "<group>"; };
 		A10000020000000000000058 /* WalkerCharacterSessionWiring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerCharacterSessionWiring.swift; sourceTree = "<group>"; };
@@ -304,6 +306,7 @@
 				A10000020000000000000035 /* WalkerCharacterMovement.swift */,
 				A10000020000000000000055 /* WalkerCharacterBubble.swift */,
 				F8A0C2AE9D5941F1B950A8A5 /* WalkerCharacterFollowUps.swift */,
+				F8A0C2AF9D5941F1B950A8A6 /* BubbleClickView.swift */,
 				A10000020000000000000056 /* WalkerCharacterExpertTag.swift */,
 				A10000020000000000000033 /* WalkerCharacterPopover.swift */,
 				A10000020000000000000057 /* WalkerCharacterPopoverWindow.swift */,
@@ -495,6 +498,7 @@
 				A10000010000000000000032 /* WalkerCharacterCore.swift in Sources */,
 				A10000010000000000000055 /* WalkerCharacterBubble.swift in Sources */,
 				F8A0C2AC9D5941F1B950A8A5 /* WalkerCharacterFollowUps.swift in Sources */,
+				F8A0C2AD9D5941F1B950A8A6 /* BubbleClickView.swift in Sources */,
 				A10000010000000000000056 /* WalkerCharacterExpertTag.swift in Sources */,
 				A10000010000000000000033 /* WalkerCharacterPopover.swift in Sources */,
 				A10000010000000000000057 /* WalkerCharacterPopoverWindow.swift in Sources */,

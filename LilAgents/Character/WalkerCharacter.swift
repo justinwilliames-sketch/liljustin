@@ -75,24 +75,30 @@ final class WalkerCharacter {
     var popoverBubbleShape: CAShapeLayer?
 
     // ── Sleep state machine ─────────────────────────────────────────
-    // After ~3–6 minutes of no interaction, LilJustin curls up for a
-    // 20–60s nap (`main-sleeping.gif`). Any click / popover open wakes
-    // him immediately; otherwise he wakes on his own, paces, and
+    // After ~2–4 minutes of no interaction, LilJustin curls up for a
+    // 30–90s nap (`main-sleeping.gif`). Any click / popover open / drag
+    // wakes him immediately; otherwise he wakes on his own, paces, and
     // delivers an ambient bubble within ~8–25s of standing back up.
     //
-    // Awake windows are deliberately set wider than the ambient bubble
-    // cadence (60–180s) so several bubbles can fire per awake period
-    // — Sir wants the companion to actually talk to him, not nap
-    // through every shift. Steady-state target: ~75% awake.
+    // Cadence iteration history:
+    //   - Pre-v0.1.21: 1.5–4 min awake, 30–120s sleep, but the wake
+    //     bug made him cycle in and out within a single tick.
+    //   - v0.1.21:     3–6 min awake, 20–60s sleep — fixed the wake
+    //                  bug but Sir reported he sleeps too rarely now.
+    //   - v0.1.35:     2–4 min awake, 30–90s sleep — splits the
+    //                  difference. Steady-state target ~70% awake,
+    //                  ~30% asleep when truly idle. Active use still
+    //                  prevents sleep entirely (each interaction resets
+    //                  the timer), which is correct behaviour.
     var sleepingImage: NSImage?
     var isSleeping: Bool = false
     var lastInteractionAt: CFTimeInterval = CACurrentMediaTime()
-    var idleSleepThreshold: TimeInterval = TimeInterval.random(in: 180...360)
+    var idleSleepThreshold: TimeInterval = TimeInterval.random(in: 120...240)
     var wakeAt: CFTimeInterval = 0
-    static let minIdleBeforeSleep: TimeInterval = 180     // 3 min
-    static let maxIdleBeforeSleep: TimeInterval = 360     // 6 min
-    static let minSleepDuration: TimeInterval = 20
-    static let maxSleepDuration: TimeInterval = 60
+    static let minIdleBeforeSleep: TimeInterval = 120     // 2 min
+    static let maxIdleBeforeSleep: TimeInterval = 240     // 4 min
+    static let minSleepDuration: TimeInterval = 30
+    static let maxSleepDuration: TimeInterval = 90
 
     // ── Idle facing variety ────────────────────────────────────────
     // During long idle pauses, periodically re-roll between front and

@@ -191,7 +191,21 @@ extension WalkerCharacter {
         let fallDistance = max(currentY - targetY, 0)
         let g: CGFloat = 2400
         let physicsDuration = fallDistance > 0 ? sqrt(2 * fallDistance / g) : 0
-        let duration = max(0.18, min(Double(physicsDuration), 1.2))
+        let fallDuration = max(0.18, min(Double(physicsDuration), 1.2))
+
+        // Bounce on landing — two diminishing rebounds shaped as
+        // parabolic arcs (4·amp·t·(1−t)). First bounce is the visible
+        // "boing"; second is a small settle-tick that sells the
+        // physics. Coefficients of restitution chosen by feel: ~25%
+        // of impact velocity for the first bounce, ~10% for the second,
+        // matching how a soft real-world object behaves on a hard
+        // surface. Skip bounces entirely on micro-falls (< 60px) —
+        // a 6px nudge wouldn't have generated visible bounce energy.
+        let bounce1Amp: CGFloat = fallDistance >= 60 ? 18 : 0
+        let bounce1Duration: Double = bounce1Amp > 0 ? 0.18 : 0
+        let bounce2Amp: CGFloat = fallDistance >= 200 ? 6 : 0
+        let bounce2Duration: Double = bounce2Amp > 0 ? 0.11 : 0
+        let totalDuration = fallDuration + bounce1Duration + bounce2Duration
 
         let startX = currentX
         let startY = currentY
@@ -203,7 +217,8 @@ extension WalkerCharacter {
         // 60Hz Timer-driven manual tween. Display vsync isn't required
         // for sub-second animation; a Timer at 16.6ms is visually
         // indistinguishable. The handler interpolates X and Y
-        // independently so the curves don't fight each other.
+        // independently so the curves don't fight each other, and
+        // sequences fall → bounce1 → bounce2 → settled across phases.
         dropTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] timer in
             guard let self else { timer.invalidate(); return }
 
@@ -221,36 +236,51 @@ extension WalkerCharacter {
             }
 
             let elapsed = CACurrentMediaTime() - startTime
-            let t = CGFloat(min(1.0, elapsed / duration))
+            var x: CGFloat
+            var y: CGFloat
 
-            // Y axis — gravity. Quadratic ease-in: y = t². The fall
-            // starts slow and accelerates exactly as a falling object
-            // does in real life (uniform gravitational acceleration).
-            let yT = t * t
+            if elapsed < fallDuration {
+                // Phase 1 — gravity fall.
+                let t = CGFloat(elapsed / fallDuration)
+                // Y axis: quadratic ease-in. y = t². True uniform
+                // gravitational acceleration.
+                let yT = t * t
+                // X axis: cubic ease-out. Release momentum bleeds out
+                // toward the landing point without snapping at the end.
+                let xT = 1 - pow(1 - t, 3)
+                x = startX + (targetX - startX) * xT
+                y = startY + (targetY - startY) * yT
+            } else if elapsed < fallDuration + bounce1Duration {
+                // Phase 2 — first bounce. Parabolic arc above the
+                // dock surface: b(t) = 4·amp·t·(1−t). At t=0 and t=1
+                // height is 0 (dock surface); at t=0.5 height = amp.
+                let t = CGFloat((elapsed - fallDuration) / bounce1Duration)
+                x = targetX
+                y = targetY + 4 * bounce1Amp * t * (1 - t)
+            } else if elapsed < totalDuration {
+                // Phase 3 — settle bounce. Same parabolic shape, smaller
+                // amplitude and faster.
+                let t = CGFloat((elapsed - fallDuration - bounce1Duration) / bounce2Duration)
+                x = targetX
+                y = targetY + 4 * bounce2Amp * t * (1 - t)
+            } else {
+                // Phase 4 — settled. Lock to the dock surface and
+                // hand off to the per-tick walk loop.
+                x = targetX
+                y = targetY
+                timer.invalidate()
+                self.dropTimer = nil
+                self.isDraggingHorizontally = false
+                // FUTURE — when justin-landing.gif ships, play it on
+                // entry to Phase 2 (impact frame), let it run through
+                // the bounce phases, and return to .front here.
+                self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.6...1.4)
+            }
 
-            // X axis — gentle deceleration. Cubic ease-out: 1 - (1-t)³.
-            // No acceleration on the horizontal — release momentum
-            // naturally bleeds out as he glides toward the landing
-            // point, rather than snapping sideways at the very end.
-            let xT = 1 - pow(1 - t, 3)
-
-            let x = startX + (targetX - startX) * xT
-            let y = startY + (targetY - startY) * yT
             self.window.setFrameOrigin(NSPoint(x: x, y: y))
             self.updatePopoverPosition()
             self.updateThinkingBubble()
             self.updateExpertNameTag()
-
-            if t >= 1.0 {
-                timer.invalidate()
-                self.dropTimer = nil
-                self.isDraggingHorizontally = false
-                // FUTURE — when justin-landing.gif ships, play it here
-                // for its frame count, then return to .front. Until
-                // then, the existing front-facing GIF persists through
-                // the post-landing pause.
-                self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.6...1.4)
-            }
         }
     }
 
