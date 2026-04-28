@@ -181,6 +181,11 @@ final class WalkerCharacter {
     var phraseAnimating = false
     var currentActivityStatus = ""
     var liveStatusFallbackTimer: Timer?
+    /// Drives the gravity-fall animation when the user releases a drag.
+    /// Held here (rather than scoped to `endHorizontalDrag`) so we can
+    /// invalidate it if the user grabs LilJustin again mid-fall —
+    /// otherwise two animations would race for the window frame.
+    var dropTimer: Timer?
     var lastLiveStatusEventAt: Date?
     var liveStatusFallbackIndex = 0
     var isDraggingHorizontally = false

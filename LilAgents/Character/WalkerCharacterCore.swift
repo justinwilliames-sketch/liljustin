@@ -87,23 +87,28 @@ extension WalkerCharacter {
     func beginHorizontalDrag(at event: NSEvent) {
         // Picking him up counts as user interaction — wake him from
         // sleep before the rest of the drag logic runs, so the sprite
-        // swaps to the front-facing GIF for the duration of the drag
-        // (setFacing is no-op'd while sleeping). Without this, dragging
-        // a sleeping LilJustin would slide a curled-up Z-z-z sprite
-        // along the dock, which is funny once and confusing forever.
+        // swaps to the front-facing GIF for the duration of the drag.
         noteUserInteraction()
 
+        // If a previous drop animation is still in flight, kill it —
+        // grabbing him mid-fall should hand control immediately back
+        // to the cursor.
+        dropTimer?.invalidate()
+        dropTimer = nil
+
         isDraggingHorizontally = true
-        // usesExpandedHorizontalRange controls whether the per-tick
-        // update() walks him across the full screen or just the dock.
-        // We toggle it to true ONLY for the duration of the spring-back
-        // animation (set in endHorizontalDrag) — during the drag itself,
-        // window position is set directly from the cursor and the
-        // per-tick update is bypassed entirely (see the early-return on
-        // isDraggingHorizontally in update()).
         isWalking = false
         isPaused = true
         pauseEndTime = CACurrentMediaTime() + 8.0
+
+        // FUTURE — when justin-picked-up.gif ships, this is the
+        // sprite-swap point. Add a "pickup" facing/state to
+        // directionalImages and either:
+        //   (a) set imageView.image directly here (bypassing setFacing
+        //       which is keyed to WalkerFacing), or
+        //   (b) extend WalkerFacing with a `.pickedUp` case and
+        //       teach setFacing to fall through to it.
+        // Until then, the front-facing GIF stands in.
         setFacing(.front)
         continueHorizontalDrag(with: event)
     }
@@ -129,14 +134,19 @@ extension WalkerCharacter {
         updateExpertNameTag()
     }
 
-    /// Spring back to the nearest valid dock position when the user
-    /// releases the mouse. Animates the window from wherever it landed
-    /// back to the dock surface, with X clamped to the dock's
-    /// horizontal range. Once the animation lands, `isDraggingHorizontally`
-    /// flips false and per-tick `update()` resumes — at which point
-    /// `usesExpandedHorizontalRange` is also reset to `false`, so the
-    /// walk loop tracks the dock dynamically again rather than the
-    /// full-screen range that the previous (buggy) drag path leaked.
+    /// Drop to the nearest valid dock position when the user releases
+    /// the mouse. Frame-by-frame manual interpolation (60Hz Timer) so
+    /// the X and Y axes can carry independent easings — gravity's
+    /// physics-correct ease-in-quadratic on Y, smooth ease-out-cubic
+    /// on X. The single shared timing curve from NSAnimationContext
+    /// always read as a "spring" because the late-acceleration on Y
+    /// also snapped X sideways at the very end. Now they're separate.
+    ///
+    /// Once the drop lands, `isDraggingHorizontally` flips false and
+    /// per-tick `update()` resumes — `usesExpandedHorizontalRange` is
+    /// also reset to `false`, so the walk loop tracks the dock
+    /// dynamically again rather than the full-screen range that the
+    /// previous (buggy) drag path leaked.
     func endHorizontalDrag() {
         guard let controller, let metrics = controller.currentDockMetrics() else {
             isDraggingHorizontally = false
@@ -147,11 +157,12 @@ extension WalkerCharacter {
         let bottomPadding = displayHeight * 0.15
         let dockY = metrics.dockTopY - bottomPadding + yOffset
 
-        // Clamp X to the docked walking range — the same range the
-        // per-tick update() will use once isDraggingHorizontally
-        // flips false. Snapping the spring-back endpoint into this
-        // range means update() picks up exactly where the animation
-        // ends with no positional jump.
+        // Clamp X to the docked walking range so a release anywhere on
+        // screen lands at the closest valid point on the dock. Same
+        // range the per-tick update() will use once dragging flips
+        // false — snapping the drop endpoint into this range means
+        // update() resumes from exactly where the animation ends with
+        // no positional jump.
         usesExpandedHorizontalRange = false
         let walkRange = horizontalRangeMetrics(
             screen: metrics.screen,
@@ -159,56 +170,93 @@ extension WalkerCharacter {
             dockWidth: metrics.dockWidth
         )
         let currentX = window.frame.origin.x
+        let currentY = window.frame.origin.y
         let clampedX = max(walkRange.minX, min(currentX, walkRange.minX + walkRange.travelDistance))
-        // Sync positionProgress so the per-tick update's pause/walk
-        // loop continues from exactly where we landed.
         positionProgress = walkRange.travelDistance > 0
             ? (clampedX - walkRange.minX) / walkRange.travelDistance
             : 0
 
-        let target = NSPoint(x: clampedX + flipXOffset, y: dockY)
+        let targetX = clampedX + flipXOffset
+        let targetY = dockY
 
-        // Gravity-paced fall, not a spring. Sir specifically asked for
-        // realistic falling rather than the elastic settle of the
-        // previous easeOutBack curve.
-        //
-        // Physics: d = ½ * g * t² → t = √(2d / g), where g is in
-        // pixels per second². 2400 px/s² lands close to the felt-
-        // realistic range across typical retina display heights —
-        // tested empirically against a 1000px fall reading as
-        // "one full second" which matches everyday gravity intuition.
-        //
-        // The X clamp above already snaps the target to the closest
-        // valid point along the dock's walkable range, so a release
-        // anywhere on screen lands on the nearest part of the dock.
-        let currentY = window.frame.origin.y
-        let fallDistance = max(currentY - dockY, 0)
+        // FUTURE — when justin-floating.gif (parachute) ships, this is
+        // the swap point. Apply it here, then clear it back to the
+        // landing/walking sprite in the completion block below.
+        // Pattern matches the planned justin-picked-up swap in
+        // beginHorizontalDrag.
+
+        // Physics: d = ½gt² → t = √(2d/g). g = 2400 px/s² calibrated
+        // empirically — a 1000px fall reads as ~1 second, matching
+        // everyday gravity intuition.
+        let fallDistance = max(currentY - targetY, 0)
         let g: CGFloat = 2400
         let physicsDuration = fallDistance > 0 ? sqrt(2 * fallDistance / g) : 0
-        // Clamp duration so a tiny lift still has visible motion and
-        // a giant lift doesn't take an awkward eternity.
         let duration = max(0.18, min(Double(physicsDuration), 1.2))
 
-        NSAnimationContext.runAnimationGroup({ ctx in
-            ctx.duration = duration
-            // Ease-in quadratic — slow start, accelerating finish.
-            // Approximates uniform gravitational acceleration in a
-            // single timing curve. Lands hard at the dock; no overshoot.
-            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.55, 0.0, 0.85, 0.45)
-            window.animator().setFrameOrigin(target)
-        }, completionHandler: { [weak self] in
-            guard let self else { return }
-            self.isDraggingHorizontally = false
-            // Brief stationary moment after impact before walking resumes.
-            self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.6...1.4)
-        })
+        let startX = currentX
+        let startY = currentY
+        let startTime = CACurrentMediaTime()
 
-        updatePopoverPosition()
-        updateThinkingBubble()
-        updateExpertNameTag()
+        // Cancel any in-flight drop before scheduling a new one.
+        dropTimer?.invalidate()
+
+        // 60Hz Timer-driven manual tween. Display vsync isn't required
+        // for sub-second animation; a Timer at 16.6ms is visually
+        // indistinguishable. The handler interpolates X and Y
+        // independently so the curves don't fight each other.
+        dropTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+
+            // If user grabbed him mid-fall, abort the drop and let the
+            // drag take over. beginHorizontalDrag already invalidates
+            // dropTimer, but defend the read here too.
+            if self.isDraggingHorizontally == false && self.dropTimer == nil {
+                timer.invalidate()
+                return
+            }
+            // Edge case: another beginHorizontalDrag fired and set up a
+            // new dropTimer. Bail — the new timer owns the animation.
+            if self.dropTimer !== timer {
+                return
+            }
+
+            let elapsed = CACurrentMediaTime() - startTime
+            let t = CGFloat(min(1.0, elapsed / duration))
+
+            // Y axis — gravity. Quadratic ease-in: y = t². The fall
+            // starts slow and accelerates exactly as a falling object
+            // does in real life (uniform gravitational acceleration).
+            let yT = t * t
+
+            // X axis — gentle deceleration. Cubic ease-out: 1 - (1-t)³.
+            // No acceleration on the horizontal — release momentum
+            // naturally bleeds out as he glides toward the landing
+            // point, rather than snapping sideways at the very end.
+            let xT = 1 - pow(1 - t, 3)
+
+            let x = startX + (targetX - startX) * xT
+            let y = startY + (targetY - startY) * yT
+            self.window.setFrameOrigin(NSPoint(x: x, y: y))
+            self.updatePopoverPosition()
+            self.updateThinkingBubble()
+            self.updateExpertNameTag()
+
+            if t >= 1.0 {
+                timer.invalidate()
+                self.dropTimer = nil
+                self.isDraggingHorizontally = false
+                // FUTURE — when justin-landing.gif ships, play it here
+                // for its frame count, then return to .front. Until
+                // then, the existing front-facing GIF persists through
+                // the post-landing pause.
+                self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.6...1.4)
+            }
+        }
     }
 
     func cancelHorizontalDrag() {
+        dropTimer?.invalidate()
+        dropTimer = nil
         isDraggingHorizontally = false
         usesExpandedHorizontalRange = false
     }
