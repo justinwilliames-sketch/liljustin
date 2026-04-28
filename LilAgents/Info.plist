@@ -41,5 +41,33 @@
     <true/>
     <key>SUScheduledCheckInterval</key>
     <integer>86400</integer>
+
+    <!-- TCC usage descriptions.
+         LilJustin spawns Claude Code / Codex CLI as subprocesses to
+         answer the user's questions. Those subprocesses may legitimately
+         touch protected user folders (Downloads, Documents, Desktop,
+         etc.) when the user mentions a file or asks for something to be
+         saved/read. macOS attributes those file-access prompts to the
+         "responsible app" — i.e. LilJustin — and requires a usage
+         description string for the prompt to display anything beyond a
+         bare path.
+         Without these strings the prompts look unexplained and alarming
+         ("LilJustin would like to access Downloads"). With them the user
+         sees a one-sentence rationale that matches reality.
+         Note: an unsigned app's TCC grants are tied to the binary hash,
+         so every Sparkle update wipes prior Allows. Signing the app
+         would persist the grants across updates. -->
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files in Downloads when you mention them.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files in Documents when you mention them.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on the Desktop when you mention them.</string>
+    <key>NSRemovableVolumesUsageDescription</key>
+    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on external drives when you mention them.</string>
+    <key>NSNetworkVolumesUsageDescription</key>
+    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on network shares when you mention them.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>LilJustin uses Apple Events to launch Terminal for the post-update Gatekeeper helper, and to invoke the Claude Code / Codex CLI on your behalf.</string>
 </dict>
 </plist>
