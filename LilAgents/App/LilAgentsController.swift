@@ -219,7 +219,14 @@ class LilAgentsController {
         }
 
         let maximumDockWidth = screen.visibleFrame.width - 24.0
-        let minimumUsableWidth = max(220.0, min(screen.visibleFrame.width - 48.0, screen.frame.width * 0.45))
+        // Floor only — never inflate the walkable range past the
+        // actual dock's footprint. Earlier this code forced a
+        // 45%-of-screen minimum to give the character "more room to
+        // walk", but that pushed him outside the visible dock area
+        // when Sir's dock was narrow (few icons), which read as the
+        // character drifting across empty desktop. 220pt is enough
+        // for a 96pt-wide character to take a visible step or two.
+        let minimumUsableWidth: CGFloat = 220.0
         if dockWidth < minimumUsableWidth {
             dockWidth = minimumUsableWidth
         }

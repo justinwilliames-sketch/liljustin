@@ -148,8 +148,12 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         ]
 
         if isUser {
+            // 12pt right margin so user bubbles have visible
+            // breathing room from the popover's right edge — was 0pt
+            // historically, which made wrapped lines like "actually
+            // works" look clipped against the bubble shell.
             constraints.append(bubbleBackground.leadingAnchor.constraint(greaterThanOrEqualTo: contentColumn.leadingAnchor, constant: 56))
-            constraints.append(bubbleBackground.trailingAnchor.constraint(equalTo: contentColumn.trailingAnchor))
+            constraints.append(bubbleBackground.trailingAnchor.constraint(equalTo: contentColumn.trailingAnchor, constant: -12))
         } else {
             constraints.append(bubbleBackground.leadingAnchor.constraint(equalTo: contentColumn.leadingAnchor))
             constraints.append(bubbleBackground.trailingAnchor.constraint(lessThanOrEqualTo: contentColumn.trailingAnchor, constant: -56))
