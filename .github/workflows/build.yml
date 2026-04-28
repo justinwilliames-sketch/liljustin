@@ -52,6 +52,27 @@ jobs:
             -scheme LilAgents \
             -resolvePackageDependencies
 
+      - name: Resolve build version from tag (or main)
+        id: version
+        run: |
+          # MARKETING_VERSION → CFBundleShortVersionString (semver, what
+          # users see). For tag pushes, strip the leading 'v'. For
+          # main pushes, use 0.0.<run_number> so each main build is a
+          # monotonically-newer prerelease that won't displace a real
+          # tagged build's version comparison.
+          # CURRENT_PROJECT_VERSION → CFBundleVersion (build number).
+          # Always the run number so each CI run produces a strictly
+          # newer build number.
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            MARKETING_VERSION="${GITHUB_REF_NAME#v}"
+          else
+            MARKETING_VERSION="0.0.${{ github.run_number }}"
+          fi
+          BUILD_NUMBER="${{ github.run_number }}"
+          echo "marketing_version=$MARKETING_VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "Building LilJustin $MARKETING_VERSION (build $BUILD_NUMBER)"
+
       - name: Build LilJustin (unsigned, Release configuration)
         run: |
           xcodebuild build \
@@ -65,6 +86,8 @@ jobs:
             CODE_SIGN_ENTITLEMENTS="" \
             PRODUCT_NAME=LilJustin \
             PRODUCT_BUNDLE_IDENTIFIER=team.yourorbit.LilJustin \
+            MARKETING_VERSION="${{ steps.version.outputs.marketing_version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
             ONLY_ACTIVE_ARCH=NO
 
       - name: Locate built .app

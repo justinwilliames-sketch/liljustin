@@ -53,6 +53,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
         // first call here registers the app with macOS, which surfaces
         // the Login Items approval prompt in System Settings.
         AppSettings.applyLaunchAtLoginPreference()
+        // Detect post-Sparkle-update launches and surface the
+        // Gatekeeper-bypass help dialog so users don't have to remember
+        // the xattr command after every auto-update. Skipped on first
+        // install (no previously-seen version) and on dev builds where
+        // Xcode might rewrite the bundle without changing the version.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.checkForPostUpdateGatekeeperHelp()
+        }
         controller = LilAgentsController()
         NotificationCenter.default.addObserver(self, selector: #selector(handleResetAllData), name: .liLJustinDidResetData, object: nil)
         controller?.onExpertsChanged = { [weak self] experts in
@@ -326,5 +334,80 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
 
     @objc func quitApp() {
         NSApp.terminate(nil)
+    }
+
+    // MARK: - Post-update Gatekeeper help
+
+    /// macOS re-quarantines an unsigned .app every time Sparkle replaces
+    /// it. Without enrolling in the Apple Developer Program (and adding
+    /// codesign + notarytool to CI), the user has to run the xattr
+    /// command after every update or face the "can't be opened because
+    /// Apple cannot check it" Gatekeeper dialog.
+    ///
+    /// This helper detects "the app version changed since last launch"
+    /// (likely an auto-update via Sparkle) and pops a dialog with the
+    /// command pre-loaded plus a one-click "Copy & open Terminal"
+    /// shortcut. Skipped on first install and when the version hasn't
+    /// changed (normal launches).
+    private static let lastLaunchedVersionKey = "lastLaunchedShortVersion"
+
+    func checkForPostUpdateGatekeeperHelp() {
+        let currentVersion = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
+        guard !currentVersion.isEmpty else { return }
+        let defaults = UserDefaults.standard
+        let last = defaults.string(forKey: AppDelegate.lastLaunchedVersionKey)
+        defaults.set(currentVersion, forKey: AppDelegate.lastLaunchedVersionKey)
+
+        // First install (no previous record) → don't fire. Same version
+        // → don't fire. Different version → fire.
+        guard let last, last != currentVersion else { return }
+
+        showPostUpdateGatekeeperHelpDialog(previous: last, current: currentVersion)
+    }
+
+    private func showPostUpdateGatekeeperHelpDialog(previous: String, current: String) {
+        let command = "xattr -dr com.apple.quarantine /Applications/LilJustin.app"
+
+        let alert = NSAlert()
+        alert.messageText = "LilJustin updated to \(current)"
+        alert.informativeText = """
+            macOS may quarantine the new build the first time it relaunches and refuse to open it (you'll see "LilJustin can't be opened because Apple cannot check it for malicious software" or similar).
+
+            Run this command in Terminal once to allow it through:
+
+            \(command)
+
+            Click 'Copy & open Terminal' to copy the command and launch Terminal in one go — paste with ⌘V and hit Return.
+            """
+        alert.alertStyle = .informational
+        if let icon = NSImage(named: "AppIcon") { alert.icon = icon }
+        alert.addButton(withTitle: "Copy & open Terminal")
+        alert.addButton(withTitle: "Copy command")
+        alert.addButton(withTitle: "Dismiss")
+
+        // Make the alert appear above the dock and any popover.
+        if let window = alert.window as? NSPanel {
+            window.level = .floating
+        }
+        NSApp.activate(ignoringOtherApps: true)
+
+        let response = alert.runModal()
+
+        switch response {
+        case .alertFirstButtonReturn:
+            // Copy + open Terminal
+            let pb = NSPasteboard.general
+            pb.clearContents()
+            pb.setString(command, forType: .string)
+            let terminalURL = URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app")
+            NSWorkspace.shared.open(terminalURL)
+        case .alertSecondButtonReturn:
+            // Copy only
+            let pb = NSPasteboard.general
+            pb.clearContents()
+            pb.setString(command, forType: .string)
+        default:
+            break
+        }
     }
 }

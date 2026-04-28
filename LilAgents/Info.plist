@@ -9,6 +9,18 @@
     <key>CFBundleName</key>
     <string>LilJustin</string>
 
+    <!-- Sparkle compares the running app's CFBundleShortVersionString
+         to sparkle:shortVersionString in the appcast. The CI workflow
+         injects MARKETING_VERSION (= the v-tag without the 'v') and
+         CURRENT_PROJECT_VERSION (= the workflow run number) so the
+         build's version reflects what's tagged. Without this, every
+         build defaults to 1.0 and Sparkle thinks the user is ahead of
+         every release — updates would never prompt. -->
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+
     <!-- Sparkle auto-update — feed URL + Ed25519 public key.
 
          The feed URL points at GitHub Releases' /latest/download/ pattern,
