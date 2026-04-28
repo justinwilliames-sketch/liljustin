@@ -85,6 +85,14 @@ extension WalkerCharacter {
     }
 
     func beginHorizontalDrag(at event: NSEvent) {
+        // Picking him up counts as user interaction — wake him from
+        // sleep before the rest of the drag logic runs, so the sprite
+        // swaps to the front-facing GIF for the duration of the drag
+        // (setFacing is no-op'd while sleeping). Without this, dragging
+        // a sleeping LilJustin would slide a curled-up Z-z-z sprite
+        // along the dock, which is funny once and confusing forever.
+        noteUserInteraction()
+
         isDraggingHorizontally = true
         usesExpandedHorizontalRange = true
         isWalking = false
