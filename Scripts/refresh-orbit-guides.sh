@@ -27,14 +27,28 @@ echo "Fetching $URL"
 TMP="$(mktemp)"
 curl -fsSL "$URL" -o "$TMP"
 
-# Sanity check: payload must be JSON with a non-zero `count` field.
+# Sanity check + strip noise-only fields. The live export stamps an
+# `exportedAt` timestamp on every deploy, which would otherwise turn
+# every site redeploy into a "diff" and trigger a no-op LilJustin
+# release for users via Sparkle. The retrieval code never reads
+# `exportedAt`, so dropping it here gives us a deterministic file
+# whose hash only changes when actual guide content changes.
 COUNT="$(python3 -c "import json,sys; d=json.load(open('$TMP')); print(d.get('count', 0))")"
 if [[ "$COUNT" -lt 50 ]]; then
   echo "ERROR: export returned only $COUNT guides — refusing to overwrite. Inspect $TMP." >&2
   exit 1
 fi
 
-mv "$TMP" "$DEST"
+python3 - <<PY > "$DEST"
+import json
+d = json.load(open("$TMP"))
+# Strip the redeploy-volatile timestamp so diffs reflect real content.
+d.pop("exportedAt", None)
+# Sort keys for deterministic output — guards against JSON key ordering
+# changes between Node serialisations producing spurious diffs.
+print(json.dumps(d, sort_keys=True, ensure_ascii=False))
+PY
+rm -f "$TMP"
 SIZE_KB="$(du -k "$DEST" | cut -f1)"
 echo "Wrote $DEST — $COUNT guides, ${SIZE_KB} KB"
 echo
