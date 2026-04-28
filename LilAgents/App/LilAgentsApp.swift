@@ -28,24 +28,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
 
     override init() {
         super.init()
-        // Sparkle is constructed but NOT auto-started on launch. Earlier
-        // builds had `startingUpdater: true` which fired an automatic
-        // update check immediately — and because the upstream Lenny
-        // SUFeedURL was deliberately stripped (security: it pointed at
-        // someone else's release channel), Sparkle failed and surfaced
-        // the "Unable to Check For Updates" dialog every launch.
-        //
-        // For the proper auto-update path Sparkle expects:
-        //   1. SUFeedURL in Info.plist pointing at a hosted appcast.xml
-        //   2. SUPublicEDKey in Info.plist (Ed25519 public key)
-        //   3. A signing key kept as a GitHub Actions secret so CI can
-        //      sign each .dmg and generate a per-release appcast entry
-        //   4. The appcast.xml attached to each GitHub Release
-        //
-        // See NEXT_STEPS.md for the full GitHub-appcast setup. Until
-        // those keys are in place, we keep Sparkle dormant.
+        // Sparkle auto-update is live as of v0.1.12. The full pipeline:
+        //   1. Info.plist: SUFeedURL → /releases/latest/download/appcast.xml,
+        //      SUPublicEDKey baked in.
+        //   2. CI workflow signs every tagged .dmg with the matching
+        //      Ed25519 private key (SPARKLE_ED_PRIVATE_KEY repo secret)
+        //      and attaches appcast.xml as a release asset.
+        //   3. SPUStandardUpdaterController kicks an automatic check on
+        //      launch and again every SUScheduledCheckInterval seconds
+        //      (24h, set in Info.plist). User can also trigger via
+        //      'Check for Updates…' in the menubar.
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: false,
+            startingUpdater: true,
             updaterDelegate: nil,
             userDriverDelegate: self
         )
@@ -183,12 +177,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
 
         menu.addItem(NSMenuItem.separator())
 
-        // Hidden until the GitHub-appcast pipeline is wired up. Without a
-        // working SUFeedURL + SUPublicEDKey, clicking this would just
-        // surface the same "Unable to Check For Updates" dialog.
+        // Live as of v0.1.12 — Sparkle auto-checks on launch + every 24h,
+        // and this menu item lets users trigger a manual check.
         let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
         updateItem.target = updaterController
-        updateItem.isHidden = true
         menu.addItem(updateItem)
 
         menu.addItem(NSMenuItem.separator())
