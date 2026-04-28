@@ -18,6 +18,7 @@ extension TerminalView {
 
         hideWelcomeSuggestionsPanel()
         clearTranscriptSuggestionView()
+        clearFollowUpChips()
 
         let attachments = pendingAttachments
         inputField.stringValue = ""

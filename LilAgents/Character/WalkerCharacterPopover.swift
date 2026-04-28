@@ -269,6 +269,48 @@ extension WalkerCharacter {
         refreshPopoverEventMonitors()
     }
 
+    /// Clear the current conversation and reset the popover to the
+    /// welcome state (4 random prompt chips + greeting). The session's
+    /// in-memory history map is wiped for the active expert key, so
+    /// the next user message starts a fresh thread with no carry-over
+    /// context. Pending follow-up chips are cleared too. Lives on the
+    /// popover-control axis next to settings/expand/pin/close.
+    @objc func clearConversationTapped() {
+        guard let session = claudeSession else { return }
+
+        // Wipe the in-memory history for the current conversation
+        // partition (the focused expert's key, or the default `lenny`
+        // key when there's no expert focus — which is always true in
+        // LilJustin since experts are disabled).
+        let key = session.key(for: focusedExpert)
+        session.conversations[key] = nil
+
+        // Reset all transient transcript state — live status, expert
+        // suggestions, follow-up chips, attachments, the input field —
+        // so the next interaction looks like a fresh popover open.
+        terminalView?.clearFollowUpChips()
+        terminalView?.clearTranscriptSuggestionView()
+        terminalView?.clearLiveStatus()
+        terminalView?.endStreaming()
+        terminalView?.pendingAttachments.removeAll()
+        terminalView?.refreshAttachmentPreviews()
+        terminalView?.inputField.stringValue = ""
+        terminalView?.currentAssistantText = ""
+        terminalView?.deferredExpertSuggestions = []
+
+        // Re-render with empty history → triggers the welcome state
+        // path with fresh chip suggestions. forceRefresh: true reshuffles
+        // the 4 prompt chips so a cleared conversation never reopens
+        // with the same chip set as the one that was just dismissed.
+        terminalView?.replayConversation([], expertSuggestions: [])
+        terminalView?.showWelcomeGreeting(forceRefresh: true)
+
+        // Refocus the input so Sir can immediately type the next thing.
+        if let terminal = terminalView {
+            popoverWindow?.makeFirstResponder(terminal.inputField)
+        }
+    }
+
     @objc func closePopoverFromButton() {
         isPopoverPinned = false
         syncPopoverPinState()

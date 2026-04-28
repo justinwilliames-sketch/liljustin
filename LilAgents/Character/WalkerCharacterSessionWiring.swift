@@ -100,6 +100,12 @@ extension WalkerCharacter {
                 session.livePresenceExperts = []
             }
             self.terminalView?.deferredExpertSuggestions = []
+
+            // Generate two follow-up chips. Skipped on expert focus
+            // (those flows have their own suggestion UI), and bailed
+            // out on chitchat replies under 40 words — no point asking
+            // the model to suggest follow-ups to a "got it" response.
+            self.scheduleFollowUpGeneration()
         }
 
         session.onError = { [weak self] text in

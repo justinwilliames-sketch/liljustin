@@ -46,6 +46,32 @@ extension TerminalView {
         }
     }
 
+    /// Render LLM-generated follow-up chips at the bottom of the
+    /// transcript. Replaces any existing follow-up row.
+    func showFollowUpChips(_ chips: [String], onTapped: @escaping (String) -> Void) {
+        clearFollowUpChips()
+        guard !chips.isEmpty else { return }
+
+        let view = FollowUpChipsView(theme: theme, chips: chips)
+        view.onChipTapped = onTapped
+        transcriptStack.addArrangedSubview(view)
+        view.widthAnchor.constraint(equalTo: transcriptStack.widthAnchor).isActive = true
+        followUpChipsView = view
+        scrollToBottom()
+    }
+
+    /// Remove the follow-up chip row. Called whenever the transcript
+    /// changes shape (user sends a message, conversation cleared, new
+    /// streaming response begins) — chips are ephemeral, never carried
+    /// across turns.
+    func clearFollowUpChips() {
+        if let view = followUpChipsView {
+            transcriptStack.removeArrangedSubview(view)
+            view.removeFromSuperview()
+            followUpChipsView = nil
+        }
+    }
+
     func renderTranscriptSuggestions() {
         clearTranscriptSuggestionView()
         expertSuggestionTargets.removeAll()

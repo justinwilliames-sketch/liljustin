@@ -550,7 +550,8 @@ extension WalkerCharacter {
         let closeButtonX = popoverWidth - 12 - controlButtonSize
         let pinButtonX = closeButtonX - buttonSpacing - controlButtonSize
         let expandButtonX = pinButtonX - buttonSpacing - controlButtonSize
-        let settingsButtonX = expandButtonX - buttonSpacing - controlButtonSize
+        let clearButtonX = expandButtonX - buttonSpacing - controlButtonSize
+        let settingsButtonX = clearButtonX - buttonSpacing - controlButtonSize
 
         let settingsButton = HoverButton(title: "", target: NSApp.delegate, action: #selector(AppDelegate.openSettings))
         settingsButton.frame = NSRect(x: settingsButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
@@ -588,6 +589,24 @@ extension WalkerCharacter {
         titleTextStack.spacing = 0
         titleTextStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         titleBar.addSubview(titleTextStack)
+
+        let clearButton = HoverButton(title: "", target: self, action: #selector(clearConversationTapped))
+        clearButton.frame = NSRect(x: clearButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
+        clearButton.autoresizingMask = .minXMargin
+        clearButton.isBordered = false
+        clearButton.wantsLayer = true
+        clearButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
+        clearButton.hoverBg = t.separatorColor.withAlphaComponent(0.22).cgColor
+        clearButton.layer?.backgroundColor = t.separatorColor.withAlphaComponent(0.10).cgColor
+        clearButton.layer?.cornerRadius = controlButtonSize / 2
+        if let img = NSImage(systemSymbolName: "square.and.pencil", accessibilityDescription: "New conversation") {
+            let config = NSImage.SymbolConfiguration(pointSize: 11, weight: .medium)
+            clearButton.image = img.withSymbolConfiguration(config)
+        }
+        clearButton.imageScaling = .scaleProportionallyDown
+        clearButton.contentTintColor = t.textDim
+        clearButton.toolTip = "Start a new conversation"
+        titleBar.addSubview(clearButton)
 
         let expandButton = HoverButton(title: "", target: self, action: #selector(expandToggleTapped))
         expandButton.frame = NSRect(x: expandButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)

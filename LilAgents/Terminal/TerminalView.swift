@@ -51,6 +51,12 @@ class TerminalView: NSView {
     var lastPickedExpert: ResponderExpert?
     var isShowingInitialWelcomeState = false
     var transcriptSuggestionView: NSView?
+    /// Tappable chip pair showing 2 LLM-generated follow-up prompts after
+    /// each substantive assistant response. Lives at the bottom of the
+    /// transcript stack, cleared when the user types or sends or when
+    /// the next response begins streaming. Owned by TerminalView so the
+    /// transcript replay path doesn't accidentally double-render.
+    var followUpChipsView: FollowUpChipsView?
     var transcriptLiveStatusView: NSView?
     var transcriptApprovalView: NSView?
     var renderedConversationKey: String?

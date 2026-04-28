@@ -280,6 +280,60 @@ class WelcomeChipsView: NSView {
     }
 }
 
+/// 2-chip horizontal row showing LLM-generated follow-up suggestions
+/// after a substantive assistant response. Real estate inside the
+/// popover is tight, so 2 chips per row — same hover affordance as
+/// the welcome chips but rendered without the symbol icon (the
+/// follow-ups are purely text-driven).
+class FollowUpChipsView: NSView {
+    var onChipTapped: ((String) -> Void)?
+    private let theme: PopoverTheme
+    private let chips: [String]
+    private weak var rowStack: NSStackView?
+
+    init(theme: PopoverTheme, chips: [String]) {
+        self.theme = theme
+        self.chips = chips
+        super.init(frame: .zero)
+        setupViews()
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func setupViews() {
+        translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = NSStackView()
+        stack.orientation = .horizontal
+        stack.alignment = .centerY
+        stack.spacing = 8
+        stack.distribution = .fillEqually
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        rowStack = stack
+
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+
+        for chipText in chips.prefix(2) {
+            // Reuse the same hover/symbol chip widget the welcome panel
+            // uses, with `arrow.right` indicating "send this as the next
+            // question". Symbol stays consistent across both chips so
+            // they read as a paired action, not categorised content.
+            let chip = HoverChipView(symbol: "arrow.right", label: chipText, theme: theme)
+            chip.onTapped = { [weak self] in self?.onChipTapped?(chipText) }
+            stack.addArrangedSubview(chip)
+        }
+
+        setContentHuggingPriority(.required, for: .vertical)
+        setContentCompressionResistancePriority(.required, for: .vertical)
+    }
+}
+
 class ConnectionSetupCardView: NSView {
     var onOpenSettings: (() -> Void)?
 
