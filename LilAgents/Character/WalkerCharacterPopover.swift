@@ -121,29 +121,50 @@ extension WalkerCharacter {
         guard let popover = popoverWindow, let screen = NSScreen.main else { return }
         isPopoverExpanded = !isPopoverExpanded
 
+        let charFrame = window.frame
+        let visibleFrame = screen.visibleFrame
+        let currentFrame = popover.frame
+
+        // ── New height ──────────────────────────────────────────────
         let newHeight: CGFloat
         if isPopoverExpanded {
-            let charFrame = window.frame
             let popoverBottomY = charFrame.maxY - 10
-            let maxAvailable = screen.visibleFrame.maxY - 4 - popoverBottomY
-            newHeight = min(max(maxAvailable, 500), screen.visibleFrame.height - 20)
+            let maxAvailable = visibleFrame.maxY - 4 - popoverBottomY
+            newHeight = min(max(maxAvailable, 500), visibleFrame.height - 20)
         } else {
             newHeight = WalkerCharacter.defaultPopoverHeight
         }
 
-        let currentFrame = popover.frame
-        let charFrame = window.frame
+        // ── New width ───────────────────────────────────────────────
+        // 50% wider on expand. Falls back to the default width when
+        // collapsing. Also clamped to the visible screen so the
+        // popover never overflows the desktop on narrow displays.
+        let baseWidth = WalkerCharacter.defaultPopoverWidth
+        let expandedWidth = min(baseWidth * 1.5, visibleFrame.width - 8)
+        let newWidth: CGFloat = isPopoverExpanded ? expandedWidth : baseWidth
+
+        // ── New origin — keep the tail centred on the sprite ───────
         let desiredBottomY = charFrame.maxY - 10
         let clampedBottomY = max(
-            screen.visibleFrame.minY + 4,
-            min(desiredBottomY, screen.visibleFrame.maxY - newHeight - 4)
+            visibleFrame.minY + 4,
+            min(desiredBottomY, visibleFrame.maxY - newHeight - 4)
         )
-        let newFrame = NSRect(x: currentFrame.minX, y: clampedBottomY, width: currentFrame.width, height: newHeight)
+        var newX = charFrame.midX - newWidth / 2
+        newX = max(visibleFrame.minX + 4, min(newX, visibleFrame.maxX - newWidth - 4))
 
+        let newFrame = NSRect(x: newX, y: clampedBottomY, width: newWidth, height: newHeight)
+
+        // Animate the window frame AND the bubble shell path together
+        // so the speech-bubble outline stays in sync with the content
+        // throughout the resize. Without the explicit path rebuild,
+        // the CAShapeLayer keeps its original-size path while the
+        // window grows around it — which is exactly what produced
+        // the "detached title" Sir saw on the v0.1.21 expand attempt.
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.28
             ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             popover.animator().setFrame(newFrame, display: true)
+            rebuildPopoverBubbleShellPath(forSize: newFrame.size, animated: true, duration: 0.28)
         }
 
         let symbolName = isPopoverExpanded
@@ -153,6 +174,39 @@ extension WalkerCharacter {
             let config = NSImage.SymbolConfiguration(pointSize: 10, weight: .medium)
             popoverExpandButton?.image = img.withSymbolConfiguration(config)
         }
+    }
+
+    /// Rebuild the speech-bubble outline path to match a new window
+    /// size. Must be called whenever the popover frame changes —
+    /// without this, the `CAShapeLayer` keeps the path it was given
+    /// at creation, the bubble outline stays the original size, and
+    /// any new content stretches outside the drawn outline (the
+    /// "detached title" bug).
+    ///
+    /// When `animated` is true the path change is wrapped in a
+    /// `CABasicAnimation` so the outline morphs alongside the window
+    /// frame animation rather than snapping to the new shape on
+    /// frame 0.
+    func rebuildPopoverBubbleShellPath(forSize size: CGSize, animated: Bool, duration: CFTimeInterval = 0.28) {
+        guard let bubbleShape = popoverBubbleShape else { return }
+
+        let newPath = WalkerCharacter.bubbleShellPath(
+            size: size,
+            tailHeight: WalkerCharacter.popoverTailHeight,
+            tailWidth: WalkerCharacter.popoverTailWidth,
+            cornerRadius: 18
+        )
+
+        if animated {
+            let anim = CABasicAnimation(keyPath: "path")
+            anim.fromValue = bubbleShape.path
+            anim.toValue = newPath
+            anim.duration = duration
+            anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            bubbleShape.add(anim, forKey: "pathResize")
+        }
+        bubbleShape.frame = CGRect(origin: .zero, size: size)
+        bubbleShape.path = newPath
     }
 
     func closePopover() {
@@ -165,11 +219,23 @@ extension WalkerCharacter {
             let config = NSImage.SymbolConfiguration(pointSize: 10, weight: .medium)
             btn.image = img.withSymbolConfiguration(config)
         }
-        // Reset window to default height before hiding
-        if let popover = popoverWindow, popover.frame.height != WalkerCharacter.defaultPopoverHeight {
+        // Reset window to default size before hiding so the next
+        // open starts collapsed. Both width and height reset — without
+        // the width reset a popover that was expanded then closed
+        // would reopen at the expanded width with no visual cue.
+        if let popover = popoverWindow {
             let f = popover.frame
-            let newFrame = NSRect(x: f.minX, y: f.minY, width: f.width, height: WalkerCharacter.defaultPopoverHeight)
-            popover.setFrame(newFrame, display: false)
+            let needsResize = f.width != WalkerCharacter.defaultPopoverWidth
+                || f.height != WalkerCharacter.defaultPopoverHeight
+            if needsResize {
+                let resetSize = CGSize(
+                    width: WalkerCharacter.defaultPopoverWidth,
+                    height: WalkerCharacter.defaultPopoverHeight
+                )
+                let newFrame = NSRect(origin: f.origin, size: resetSize)
+                popover.setFrame(newFrame, display: false)
+                rebuildPopoverBubbleShellPath(forSize: resetSize, animated: false)
+            }
         }
 
         popoverWindow?.orderOut(nil)

@@ -436,7 +436,7 @@ extension WalkerCharacter {
 
     func createPopoverWindow() {
         let t = resolvedTheme
-        let popoverWidth: CGFloat = 468
+        let popoverWidth: CGFloat = WalkerCharacter.defaultPopoverWidth                     // 468
         let totalHeight: CGFloat = WalkerCharacter.defaultPopoverHeight                      // 574
         let tailHeight: CGFloat = WalkerCharacter.popoverTailHeight                         //  14
         let tailWidth: CGFloat = WalkerCharacter.popoverTailWidth                           //  28
@@ -554,6 +554,11 @@ extension WalkerCharacter {
 
         let settingsButton = HoverButton(title: "", target: NSApp.delegate, action: #selector(AppDelegate.openSettings))
         settingsButton.frame = NSRect(x: settingsButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
+        // Right-edge anchored — keep glued to the title bar's right
+        // edge when the popover expands (50% wider). Without this the
+        // buttons stay at their original X positions, drift toward the
+        // middle of the widened title bar, and the right edge is empty.
+        settingsButton.autoresizingMask = .minXMargin
         settingsButton.isBordered = false
         settingsButton.wantsLayer = true
         settingsButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
@@ -586,6 +591,7 @@ extension WalkerCharacter {
 
         let expandButton = HoverButton(title: "", target: self, action: #selector(expandToggleTapped))
         expandButton.frame = NSRect(x: expandButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
+        expandButton.autoresizingMask = .minXMargin
         expandButton.isBordered = false
         expandButton.wantsLayer = true
         expandButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
@@ -604,6 +610,7 @@ extension WalkerCharacter {
 
         let pinButton = HoverButton(title: "", target: self, action: #selector(togglePopoverPinned))
         pinButton.frame = NSRect(x: pinButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
+        pinButton.autoresizingMask = .minXMargin
         pinButton.isBordered = false
         pinButton.wantsLayer = true
         pinButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
@@ -618,6 +625,7 @@ extension WalkerCharacter {
 
         let closeButton = HoverButton(title: "", target: self, action: #selector(closePopoverFromButton))
         closeButton.frame = NSRect(x: closeButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
+        closeButton.autoresizingMask = .minXMargin
         closeButton.isBordered = false
         closeButton.wantsLayer = true
         closeButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
@@ -646,6 +654,7 @@ extension WalkerCharacter {
         let returnPill = HoverButton(title: "", target: self, action: #selector(returnToGenieTapped))
         let returnPillWidth: CGFloat = 118
         returnPill.frame = NSRect(x: settingsButtonX - 8 - returnPillWidth, y: 14, width: returnPillWidth, height: 26)
+        returnPill.autoresizingMask = .minXMargin
         returnPill.isBordered = false
         returnPill.wantsLayer = true
         returnPill.normalBg = t.inputBg.withAlphaComponent(0.90).cgColor

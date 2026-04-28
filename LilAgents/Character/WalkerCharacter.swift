@@ -58,10 +58,13 @@ final class WalkerCharacter {
     var expertSwitcherPopover: NSPopover?
     var isPopoverExpanded = false
     var isPopoverPinned = false
-    // Total popover window height. The bubble body is
+    // Total popover window dimensions. The bubble body is
     // `defaultPopoverHeight - popoverTailHeight` tall; the bottom
     // `popoverTailHeight` pixels host the speech-bubble tail pointing
-    // down at the character.
+    // down at the character. `defaultPopoverWidth` is the rest-state
+    // width — the expand toggle widens to 1.5× and lengthens height to
+    // a screen-fit value, then collapses back to these defaults.
+    static let defaultPopoverWidth: CGFloat = 468
     static let defaultPopoverHeight: CGFloat = 574
     static let popoverTailHeight: CGFloat = 14
     static let popoverTailWidth: CGFloat = 28
