@@ -74,5 +74,14 @@
     <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on network shares when you mention them.</string>
     <key>NSAppleEventsUsageDescription</key>
     <string>LilJustin uses Apple Events to launch Terminal for the post-update Gatekeeper helper, and to invoke the Claude Code / Codex CLI on your behalf.</string>
+
+    <!-- Voice dictation via SFSpeechRecognizer. Required by macOS for the
+         microphone-input prompt and the speech-recognition-permission prompt.
+         Triggered only when the user clicks the dictation mic button in the
+         composer; LilJustin never opens the mic on its own. -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>LilJustin records audio only while you hold the dictation button in the composer, so you can speak your message instead of typing it.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>LilJustin uses Apple's on-device speech recognition to transcribe what you say into the chat box. Audio is processed locally on your Mac whenever the OS supports it.</string>
 </dict>
 </plist>

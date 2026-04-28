@@ -106,6 +106,8 @@
 		BC000001000000000000000B /* MemoryExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000B /* MemoryExtractor.swift */; };
 		BC000001000000000000000D /* AppSettings+Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000D /* AppSettings+Memory.swift */; };
 		BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000E /* SettingsView+MemoryPane.swift */; };
+		BC0000010000000000000010 /* DictationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000010 /* DictationManager.swift */; };
+		BC0000010000000000000011 /* TerminalView+Dictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000011 /* TerminalView+Dictation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -209,6 +211,8 @@
 		BC000002000000000000000B /* MemoryExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryExtractor.swift; sourceTree = "<group>"; };
 		BC000002000000000000000D /* AppSettings+Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppSettings+Memory.swift"; sourceTree = "<group>"; };
 		BC000002000000000000000E /* SettingsView+MemoryPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+MemoryPane.swift"; sourceTree = "<group>"; };
+		BC0000020000000000000010 /* DictationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationManager.swift; sourceTree = "<group>"; };
+		BC0000020000000000000011 /* TerminalView+Dictation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalView+Dictation.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -249,6 +253,7 @@
 				A10000060000000000000013 /* Terminal */,
 				A10000060000000000000014 /* Support */,
 				BC0000060000000000000001 /* Memory */,
+				BC0000060000000000000002 /* Speech */,
 				A10000020000000000000007 /* Assets.xcassets */,
 				A10000020000000000000010 /* Sounds */,
 				A10000120000000000000001 /* CharacterSprites */,
@@ -375,6 +380,7 @@
 				A10000020000000000000061 /* MCPConnectionCards.swift */,
 				A10000020000000000000077 /* MCPConnectionCards+OfficialMCP.swift */,
 				BC0000020000000000000004 /* BusinessContextPromptCardView.swift */,
+				BC0000020000000000000011 /* TerminalView+Dictation.swift */,
 			);
 			path = Terminal;
 			sourceTree = "<group>";
@@ -400,6 +406,14 @@
 				BC000002000000000000000D /* AppSettings+Memory.swift */,
 			);
 			path = Memory;
+			sourceTree = "<group>";
+		};
+		BC0000060000000000000002 /* Speech */ = {
+			isa = PBXGroup;
+			children = (
+				BC0000020000000000000010 /* DictationManager.swift */,
+			);
+			path = Speech;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -576,6 +590,8 @@
 				BC000001000000000000000B /* MemoryExtractor.swift in Sources */,
 				BC000001000000000000000D /* AppSettings+Memory.swift in Sources */,
 				BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */,
+				BC0000010000000000000010 /* DictationManager.swift in Sources */,
+				BC0000010000000000000011 /* TerminalView+Dictation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -157,6 +157,7 @@ extension TerminalView {
         let attachY = sendY
         let sendX = composerPanel.frame.width - rightInset - controlButtonSize
         let attachX = sendX - 10 - controlButtonSize
+        let dictateX = attachX - 10 - controlButtonSize
 
         sendButton.frame = NSRect(x: sendX, y: sendY, width: controlButtonSize, height: controlButtonSize)
         sendButton.autoresizingMask = [.minXMargin]
@@ -196,10 +197,29 @@ extension TerminalView {
         attachButton.action = #selector(attachButtonTapped)
         composerPanel.addSubview(attachButton)
 
+        dictateButton.frame = NSRect(x: dictateX, y: attachY, width: controlButtonSize, height: controlButtonSize)
+        dictateButton.autoresizingMask = [.minXMargin]
+        dictateButton.isBordered = false
+        dictateButton.wantsLayer = true
+        dictateButton.normalBg = t.separatorColor.withAlphaComponent(0.14).cgColor
+        dictateButton.hoverBg = t.separatorColor.withAlphaComponent(0.28).cgColor
+        dictateButton.layer?.backgroundColor = t.separatorColor.withAlphaComponent(0.14).cgColor
+        dictateButton.layer?.cornerRadius = controlButtonSize / 2
+        if let img = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Dictate message") {
+            let config = NSImage.SymbolConfiguration(pointSize: 12, weight: .medium)
+            dictateButton.image = img.withSymbolConfiguration(config)
+        }
+        dictateButton.imageScaling = .scaleProportionallyDown
+        dictateButton.contentTintColor = t.textDim
+        dictateButton.toolTip = "Dictate message"
+        dictateButton.target = self
+        dictateButton.action = #selector(dictateButtonTapped)
+        composerPanel.addSubview(dictateButton)
+
         inputField.frame = NSRect(
             x: 16,
             y: 8,
-            width: attachX - 16 - 8,   // 16px left inset, 8px gap before attach button
+            width: dictateX - 16 - 8,   // 16px left inset, 8px gap before dictate button
             height: Layout.composerHeight - 16
         )
         inputField.autoresizingMask = [.width]
@@ -231,7 +251,7 @@ extension TerminalView {
         composerStatusLabel.textColor = t.textDim
         composerStatusLabel.lineBreakMode = .byTruncatingTail
         composerStatusLabel.isHidden = true
-        composerStatusLabel.frame = NSRect(x: 16, y: (Layout.composerHeight - 18) / 2, width: composerPanel.frame.width - 16 - rightInset - controlButtonSize - 8, height: 18)
+        composerStatusLabel.frame = NSRect(x: 16, y: (Layout.composerHeight - 18) / 2, width: dictateX - 16 - 8, height: 18)
         composerStatusLabel.autoresizingMask = [.width]
         composerPanel.addSubview(composerStatusLabel)
 
@@ -260,19 +280,21 @@ extension TerminalView {
         let sendY = (Layout.composerHeight - controlButtonSize) / 2
         let sendX = composerPanel.bounds.width - rightInset - controlButtonSize
         let attachX = sendX - controlGap - controlButtonSize
+        let dictateX = attachX - controlGap - controlButtonSize
 
         sendButton.frame = NSRect(x: sendX, y: sendY, width: controlButtonSize, height: controlButtonSize)
         attachButton.frame = NSRect(x: attachX, y: sendY, width: controlButtonSize, height: controlButtonSize)
+        dictateButton.frame = NSRect(x: dictateX, y: sendY, width: controlButtonSize, height: controlButtonSize)
 
         inputField.frame = NSRect(
             x: sideInset,
             y: 8,
-            width: max(80, attachX - sideInset - 8),
+            width: max(80, dictateX - sideInset - 8),
             height: Layout.composerHeight - 16
         )
 
         let statusLeading: CGFloat = sideInset
-        let statusTrailingInset: CGFloat = isShowingStatus ? 16 : (rightInset + controlButtonSize + 8)
+        let statusTrailingInset: CGFloat = isShowingStatus ? 16 : (rightInset + (3 * controlButtonSize) + (2 * controlGap) + 8)
         composerStatusLabel.frame = NSRect(
             x: statusLeading,
             y: (Layout.composerHeight - 18) / 2,

@@ -23,7 +23,17 @@ class TerminalView: NSView {
     let expertSuggestionLabel = NSTextField(labelWithString: "")
     let expertSuggestionStack = NSStackView()
     let attachButton = HoverButton(title: "", target: nil, action: nil)
+    let dictateButton = HoverButton(title: "", target: nil, action: nil)
     let sendButton = HoverButton(title: "", target: nil, action: nil)
+    /// Owned by the terminal so the manager survives the duration of
+    /// the popover lifetime. Lazy so the audio/speech frameworks aren't
+    /// touched until the user clicks dictate for the first time.
+    lazy var dictationManager = DictationManager()
+    /// Snapshot of `inputField.stringValue` at the moment dictation
+    /// started. Live partial transcripts are appended to this prefix
+    /// so the user's pre-existing typed text isn't overwritten.
+    var dictationBaselineText: String = ""
+    var isDictating: Bool = false
     let composerStatusLabel = NSTextField(labelWithString: "Generating...")
     let returnButton = NSButton(title: "Back to LilJustin", target: nil, action: nil)
     var onSendMessage: ((String, [SessionAttachment]) -> Void)?
