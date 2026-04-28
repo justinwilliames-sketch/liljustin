@@ -78,6 +78,7 @@
 		A10000110000000000000002 /* ExpertAvatars in Resources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000002 /* ExpertAvatars */; };
 		A10000110000000000000003 /* fall-smoke-dust.lottie in Resources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000003 /* fall-smoke-dust.lottie */; };
 		A10000110000000000000004 /* fall-smoke-dust.json in Resources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000004 /* fall-smoke-dust.json */; };
+		A10000110000000000000005 /* orbit-guides.json in Resources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000005 /* orbit-guides.json */; };
 		B67657262565478489452A02 /* TerminalView+TranscriptSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6147B37CFB04148BFA41599 /* TerminalView+TranscriptSupport.swift */; };
 		B79886ADD52D409490EA159A /* ClaudeSessionCLIParsing+Stdout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAAA8DD4462743869A46526E /* ClaudeSessionCLIParsing+Stdout.swift */; };
 		BE61A7DFB8334AA396E94A7D /* LilAgentsApp+MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DE77FA6D7384588B124A5E7 /* LilAgentsApp+MenuBar.swift */; };
@@ -88,6 +89,7 @@
 		E25DDE8424DF4E209F62E6B3 /* ClaudeSessionAttachmentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0815D0269047FF9812F195 /* ClaudeSessionAttachmentModels.swift */; };
 		F6C51614C7964C2EA992F899 /* ClaudeSessionCLIParsing+Structured.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E81F03EBD48908267BBEF /* ClaudeSessionCLIParsing+Structured.swift */; };
 		F7A0C2AA9D5941F1B950A8A1 /* GuestTitles.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A0C2A99D5941F1B950A8A1 /* GuestTitles.swift */; };
+		F7A0C2AB9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A0C2AC9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -163,6 +165,7 @@
 		A10000120000000000000002 /* ExpertAvatars */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ExpertAvatars; sourceTree = "<group>"; };
 		A10000120000000000000003 /* fall-smoke-dust.lottie */ = {isa = PBXFileReference; lastKnownFileType = file; path = "fall-smoke-dust.lottie"; sourceTree = "<group>"; };
 		A10000120000000000000004 /* fall-smoke-dust.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "fall-smoke-dust.json"; sourceTree = "<group>"; };
+		A10000120000000000000005 /* orbit-guides.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "orbit-guides.json"; sourceTree = "<group>"; };
 		A2004BEEE2C94167A8B29DB6 /* TerminalMarkdownRenderer+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalMarkdownRenderer+Formatting.swift"; sourceTree = "<group>"; };
 		AC0815D0269047FF9812F195 /* ClaudeSessionAttachmentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSessionAttachmentModels.swift; sourceTree = "<group>"; };
 		B6E1D829BD5F45BE93DC108D /* TerminalView+TranscriptBubbleText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalView+TranscriptBubbleText.swift"; sourceTree = "<group>"; };
@@ -173,6 +176,7 @@
 		F17C00560192470995924D41 /* TerminalView+TranscriptAccessoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalView+TranscriptAccessoryViews.swift"; sourceTree = "<group>"; };
 		F57B574712DA4013BC6E6D5E /* TerminalView+AttachmentsParsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalView+AttachmentsParsing.swift"; sourceTree = "<group>"; };
 		F7A0C2A99D5941F1B950A8A1 /* GuestTitles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestTitles.swift; sourceTree = "<group>"; };
+		F7A0C2AC9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitGuidesCorpus.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -218,6 +222,7 @@
 				A10000120000000000000002 /* ExpertAvatars */,
 				A10000120000000000000003 /* fall-smoke-dust.lottie */,
 				A10000120000000000000004 /* fall-smoke-dust.json */,
+				A10000120000000000000005 /* orbit-guides.json */,
 				A10000020000000000000043 /* StarterArchive */,
 				A10000020000000000000003 /* Info.plist */,
 				A10000020000000000000004 /* LilAgents.entitlements */,
@@ -269,6 +274,7 @@
 				A10000020000000000000065 /* ClaudeSessionCLIParsing+ToolDisplay.swift */,
 				C98E81F03EBD48908267BBEF /* ClaudeSessionCLIParsing+Structured.swift */,
 				F7A0C2A99D5941F1B950A8A1 /* GuestTitles.swift */,
+				F7A0C2AC9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift */,
 				2AD260B3BA9C4BCF90E35E5E /* ClaudeSessionCLIParsing+ValueExtraction.swift */,
 				A10000020000000000000050 /* ClaudeSessionOpenAI.swift */,
 				A10000020000000000000038 /* ClaudeSessionExpertResolution.swift */,
@@ -413,6 +419,7 @@
 				A10000110000000000000002 /* ExpertAvatars in Resources */,
 				A10000110000000000000003 /* fall-smoke-dust.lottie in Resources */,
 				A10000110000000000000004 /* fall-smoke-dust.json in Resources */,
+				A10000110000000000000005 /* orbit-guides.json in Resources */,
 				A10000010000000000000043 /* StarterArchive in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -435,6 +442,7 @@
 				A10000010000000000000046 /* ClaudeSessionCLI.swift in Sources */,
 				F6C51614C7964C2EA992F899 /* ClaudeSessionCLIParsing+Structured.swift in Sources */,
 				F7A0C2AA9D5941F1B950A8A1 /* GuestTitles.swift in Sources */,
+				F7A0C2AB9D5941F1B950A8A2 /* OrbitGuidesCorpus.swift in Sources */,
 				B79886ADD52D409490EA159A /* ClaudeSessionCLIParsing+Stdout.swift in Sources */,
 				7DBAF4A3C7864585A79E6EF2 /* ClaudeSessionCLIParsing+ValueExtraction.swift in Sources */,
 				A10000010000000000000047 /* ClaudeSessionCLIParsing.swift in Sources */,

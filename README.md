@@ -42,7 +42,7 @@ Then double-click LilJustin in Applications. Mini Justin appears above your Dock
 
 ## What you can ask
 
-Click Mini Justin. The popover shows 4 random prompt chips drawn from Orbit's full guide library — try one, or type your own. He answers in the founder voice with sources from the Orbit guide library when relevant.
+Click LilJustin. The popover shows 4 random prompt chips drawn from Orbit's full guide library — try one, or type your own. He answers in the founder voice, grounded in actual Orbit guide content with sources cited.
 
 Some examples of what he'll handle well:
 
@@ -53,7 +53,16 @@ Some examples of what he'll handle well:
 - **Measurement** — A/B test sample sizes, holdouts, incrementality, false positives, churn cohorts
 - **Tools** — Braze, Iterable, Customer.io, HubSpot — what each gets right and wrong
 
-For deeper, structured Orbit tooling (95 guides, 50+ skills, native Braze API), install the full **[Orbit MCP for Claude Desktop](https://get.yourorbit.team/download)**. Mini Justin will use those tools when they're available.
+For deeper, structured Orbit tooling (95 guides, 50+ skills, native Braze API), install the full **[Orbit MCP for Claude Desktop](https://get.yourorbit.team/download)**. LilJustin will use those tools when they're available.
+
+## What's in the box
+
+- **87 Orbit guides bundled offline** — the full live corpus is shipped inside the app. On every question, the top 3 most relevant guides get spliced into the prompt so answers are grounded in the actual published content, not just slug-citations.
+- **Ambient comments** — when idle, LilJustin pipes up with short Orbit-voice observations on lifecycle, deliverability, and CRM craft. Driven by your connected model when available, hardcoded fallback otherwise.
+- **Sleep state** — after 1.5–4 minutes of inactivity, he curls up for a nap. Wakes on click.
+- **Auto-updates** — Sparkle keeps you on the latest. After each update, a one-click Gatekeeper helper handles the unsigned-app dance for you.
+- **Launch at login** — on by default. Toggle in Settings.
+- **MCP sync from Claude Desktop** — LilJustin can mirror the MCP servers you've already configured in Claude Desktop, so any tools you use there work here too.
 
 ## Connect a model provider
 
@@ -95,11 +104,23 @@ See [NEXT_STEPS.md](NEXT_STEPS.md) for the one-time Xcode setup (scheme rename, 
 
 The system prompt lives in [`LilAgents/Session/ClaudeSessionState.swift`](LilAgents/Session/ClaudeSessionState.swift) (`func buildInstructions`). It encodes the Orbit founder framing, five voice pillars, nine writing rules, the slop-detector anti-patterns, and the full slug→title manifest of all 87 Orbit guides for source citation. The canonical voice document this is distilled from lives in [`get-orbit/lib/admin/voice-guidelines.ts`](https://github.com/justinwilliames-sketch/get-orbit/blob/main/lib/admin/voice-guidelines.ts).
 
+### Refresh the bundled guides corpus
+
+LilJustin ships with the full Orbit guides export at [`LilAgents/orbit-guides.json`](LilAgents/orbit-guides.json). When new guides go live or existing ones change, regenerate the bundle:
+
+```bash
+./Scripts/refresh-orbit-guides.sh
+git commit -am "Refresh Orbit guides corpus"
+```
+
+The script pulls from `https://get.yourorbit.team/api/guides/export`, validates the payload, and writes the new JSON in place. The retrieval is keyword-overlap scoring inside [`LilAgents/Session/OrbitGuidesCorpus.swift`](LilAgents/Session/OrbitGuidesCorpus.swift) — no embeddings, no network calls at runtime.
+
 To fork this for your own founder companion:
 
 1. Swap the system prompt for your voice and domain.
-2. Replace the GIFs in `LilAgents/CharacterSprites/` (front, back, walk-left, walk-right, sleeping — same filenames).
-3. Update bundle display name in `LilAgents/Info.plist`, welcome copy in `LilAgents/Terminal/TerminalView+TranscriptBehavior.swift`, and Settings → About in `LilAgents/App/SettingsView+ModelsPane.swift`.
+2. Swap the bundled corpus JSON for your own knowledge base in the same export shape.
+3. Replace the GIFs in `LilAgents/CharacterSprites/` (front, back, walk-left, walk-right, sleeping — same filenames).
+4. Update bundle display name in `LilAgents/Info.plist`, welcome copy in `LilAgents/Terminal/TerminalView+TranscriptBehavior.swift`, and Settings → About in `LilAgents/App/SettingsView+ModelsPane.swift`.
 
 ### Sprites
 

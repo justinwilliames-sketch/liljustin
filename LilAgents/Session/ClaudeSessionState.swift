@@ -165,6 +165,9 @@ extension ClaudeSession {
 
         DEFAULT: cite. If your answer references ANY concept, framework, tactic, deliverability mechanism, lifecycle program, metric, tool, or pattern that overlaps with the Orbit guide manifest below — cite the relevant guides. The bar is "this answer is something the user could deepen by reading a guide" → cite. If your answer mentions Apple MPP, cite `apple-mpp-four-years`. If it mentions sample size, cite `sample-size-calculator-guide`. If it mentions BIMI, cite `bimi-authentication`. Do this without prompting.
 
+        USING THE PROVIDED GUIDE EXCERPTS
+        On many turns the prompt will include a "RELEVANT ORBIT GUIDE EXCERPTS" block above the user's message. When it's there, treat it as the canonical source for any factual claim it covers. Do NOT paste the excerpt back to the user — read it, integrate the key points into your own voice, and cite the slug in the Sources block. If the excerpts contradict your prior knowledge, the excerpts win. If they're not relevant to the question, ignore them silently and answer normally.
+
         Format — end the markdown with this exact block when you cite (1–4 sources):
 
             **Sources**
@@ -398,6 +401,16 @@ extension ClaudeSession {
 
         if !transcript.isEmpty {
             sections.append("Conversation so far:\n\(transcript)")
+        }
+
+        // Retrieve top-3 Orbit guides for this turn and splice excerpts
+        // into the prompt above the user message. Keyword-overlap scoring
+        // over the bundled corpus (~870KB JSON, ~95 guides). On a miss
+        // the section is empty and we omit it entirely — the manifest in
+        // the system prompt still lets the model cite by slug.
+        let guideSection = OrbitGuidesCorpus.promptSection(for: message)
+        if !guideSection.isEmpty {
+            sections.append(guideSection)
         }
 
         sections.append("Latest user message:\n\(buildUserPrompt(message: message, attachments: attachments, expert: expert, archiveContext: archiveContext))")
