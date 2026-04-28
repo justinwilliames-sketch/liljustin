@@ -125,10 +125,14 @@ extension WalkerCharacter {
         let horizontalMetrics = horizontalRangeMetrics(screen: screen, dockX: dockX, dockWidth: dockWidth)
         currentTravelDistance = horizontalMetrics.travelDistance
         if isDraggingHorizontally {
-            let x = horizontalMetrics.minX + currentTravelDistance * positionProgress + flipXOffset
-            let bottomPadding = displayHeight * 0.15
-            let y = dockTopY - bottomPadding + yOffset
-            window.setFrameOrigin(NSPoint(x: x, y: y))
+            // Drag is now free-fly (cursor pulls character anywhere on
+            // screen, including off the dock). continueHorizontalDrag
+            // sets window.frameOrigin directly from the cursor each
+            // mouseDragged event, so the per-tick update has no
+            // position to apply — early-return without touching
+            // window.frame at all. Otherwise the tick-loop would
+            // override the cursor-set position back onto the dock and
+            // the drag would feel anchored.
             updatePopoverPosition()
             updateThinkingBubble()
             updateExpertNameTag()

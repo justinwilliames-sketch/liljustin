@@ -94,7 +94,13 @@ extension WalkerCharacter {
         noteUserInteraction()
 
         isDraggingHorizontally = true
-        usesExpandedHorizontalRange = true
+        // usesExpandedHorizontalRange controls whether the per-tick
+        // update() walks him across the full screen or just the dock.
+        // We toggle it to true ONLY for the duration of the spring-back
+        // animation (set in endHorizontalDrag) — during the drag itself,
+        // window position is set directly from the cursor and the
+        // per-tick update is bypassed entirely (see the early-return on
+        // isDraggingHorizontally in update()).
         isWalking = false
         isPaused = true
         pauseEndTime = CACurrentMediaTime() + 8.0
@@ -103,41 +109,88 @@ extension WalkerCharacter {
     }
 
     func continueHorizontalDrag(with event: NSEvent) {
-        guard isDraggingHorizontally,
-              let controller,
-              let metrics = controller.currentDockMetrics()
-        else { return }
-
-        let bottomPadding = displayHeight * 0.15
+        guard isDraggingHorizontally else { return }
+        // Free-fly drag — cursor pulls the character anywhere on
+        // screen, not constrained to the dock surface. The per-tick
+        // update loop bails on isDraggingHorizontally so this direct
+        // window.setFrameOrigin is the sole source of position truth
+        // while the user holds the mouse button down.
         let pointerLocation = NSEvent.mouseLocation
-        let horizontalMetrics = horizontalRangeMetrics(
-            screen: metrics.screen,
-            dockX: metrics.dockX,
-            dockWidth: metrics.dockWidth
-        )
         let visualX = pointerLocation.x - displayWidth / 2 - flipXOffset
-        let rawProgress = horizontalMetrics.travelDistance > 0
-            ? (visualX - horizontalMetrics.minX) / horizontalMetrics.travelDistance
-            : 0
-        positionProgress = min(max(rawProgress, 0), 1)
-
-        let y = metrics.dockTopY - bottomPadding + yOffset
-        window.setFrameOrigin(NSPoint(
-            x: horizontalMetrics.minX + horizontalMetrics.travelDistance * positionProgress + flipXOffset,
-            y: y
-        ))
+        // Y: cursor approximately at the character's vertical centre,
+        // adjusted for the same `bottomPadding` the docked walking
+        // path uses so the character sits naturally relative to the
+        // cursor rather than offset to one side.
+        let bottomPadding = displayHeight * 0.15
+        let visualY = pointerLocation.y - displayHeight / 2 - bottomPadding + yOffset
+        window.setFrameOrigin(NSPoint(x: visualX, y: visualY))
         updatePopoverPosition()
         updateThinkingBubble()
         updateExpertNameTag()
     }
 
+    /// Spring back to the nearest valid dock position when the user
+    /// releases the mouse. Animates the window from wherever it landed
+    /// back to the dock surface, with X clamped to the dock's
+    /// horizontal range. Once the animation lands, `isDraggingHorizontally`
+    /// flips false and per-tick `update()` resumes — at which point
+    /// `usesExpandedHorizontalRange` is also reset to `false`, so the
+    /// walk loop tracks the dock dynamically again rather than the
+    /// full-screen range that the previous (buggy) drag path leaked.
     func endHorizontalDrag() {
-        isDraggingHorizontally = false
-        pauseEndTime = CACurrentMediaTime() + Double.random(in: 4.0...8.0)
+        guard let controller, let metrics = controller.currentDockMetrics() else {
+            isDraggingHorizontally = false
+            usesExpandedHorizontalRange = false
+            return
+        }
+
+        let bottomPadding = displayHeight * 0.15
+        let dockY = metrics.dockTopY - bottomPadding + yOffset
+
+        // Clamp X to the docked walking range — the same range the
+        // per-tick update() will use once isDraggingHorizontally
+        // flips false. Snapping the spring-back endpoint into this
+        // range means update() picks up exactly where the animation
+        // ends with no positional jump.
+        usesExpandedHorizontalRange = false
+        let walkRange = horizontalRangeMetrics(
+            screen: metrics.screen,
+            dockX: metrics.dockX,
+            dockWidth: metrics.dockWidth
+        )
+        let currentX = window.frame.origin.x
+        let clampedX = max(walkRange.minX, min(currentX, walkRange.minX + walkRange.travelDistance))
+        // Sync positionProgress so the per-tick update's pause/walk
+        // loop continues from exactly where we landed.
+        positionProgress = walkRange.travelDistance > 0
+            ? (clampedX - walkRange.minX) / walkRange.travelDistance
+            : 0
+
+        let target = NSPoint(x: clampedX + flipXOffset, y: dockY)
+        // 0.32s spring-back. Drops the easing through a CAMediaTimingFunction
+        // shaped like a soft spring (0.34, 1.56, 0.64, 1) so it lands
+        // with a subtle settle rather than a hard stop.
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.32
+            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.34, 1.56, 0.64, 1.0)
+            window.animator().setFrameOrigin(target)
+        }, completionHandler: { [weak self] in
+            guard let self else { return }
+            self.isDraggingHorizontally = false
+            // Pause briefly post-landing before resuming the walk loop
+            // so the spring-back has a moment of stillness — feels less
+            // jittery than dropping straight into a walk cycle.
+            self.pauseEndTime = CACurrentMediaTime() + Double.random(in: 1.2...2.4)
+        })
+
+        updatePopoverPosition()
+        updateThinkingBubble()
+        updateExpertNameTag()
     }
 
     func cancelHorizontalDrag() {
         isDraggingHorizontally = false
+        usesExpandedHorizontalRange = false
     }
 
     func configureCompanionAvatar(expert: ResponderExpert, position: CGFloat) {
