@@ -29,7 +29,38 @@ permissions:
   contents: write
 
 jobs:
+  # Tiny preflight job that prevents the same commit from being built
+  # twice when shipping a tagged release. Pushing `main` and a `v*` tag
+  # produces two `push` events from GitHub even when they point at the
+  # same SHA; without this gate the tagged-release run and the
+  # main-branch run both burn ~2 minutes of macOS time on identical
+  # builds. We skip the main run whenever a v* tag points at HEAD —
+  # the tag run will produce the canonical artifact and the
+  # rolling-latest release publish step would have re-pointed at the
+  # same DMG anyway.
+  decide:
+    name: Skip duplicate run?
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need full history so `git tag --points-at HEAD` can see the tag
+      - id: gate
+        run: |
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            if git tag --points-at HEAD | grep -qE '^v[0-9]'; then
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::Skipping main-branch run — commit has a v* tag; the tagged-release run will publish the artifact."
+              exit 0
+            fi
+          fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: decide
+    if: needs.decide.outputs.should_run == 'true'
     name: Build & package .dmg
     runs-on: macos-latest
     timeout-minutes: 25

@@ -203,16 +203,16 @@ private struct MemoryEditSheet: View {
     let onClose: (MemoryEntry?) -> Void
 
     @State private var name: String
-    @State private var description: String
-    @State private var body: String
+    @State private var descriptionText: String
+    @State private var bodyText: String
     @State private var kind: MemoryEntry.Kind
 
     init(entry: MemoryEntry, onClose: @escaping (MemoryEntry?) -> Void) {
         self.entry = entry
         self.onClose = onClose
         _name = State(initialValue: entry.name)
-        _description = State(initialValue: entry.description)
-        _body = State(initialValue: entry.body)
+        _descriptionText = State(initialValue: entry.description)
+        _bodyText = State(initialValue: entry.body)
         _kind = State(initialValue: entry.kind)
     }
 
@@ -240,14 +240,14 @@ private struct MemoryEditSheet: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Body — the durable fact").font(.caption.weight(.medium))
-                TextField("Body", text: $body, axis: .vertical)
+                TextField("Body", text: $bodyText, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .lineLimit(3...8)
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Description — short hook for the list").font(.caption.weight(.medium))
-                TextField("Description", text: $description)
+                TextField("Description", text: $descriptionText)
                     .textFieldStyle(.roundedBorder)
             }
 
@@ -258,15 +258,15 @@ private struct MemoryEditSheet: View {
                 Button("Save") {
                     var updated = entry
                     updated.name = name
-                    updated.description = description
-                    updated.body = body
+                    updated.description = descriptionText
+                    updated.body = bodyText
                     updated.kind = kind
                     onClose(updated)
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
                 .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                          || body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                          || bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
         .padding(24)
