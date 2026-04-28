@@ -115,19 +115,24 @@ enum MarkdownToHTML {
             // <h1>-<h6> tag — Slack's paste handler renders `<h>`
             // with no blank line above the next paragraph.
             //
-            // Even with `<p><strong>X</strong></p>` followed by
-            // `<p>body</p>`, Slack collapses the spacing between
-            // the two when no empty paragraph separates them. So
-            // we follow the heading with an explicit `<p></p>`
-            // sentinel — Slack treats it as a real paragraph
-            // boundary and inserts the visible vertical break Sir
-            // expects between heading and body.
+            // Iteration history:
+            //   - v0.1.49: <p><strong>X</strong></p> only. Slack
+            //     collapsed the gap to the next paragraph.
+            //   - v0.1.53: added an empty <p></p> sentinel after.
+            //     Worked sometimes but NSAttributedString(html:) and
+            //     Slack's HTML parser both normalise empty paragraphs
+            //     out, so the sentinel didn't survive HTML→RTF or
+            //     the WYSIWYG paste handler reliably.
+            //   - now: sentinel is `<p>&nbsp;</p>` — non-breaking
+            //     space content makes the paragraph "non-empty" so
+            //     it survives every round-trip and renders as a
+            //     blank line in every consumer.
             if let (level, content) = headingMatch(line) {
                 flushParagraph()
                 flushList()
                 _ = level
                 output.append("<p><strong>\(transformInline(content))</strong></p>")
-                output.append("<p></p>")
+                output.append("<p>&nbsp;</p>")
                 continue
             }
 

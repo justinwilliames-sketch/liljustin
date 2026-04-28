@@ -72,14 +72,16 @@ final class MarkdownToHTMLTests: XCTestCase {
         }
     }
 
-    func testHeadingIsFollowedByEmptyParagraphSpacer() {
+    func testHeadingIsFollowedByNonEmptyParagraphSpacer() {
         // Sir's repeat regression: even with `<p><strong>X</strong></p>
         // <p>body</p>` Slack collapsed the visible break between
-        // heading and body. The fix is an explicit empty-paragraph
-        // sentinel after each heading so Slack registers a real
-        // paragraph boundary.
+        // heading and body. The fix is a `&nbsp;`-content sentinel
+        // paragraph — non-empty content makes the paragraph survive
+        // every parser (NSAttributedString HTML→RTF, Slack's WYSIWYG
+        // paste handler, Apple Mail's import). Empty `<p></p>` is
+        // routinely normalised out.
         let out = MarkdownToHTML.convert("## The core problem\n\nMost sequences fail.")
-        XCTAssertTrue(out.contains("<p><strong>The core problem</strong></p>\n<p></p>"))
+        XCTAssertTrue(out.contains("<p><strong>The core problem</strong></p>\n<p>&nbsp;</p>"))
         XCTAssertTrue(out.contains("<p>Most sequences fail.</p>"))
     }
 
