@@ -80,7 +80,25 @@ extension ChatBubbleView {
 
         let targetContentWidth = rect.width
         let paddingWidth: CGFloat = 28
-        let maxWidth: CGFloat = 380
+
+        // Bubble max width adapts to the available transcript column. In
+        // the default-size popover the column is ~376pt, so the cap lands
+        // at roughly the historical 380; in the expanded popover the
+        // column is ~580pt+, so the bubble grows with it instead of
+        // sitting in the left half of a wide column. Soft-capped at 720
+        // so a 1000pt-wide popover doesn't produce hard-to-read line
+        // lengths.
+        let availableWidth: CGFloat
+        if let parentWidth = superview?.bounds.width, parentWidth > 0 {
+            // Subtract trailing gutter (56) used by the bubbleBackground
+            // constraint plus a small breathing buffer.
+            availableWidth = max(280, parentWidth - 56 - 4)
+        } else {
+            // No superview yet — initial layout. Fall back to the
+            // original cap so the first render isn't undersized.
+            availableWidth = 380
+        }
+        let maxWidth: CGFloat = min(720, availableWidth)
         let desiredWidth = targetContentWidth + paddingWidth
 
         if let textWidthConstraint {

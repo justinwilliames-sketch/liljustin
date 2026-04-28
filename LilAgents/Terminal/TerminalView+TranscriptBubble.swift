@@ -309,6 +309,24 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         }
     }
 
+    /// Last superview width that fed `recalculateSize`. Tracked so
+    /// `layout()` can re-recalculate when the popover expands/collapses
+    /// without burning cycles on every sub-pixel layout pass.
+    private var lastLayoutSuperviewWidth: CGFloat = 0
+
+    override func layout() {
+        super.layout()
+        let currentParentWidth = superview?.bounds.width ?? 0
+        // 8pt threshold prevents infinite layout loops from
+        // recalculateSize itself nudging the bubble's frame by a
+        // fractional amount during an expand animation.
+        if currentParentWidth > 0,
+           abs(currentParentWidth - lastLayoutSuperviewWidth) > 8 {
+            lastLayoutSuperviewWidth = currentParentWidth
+            recalculateSize()
+        }
+    }
+
     override var intrinsicContentSize: NSSize {
         let fitting = contentColumn.fittingSize
         return NSSize(width: NSView.noIntrinsicMetric, height: fitting.height)
