@@ -478,7 +478,8 @@ extension WalkerCharacter {
             size: CGSize(width: popoverWidth, height: totalHeight),
             tailHeight: tailHeight,
             tailWidth: tailWidth,
-            cornerRadius: shellCornerRadius
+            cornerRadius: shellCornerRadius,
+            tailCenterX: tailCenterXRelativeToPopover()
         )
         bubbleShape.fillColor = t.popoverBg.cgColor
         bubbleShape.strokeColor = t.popoverBorder.cgColor

@@ -144,23 +144,38 @@ final class WalkerCharacter {
     /// rounded body on top + downward-pointing tail below. Drawing the
     /// whole thing as one path eliminates the visible seam where a
     /// separate body and tail used to meet.
+    ///
+    /// `tailCenterX` is the X (in popover-local coords) where the
+    /// tail's apex should land. Pass nil to default to the popover's
+    /// horizontal centre. The expanded-popover clamping path passes
+    /// the character's actual screen X minus the popover's origin X
+    /// so the tail keeps pointing at the character even after the
+    /// popover gets bumped sideways to fit on-screen.
     static func bubbleShellPath(
         size: CGSize,
         tailHeight: CGFloat,
         tailWidth: CGFloat,
-        cornerRadius r: CGFloat
+        cornerRadius r: CGFloat,
+        tailCenterX: CGFloat? = nil
     ) -> CGPath {
         // Cocoa flipped Y: origin bottom-left. Body sits from y=tailHeight
-        // up to y=size.height; tail apex points down to y=0 at horizontal
-        // centre. Path traces clockwise from the top-left corner-curve
-        // start, rounds each corner via tangent-end arcs, and breaks the
-        // bottom edge at the tail attachment points.
+        // up to y=size.height; tail apex points down to y=0 at the
+        // requested horizontal position. Path traces clockwise from the
+        // top-left corner-curve start, rounds each corner via tangent-end
+        // arcs, and breaks the bottom edge at the tail attachment points.
         let w = size.width
         let h = size.height
         let bodyBottom = tailHeight
         let bodyTop = h
-        let cx = w / 2
         let halfTail = tailWidth / 2
+        // Clamp the tail position so its base never overlaps the
+        // rounded corners — leaves a small margin (`r + halfTail + 4`)
+        // on each side. Without this an off-centre tail in a narrow
+        // popover would render with a broken/jagged corner arc.
+        let minCx = r + halfTail + 4
+        let maxCx = w - r - halfTail - 4
+        let requestedCx = tailCenterX ?? (w / 2)
+        let cx = min(maxCx, max(minCx, requestedCx))
 
         let p = CGMutablePath()
         p.move(to: CGPoint(x: 0, y: bodyTop - r))

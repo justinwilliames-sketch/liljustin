@@ -339,5 +339,24 @@ extension WalkerCharacter {
         let clampedY = min(y, visibleFrame.maxY - popoverSize.height - 4)
 
         popover.setFrameOrigin(NSPoint(x: x, y: clampedY))
+
+        // After clamping, the popover may have been bumped sideways
+        // to fit on-screen — in which case the tail (drawn at the
+        // popover-center by default) would no longer point at the
+        // character. Rebuild the bubble outline so the tail tracks
+        // the character's actual X.
+        rebuildPopoverBubbleShellPath(forSize: popoverSize, animated: false)
+    }
+
+    /// X (in popover-local coords) where the tail apex should sit
+    /// so it points at the character's head, regardless of how the
+    /// popover was clamped to fit on-screen. Returns nil when the
+    /// popover hasn't been positioned yet — caller falls back to
+    /// popover-center.
+    func tailCenterXRelativeToPopover() -> CGFloat? {
+        guard let popover = popoverWindow else { return nil }
+        let charMidX = window.frame.midX
+        let popoverOriginX = popover.frame.minX
+        return charMidX - popoverOriginX
     }
 }

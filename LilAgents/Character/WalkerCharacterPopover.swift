@@ -227,7 +227,8 @@ extension WalkerCharacter {
             size: size,
             tailHeight: WalkerCharacter.popoverTailHeight,
             tailWidth: WalkerCharacter.popoverTailWidth,
-            cornerRadius: 18
+            cornerRadius: 18,
+            tailCenterX: tailCenterXRelativeToPopover()
         )
 
         if animated {
