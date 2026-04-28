@@ -179,7 +179,80 @@ class LilAgentsController {
 
     // MARK: - Dock Geometry
 
+    /// Ask the Window Server directly for the Dock process's
+    /// actual window bounds on this screen. This is exactly what
+    /// the user sees — no UserDefaults estimation, no slot-width
+    /// guesswork, accurate regardless of magnification, custom
+    /// tile sizes, stacks, recent-apps, dividers, or any future
+    /// Apple dock-layout change.
+    ///
+    /// The Dock app owns multiple windows on screen at any given
+    /// moment (the main backdrop, running-app indicator dots,
+    /// magnification overlay when hovering, expanded-stack
+    /// previews). We pick the one with the largest area that
+    /// touches a screen edge — that's reliably the main dock body.
+    ///
+    /// Returns nil if no Dock window is found on this screen
+    /// (auto-hide enabled, dock collapsed, multi-display dock not
+    /// duplicated). Caller falls back to the UserDefaults
+    /// estimator in that case.
+    private func readDockWindowBounds(on screen: NSScreen) -> CGRect? {
+        let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
+        guard let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else {
+            return nil
+        }
+
+        let screenFrame = screen.frame
+
+        var bestCandidate: CGRect?
+        var bestArea: CGFloat = 0
+
+        for window in windowList {
+            guard let ownerName = window[kCGWindowOwnerName as String] as? String,
+                  ownerName == "Dock" else { continue }
+            guard let boundsDict = window[kCGWindowBounds as String] as? [String: Any],
+                  let x = boundsDict["X"] as? CGFloat,
+                  let y = boundsDict["Y"] as? CGFloat,
+                  let width = boundsDict["Width"] as? CGFloat,
+                  let height = boundsDict["Height"] as? CGFloat else { continue }
+
+            // CGWindowListCopyWindowInfo reports flipped Y (origin
+            // top-left of primary display). Convert to Cocoa Y
+            // (origin bottom-left) using the global display height.
+            // For multi-display setups, use the primary display
+            // height since CGWindow Y is global.
+            let primaryHeight = NSScreen.screens.first?.frame.height ?? screenFrame.height
+            let flippedY = primaryHeight - y - height
+            let bounds = CGRect(x: x, y: flippedY, width: width, height: height)
+
+            // Must overlap THIS screen (multi-monitor: each display
+            // can have its own dock).
+            guard bounds.intersects(screenFrame) else { continue }
+
+            // Skip pencil-thin windows (running indicators are
+            // usually < 16pt tall) and trivially small overlays.
+            guard bounds.width >= 80, bounds.height >= 30 else { continue }
+
+            let area = bounds.width * bounds.height
+            if area > bestArea {
+                bestArea = area
+                bestCandidate = bounds
+            }
+        }
+
+        return bestCandidate
+    }
+
     private func getDockIconArea(screen: NSScreen) -> (x: CGFloat, width: CGFloat) {
+        // Live read first — the Window Server knows the truth.
+        if let dockBounds = readDockWindowBounds(on: screen) {
+            return (dockBounds.minX, dockBounds.width)
+        }
+
+        // Fallback estimator — UserDefaults icon-count × tile-size.
+        // Used when the Window Server query returns nothing (dock
+        // auto-hidden, or whatever future privacy gate Apple adds
+        // around CGWindowListCopyWindowInfo).
         let dockDefaults = UserDefaults(suiteName: "com.apple.dock")
         let tileSize = CGFloat(dockDefaults?.double(forKey: "tilesize") ?? 48)
         // Each dock slot is the icon + padding. The padding scales with tile size.
