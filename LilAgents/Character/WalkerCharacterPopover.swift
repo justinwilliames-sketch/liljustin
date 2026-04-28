@@ -156,7 +156,15 @@ extension WalkerCharacter {
 
         let charFrame = window.frame
         let visibleFrame = screen.visibleFrame
-        let currentFrame = popover.frame
+
+        // ── New width ───────────────────────────────────────────────
+        // 50% wider on expand. Falls back to the EXACT default width
+        // when collapsing — Sir flagged that "shrink should go back to
+        // the original size" after v0.1.45 left it at intermediate
+        // dimensions.
+        let baseWidth = WalkerCharacter.defaultPopoverWidth
+        let expandedWidth = min(baseWidth * 1.5, visibleFrame.width - 8)
+        let newWidth: CGFloat = isPopoverExpanded ? expandedWidth : baseWidth
 
         // ── New height ──────────────────────────────────────────────
         let newHeight: CGFloat
@@ -168,15 +176,9 @@ extension WalkerCharacter {
             newHeight = WalkerCharacter.defaultPopoverHeight
         }
 
-        // ── New width ───────────────────────────────────────────────
-        // 50% wider on expand. Falls back to the default width when
-        // collapsing. Also clamped to the visible screen so the
-        // popover never overflows the desktop on narrow displays.
-        let baseWidth = WalkerCharacter.defaultPopoverWidth
-        let expandedWidth = min(baseWidth * 1.5, visibleFrame.width - 8)
-        let newWidth: CGFloat = isPopoverExpanded ? expandedWidth : baseWidth
-
-        // ── New origin — keep the tail centred on the sprite ───────
+        // ── New origin — recompute from scratch using the new size ──
+        // so collapse always anchors the popover bottom at the
+        // character's head, regardless of where it sat when expanded.
         let desiredBottomY = charFrame.maxY - 10
         let clampedBottomY = max(
             visibleFrame.minY + 4,
@@ -187,18 +189,27 @@ extension WalkerCharacter {
 
         let newFrame = NSRect(x: newX, y: clampedBottomY, width: newWidth, height: newHeight)
 
+        // Pre-compute the tail X relative to the NEW frame, not the
+        // current one. The animator hasn't applied yet, so reading
+        // popover.frame.minX would give the OLD frame and the tail
+        // would morph to the wrong horizontal position by the time
+        // the animation lands.
+        let newTailCenterX = charFrame.midX - newX
+
         // Animate the window frame AND the bubble shell path together
         // so the speech-bubble outline stays in sync with the content
-        // throughout the resize. Without the explicit path rebuild,
-        // the CAShapeLayer keeps its original-size path while the
-        // window grows around it — which is exactly what produced
-        // the "detached title" Sir saw on the v0.1.21 expand attempt.
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.28
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            popover.animator().setFrame(newFrame, display: true)
-            rebuildPopoverBubbleShellPath(forSize: newFrame.size, animated: true, duration: 0.28)
-        }
+        // throughout the resize. Use NSWindow's native animated
+        // setFrame rather than the animator proxy — the proxy was
+        // unreliable on shrink (popover wouldn't always reach the
+        // target size). The native API handles both directions
+        // deterministically.
+        rebuildPopoverBubbleShellPath(
+            forSize: newFrame.size,
+            tailCenterX: newTailCenterX,
+            animated: true,
+            duration: 0.28
+        )
+        popover.setFrame(newFrame, display: true, animate: true)
 
         let symbolName = isPopoverExpanded
             ? "arrow.down.right.and.arrow.up.left"
@@ -220,15 +231,27 @@ extension WalkerCharacter {
     /// `CABasicAnimation` so the outline morphs alongside the window
     /// frame animation rather than snapping to the new shape on
     /// frame 0.
-    func rebuildPopoverBubbleShellPath(forSize size: CGSize, animated: Bool, duration: CFTimeInterval = 0.28) {
+    func rebuildPopoverBubbleShellPath(
+        forSize size: CGSize,
+        tailCenterX explicitTailX: CGFloat? = nil,
+        animated: Bool,
+        duration: CFTimeInterval = 0.28
+    ) {
         guard let bubbleShape = popoverBubbleShape else { return }
+
+        // When the caller knows what tail X the path should land on
+        // (e.g. during expandToggleTapped, where the popover frame is
+        // mid-animation and `popover.frame.minX` would lag), it can
+        // pass the value explicitly. Otherwise fall back to reading
+        // the current popover position.
+        let tailX = explicitTailX ?? tailCenterXRelativeToPopover()
 
         let newPath = WalkerCharacter.bubbleShellPath(
             size: size,
             tailHeight: WalkerCharacter.popoverTailHeight,
             tailWidth: WalkerCharacter.popoverTailWidth,
             cornerRadius: 18,
-            tailCenterX: tailCenterXRelativeToPopover()
+            tailCenterX: tailX
         )
 
         if animated {
