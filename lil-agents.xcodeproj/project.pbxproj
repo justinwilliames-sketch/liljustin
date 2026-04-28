@@ -99,6 +99,14 @@
 		BC0000010000000000000004 /* BusinessContextPromptCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000004 /* BusinessContextPromptCardView.swift */; };
 		BC0000010000000000000005 /* MarkdownToSlack.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000005 /* MarkdownToSlack.swift */; };
 		BC0000010000000000000006 /* CitationLinkifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000006 /* CitationLinkifier.swift */; };
+		BC0000010000000000000007 /* MemoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000007 /* MemoryEntry.swift */; };
+		BC0000010000000000000008 /* MemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000008 /* MemoryStore.swift */; };
+		BC0000010000000000000009 /* SensitivityFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000009 /* SensitivityFilter.swift */; };
+		BC000001000000000000000A /* MemoryRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000A /* MemoryRetriever.swift */; };
+		BC000001000000000000000B /* MemoryExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000B /* MemoryExtractor.swift */; };
+		BC000001000000000000000C /* ConversationHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000C /* ConversationHistoryStore.swift */; };
+		BC000001000000000000000D /* AppSettings+Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000D /* AppSettings+Memory.swift */; };
+		BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000E /* SettingsView+MemoryPane.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -195,6 +203,14 @@
 		BC0000020000000000000004 /* BusinessContextPromptCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessContextPromptCardView.swift; sourceTree = "<group>"; };
 		BC0000020000000000000005 /* MarkdownToSlack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownToSlack.swift; sourceTree = "<group>"; };
 		BC0000020000000000000006 /* CitationLinkifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitationLinkifier.swift; sourceTree = "<group>"; };
+		BC0000020000000000000007 /* MemoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryEntry.swift; sourceTree = "<group>"; };
+		BC0000020000000000000008 /* MemoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStore.swift; sourceTree = "<group>"; };
+		BC0000020000000000000009 /* SensitivityFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitivityFilter.swift; sourceTree = "<group>"; };
+		BC000002000000000000000A /* MemoryRetriever.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryRetriever.swift; sourceTree = "<group>"; };
+		BC000002000000000000000B /* MemoryExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryExtractor.swift; sourceTree = "<group>"; };
+		BC000002000000000000000C /* ConversationHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistoryStore.swift; sourceTree = "<group>"; };
+		BC000002000000000000000D /* AppSettings+Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppSettings+Memory.swift"; sourceTree = "<group>"; };
+		BC000002000000000000000E /* SettingsView+MemoryPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+MemoryPane.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -234,6 +250,7 @@
 				A10000060000000000000012 /* Character */,
 				A10000060000000000000013 /* Terminal */,
 				A10000060000000000000014 /* Support */,
+				BC0000060000000000000001 /* Memory */,
 				A10000020000000000000007 /* Assets.xcassets */,
 				A10000020000000000000010 /* Sounds */,
 				A10000120000000000000001 /* CharacterSprites */,
@@ -273,6 +290,7 @@
 				BC0000020000000000000003 /* SettingsView+BusinessContextPane.swift */,
 				BC0000020000000000000001 /* BusinessContext.swift */,
 				BC0000020000000000000002 /* AppSettings+BusinessContext.swift */,
+				BC000002000000000000000E /* SettingsView+MemoryPane.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -371,6 +389,20 @@
 				A10000020000000000000021 /* CharacterContentView.swift */,
 			);
 			path = Support;
+			sourceTree = "<group>";
+		};
+		BC0000060000000000000001 /* Memory */ = {
+			isa = PBXGroup;
+			children = (
+				BC0000020000000000000007 /* MemoryEntry.swift */,
+				BC0000020000000000000008 /* MemoryStore.swift */,
+				BC0000020000000000000009 /* SensitivityFilter.swift */,
+				BC000002000000000000000A /* MemoryRetriever.swift */,
+				BC000002000000000000000B /* MemoryExtractor.swift */,
+				BC000002000000000000000C /* ConversationHistoryStore.swift */,
+				BC000002000000000000000D /* AppSettings+Memory.swift */,
+			);
+			path = Memory;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -540,6 +572,14 @@
 				BC0000010000000000000004 /* BusinessContextPromptCardView.swift in Sources */,
 				BC0000010000000000000005 /* MarkdownToSlack.swift in Sources */,
 				BC0000010000000000000006 /* CitationLinkifier.swift in Sources */,
+				BC0000010000000000000007 /* MemoryEntry.swift in Sources */,
+				BC0000010000000000000008 /* MemoryStore.swift in Sources */,
+				BC0000010000000000000009 /* SensitivityFilter.swift in Sources */,
+				BC000001000000000000000A /* MemoryRetriever.swift in Sources */,
+				BC000001000000000000000B /* MemoryExtractor.swift in Sources */,
+				BC000001000000000000000C /* ConversationHistoryStore.swift in Sources */,
+				BC000001000000000000000D /* AppSettings+Memory.swift in Sources */,
+				BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

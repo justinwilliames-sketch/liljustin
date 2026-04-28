@@ -6,12 +6,13 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     case source       // Hidden in LilJustin — archive mode is not used.
     case models
     case businessContext
+    case memory
     case about
     case developer
 
     // LilJustin hides the `.source` pane (archive switcher) from the sidebar.
     // The pane itself stays in the file tree to keep the upstream merge surface small.
-    static var allCases: [SettingsPane] { [.models, .businessContext, .about, .developer] }
+    static var allCases: [SettingsPane] { [.models, .businessContext, .memory, .about, .developer] }
 
     var id: String { rawValue }
 
@@ -20,6 +21,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .source: return "Source"
         case .models: return "Models"
         case .businessContext: return "Business context"
+        case .memory: return "Memory"
         case .about: return "About"
         case .developer: return "Developer"
         }
@@ -30,6 +32,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .source: return "Hidden"
         case .models: return "Runtime and model choices"
         case .businessContext: return "Tell me about your program"
+        case .memory: return "What I remember about you"
         case .about: return "Credits and release notes"
         case .developer: return "Logs and preview states"
         }
@@ -40,6 +43,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .source: return "books.vertical.fill"
         case .models: return "cpu.fill"
         case .businessContext: return "building.2.crop.circle.fill"
+        case .memory: return "brain"
         case .about: return "person.text.rectangle.fill"
         case .developer: return "wrench.and.screwdriver.fill"
         }
@@ -151,7 +155,7 @@ struct SettingsView: View {
     private var visiblePanes: [SettingsPane] {
         // Lenny `.source` pane is intentionally absent — LilJustin doesn't
         // use the upstream archive at all.
-        var panes: [SettingsPane] = [.models, .businessContext, .about]
+        var panes: [SettingsPane] = [.models, .businessContext, .memory, .about]
         if AppSettings.showsDeveloperTools {
             panes.append(.developer)
         }
@@ -170,6 +174,8 @@ struct SettingsView: View {
             modelsPane
         case .businessContext:
             businessContextPane
+        case .memory:
+            memoryPane
         case .about:
             aboutPane
         case .developer:

@@ -344,10 +344,12 @@ enum AppSettings {
         }
 
         clearBusinessContextState()
+        clearMemoryLayerState()
         try removeOfficialMCPConfiguration()
         refreshDetectionState()
         NotificationCenter.default.post(name: .liLJustinDidResetData, object: nil)
         NotificationCenter.default.post(name: .liLJustinBusinessContextDidChange, object: nil)
+        NotificationCenter.default.post(name: MemoryStore.didChangeNotification, object: nil)
     }
 }
 

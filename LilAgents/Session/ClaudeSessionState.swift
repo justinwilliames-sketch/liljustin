@@ -407,6 +407,15 @@ extension ClaudeSession {
             "System instructions:\n\(instructions)"
         ]
 
+        // Splice in long-term memory the layer has accumulated about
+        // the user. Top-N retrieval via Apple's NLEmbedding cosine
+        // similarity, plus all pinned entries. Empty when the user
+        // hasn't accrued memories yet, so this is purely additive.
+        let memorySection = MemoryRetriever.systemPromptSection(for: message)
+        if !memorySection.isEmpty {
+            sections.append(memorySection)
+        }
+
         if !transcript.isEmpty {
             sections.append("Conversation so far:\n\(transcript)")
         }

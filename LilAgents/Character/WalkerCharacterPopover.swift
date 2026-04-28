@@ -312,11 +312,19 @@ extension WalkerCharacter {
         guard let session = claudeSession else { return }
 
         // Wipe the in-memory history for the current conversation
-        // partition (the focused expert's key, or the default `lenny`
+        // partition (the focused expert's key, or the default `justin`
         // key when there's no expert focus — which is always true in
         // LilJustin since experts are disabled).
         let key = session.key(for: focusedExpert)
         session.conversations[key] = nil
+
+        // Persist the cleared state immediately so a quit-and-reopen
+        // doesn't restore the conversation we just cleared. Without
+        // this the next save (on the next turn) would do it, but we
+        // shouldn't depend on the user sending another message.
+        if AppSettings.conversationHistoryEnabled {
+            ConversationHistoryStore.save(session.conversations)
+        }
 
         // Reset all transient transcript state — live status, expert
         // suggestions, follow-up chips, attachments, the input field —

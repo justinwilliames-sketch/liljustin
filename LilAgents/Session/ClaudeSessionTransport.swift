@@ -9,6 +9,20 @@ extension ClaudeSession {
         }
         isRunning = true
         SessionDebugLogger.log("session", "start() called")
+
+        // Restore prior conversations from disk so a quit-and-reopen
+        // resumes the transcript instead of wiping it. Idempotent —
+        // only fires when the in-memory dict is empty (fresh session)
+        // and the toggle is on. Skipped if we're starting an explicitly
+        // cleared session (the clear path nukes both disk and memory).
+        if AppSettings.conversationHistoryEnabled, conversations.isEmpty {
+            let restored = ConversationHistoryStore.load()
+            if !restored.isEmpty {
+                conversations = restored
+                SessionDebugLogger.log("session", "restored \(restored.count) conversation(s) from disk")
+            }
+        }
+
         logStartupDiagnostics()
         resolvePreferredBackend { [weak self] backend, environment, message in
             guard let self else { return }
