@@ -92,6 +92,20 @@ final class WalkerCharacter {
     // whole time. Driven from the per-tick update().
     var nextIdleFacingRollAt: CFTimeInterval = 0
 
+    // ── Ambient bubbles ────────────────────────────────────────────
+    // While idle (no popover, no chat in flight, awake, not focused on
+    // an expert) LilJustin periodically pipes up with a short Justin/
+    // Orbit-voice comment — a CRM micro-tip, a deliverability gripe,
+    // or a dry remark. Cadence is a randomised 90–240s gap between
+    // bubbles. Each bubble lingers ~12s so Sir actually has time to
+    // read it.
+    var nextAmbientBubbleAt: CFTimeInterval = CACurrentMediaTime() + TimeInterval.random(in: 60...180)
+    var ambientBubbleExpiresAt: CFTimeInterval = 0
+    var lastAmbientLineIndex: Int = -1
+    static let minAmbientGap: TimeInterval = 90
+    static let maxAmbientGap: TimeInterval = 240
+    static let ambientBubbleLinger: TimeInterval = 12
+
     /// Build the speech-bubble outline as a single closed CGPath:
     /// rounded body on top + downward-pointing tail below. Drawing the
     /// whole thing as one path eliminates the visible seam where a

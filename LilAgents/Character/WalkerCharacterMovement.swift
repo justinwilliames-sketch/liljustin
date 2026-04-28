@@ -208,6 +208,11 @@ extension WalkerCharacter {
                 // facings instead of locking on the one chosen at
                 // pause start.
                 rerollIdleFacingIfDue()
+                // Ambient bubble check — periodically pop a short
+                // Justin-voice comment (CRM tip / dry remark) if we're
+                // genuinely idle. Suppressed automatically while chat
+                // is open or model is busy (see tickAmbientBubble).
+                tickAmbientBubble()
                 let x = horizontalMetrics.minX + currentTravelDistance * positionProgress + flipXOffset
                 let bottomPadding = displayHeight * 0.15
                 let y = dockTopY - bottomPadding + yOffset
