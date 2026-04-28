@@ -548,10 +548,14 @@ extension WalkerCharacter {
 
         let controlButtonSize: CGFloat = 28
         let buttonSpacing: CGFloat = 6
+        // Title bar controls, right to left: close, then a tight
+        // cluster of clear-conversation and settings. Expand and pin
+        // were removed in v0.1.50 — Sir found them noisy and they
+        // were a steady source of layout/state bugs (expand width
+        // regressions, pin click-through quirks). The popover lives
+        // at one fixed size now; close-and-reopen is the way back.
         let closeButtonX = popoverWidth - 12 - controlButtonSize
-        let pinButtonX = closeButtonX - buttonSpacing - controlButtonSize
-        let expandButtonX = pinButtonX - buttonSpacing - controlButtonSize
-        let clearButtonX = expandButtonX - buttonSpacing - controlButtonSize
+        let clearButtonX = closeButtonX - buttonSpacing - controlButtonSize
         let settingsButtonX = clearButtonX - buttonSpacing - controlButtonSize
 
         let settingsButton = HoverButton(title: "", target: NSApp.delegate, action: #selector(AppDelegate.openSettings))
@@ -618,39 +622,9 @@ extension WalkerCharacter {
         clearButton.toolTip = "Start a new conversation"
         titleBar.addSubview(clearButton)
 
-        let expandButton = HoverButton(title: "", target: self, action: #selector(expandToggleTapped))
-        expandButton.frame = NSRect(x: expandButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
-        expandButton.autoresizingMask = .minXMargin
-        expandButton.isBordered = false
-        expandButton.wantsLayer = true
-        expandButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
-        expandButton.hoverBg = t.separatorColor.withAlphaComponent(0.22).cgColor
-        expandButton.layer?.backgroundColor = t.separatorColor.withAlphaComponent(0.10).cgColor
-        expandButton.layer?.cornerRadius = controlButtonSize / 2
-        if let img = NSImage(systemSymbolName: "arrow.up.left.and.arrow.down.right", accessibilityDescription: "Expand") {
-            let config = NSImage.SymbolConfiguration(pointSize: 10, weight: .medium)
-            expandButton.image = img.withSymbolConfiguration(config)
-        }
-        expandButton.imageScaling = .scaleProportionallyDown
-        expandButton.contentTintColor = t.textDim
-        expandButton.toolTip = "Expand"
-        titleBar.addSubview(expandButton)
-        popoverExpandButton = expandButton
-
-        let pinButton = HoverButton(title: "", target: self, action: #selector(togglePopoverPinned))
-        pinButton.frame = NSRect(x: pinButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
-        pinButton.autoresizingMask = .minXMargin
-        pinButton.isBordered = false
-        pinButton.wantsLayer = true
-        pinButton.normalBg = t.separatorColor.withAlphaComponent(0.10).cgColor
-        pinButton.hoverBg = t.separatorColor.withAlphaComponent(0.22).cgColor
-        pinButton.layer?.backgroundColor = t.separatorColor.withAlphaComponent(0.10).cgColor
-        pinButton.layer?.cornerRadius = controlButtonSize / 2
-        pinButton.imageScaling = .scaleProportionallyDown
-        pinButton.contentTintColor = t.textDim
-        pinButton.toolTip = "Pin"
-        titleBar.addSubview(pinButton)
-        popoverPinButton = pinButton
+        // Expand + pin buttons removed in v0.1.50 — popover is now
+        // a single fixed size. Click-outside still closes; close
+        // button still closes; that's the full lifecycle.
 
         let closeButton = HoverButton(title: "", target: self, action: #selector(closePopoverFromButton))
         closeButton.frame = NSRect(x: closeButtonX, y: (titleBarHeight - controlButtonSize) / 2, width: controlButtonSize, height: controlButtonSize)
