@@ -2,13 +2,11 @@ import Foundation
 
 extension ClaudeSession {
     func preferredWorkingDirectoryURL() -> URL {
-        // Always use a temp dir — avoids macOS TCC prompts for home/Documents folder access.
-        // The spawned `claude` CLI inherits cwd from us. Some prompts /
-        // tool-use surfaces echo this path back into the model context,
-        // so the directory name needs to read as LilJustin.
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("LilJustinCLI", isDirectory: true)
-        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
+        // Delegates to AppSettings.cliWorkingDirectoryURL() so the chat
+        // path and the ambient-bubble path share a single source of
+        // truth for the spawned CLI's cwd. See the doc on the
+        // AppSettings helper for the full rationale.
+        AppSettings.cliWorkingDirectoryURL()
     }
 
     func logStartupDiagnostics() {

@@ -403,6 +403,14 @@ extension WalkerCharacter {
             task.executableURL = URL(fileURLWithPath: claudePath)
             task.arguments = ["-p", prompt]
             task.environment = ProcessInfo.processInfo.environment
+            // CRITICAL: pin the cwd to the LilJustin temp directory.
+            // Without this, the spawned `claude` CLI inherits the app's
+            // launch cwd — often ~/Downloads after a Sparkle relaunch —
+            // and TCC prompts for Downloads access fire on every
+            // ambient bubble (every 60–180s). The chat path has always
+            // set this; the ambient bubble path didn't, which is why
+            // the prompts started appearing constantly after v0.1.15.
+            task.currentDirectoryURL = AppSettings.cliWorkingDirectoryURL()
 
             let stdoutPipe = Pipe()
             let stderrPipe = Pipe()

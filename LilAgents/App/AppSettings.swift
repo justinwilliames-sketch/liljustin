@@ -2,6 +2,30 @@ import Foundation
 
 enum AppSettings {
 
+    /// Single source of truth for the cwd used when spawning Claude /
+    /// Codex CLI subprocesses.
+    ///
+    /// Two reasons this lives in AppSettings rather than at each
+    /// spawn site:
+    ///   1. Without an explicit cwd, the spawned CLI inherits whatever
+    ///      directory LilJustin happened to be launched in. After a
+    ///      Sparkle relaunch that's often `~/Downloads` (where Finder
+    ///      runs the unsigned-app open dialog) — every ambient-bubble
+    ///      spawn then triggers a TCC prompt for Downloads access. Bug
+    ///      shipped in v0.1.15, fixed in v0.1.24.
+    ///   2. Some prompts/tool-use surfaces echo the cwd back to the
+    ///      model, so the directory name needs to read as LilJustin —
+    ///      not "Downloads" or some random temp slug.
+    ///
+    /// The temp dir is created on demand and lives at
+    /// `$TMPDIR/LilJustinCLI`, which the OS cleans up periodically.
+    /// The CLI doesn't store anything important there.
+    static func cliWorkingDirectoryURL() -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("LilJustinCLI", isDirectory: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
     // MARK: - Model enums
 
     enum ClaudeModel: String, CaseIterable {
