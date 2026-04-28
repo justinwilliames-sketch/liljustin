@@ -104,7 +104,6 @@
 		BC0000010000000000000009 /* SensitivityFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000009 /* SensitivityFilter.swift */; };
 		BC000001000000000000000A /* MemoryRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000A /* MemoryRetriever.swift */; };
 		BC000001000000000000000B /* MemoryExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000B /* MemoryExtractor.swift */; };
-		BC000001000000000000000C /* ConversationHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000C /* ConversationHistoryStore.swift */; };
 		BC000001000000000000000D /* AppSettings+Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000D /* AppSettings+Memory.swift */; };
 		BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000E /* SettingsView+MemoryPane.swift */; };
 /* End PBXBuildFile section */
@@ -208,7 +207,6 @@
 		BC0000020000000000000009 /* SensitivityFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitivityFilter.swift; sourceTree = "<group>"; };
 		BC000002000000000000000A /* MemoryRetriever.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryRetriever.swift; sourceTree = "<group>"; };
 		BC000002000000000000000B /* MemoryExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryExtractor.swift; sourceTree = "<group>"; };
-		BC000002000000000000000C /* ConversationHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistoryStore.swift; sourceTree = "<group>"; };
 		BC000002000000000000000D /* AppSettings+Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppSettings+Memory.swift"; sourceTree = "<group>"; };
 		BC000002000000000000000E /* SettingsView+MemoryPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+MemoryPane.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -399,7 +397,6 @@
 				BC0000020000000000000009 /* SensitivityFilter.swift */,
 				BC000002000000000000000A /* MemoryRetriever.swift */,
 				BC000002000000000000000B /* MemoryExtractor.swift */,
-				BC000002000000000000000C /* ConversationHistoryStore.swift */,
 				BC000002000000000000000D /* AppSettings+Memory.swift */,
 			);
 			path = Memory;
@@ -577,7 +574,6 @@
 				BC0000010000000000000009 /* SensitivityFilter.swift in Sources */,
 				BC000001000000000000000A /* MemoryRetriever.swift in Sources */,
 				BC000001000000000000000B /* MemoryExtractor.swift in Sources */,
-				BC000001000000000000000C /* ConversationHistoryStore.swift in Sources */,
 				BC000001000000000000000D /* AppSettings+Memory.swift in Sources */,
 				BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */,
 			);

@@ -16,19 +16,74 @@ extension ChatBubbleView {
     }
 
     @objc func copyTapped() {
-        // Prefer the original markdown source converted to Slack
-        // mrkdwn so the user can paste a properly-formatted message
-        // straight into Slack. Fall back to the rendered plain text
-        // when markdown isn't available (e.g. user bubbles, errors).
-        let payload: String
+        // Slack desktop's WYSIWYG composer ignores plain `*X*` mrkdwn
+        // on paste — `*X*` shows up as literal asterisks unless the
+        // user has explicitly enabled "Format messages with markup"
+        // in Slack preferences (off by default). The fix: write THREE
+        // representations to the pasteboard. Slack reads RTF/HTML and
+        // applies the formatting; plain text is the fallback for any
+        // other consumer.
+        //
+        //   - .string → Slack-mrkdwn-flavoured plain text. Renders as
+        //     bold for users who do have mrkdwn enabled. Otherwise
+        //     reads cleanly as ordinary text.
+        //   - .rtf    → Rich text built from the markdown source.
+        //     Slack desktop, Apple Mail, Notes, and most macOS apps
+        //     pick this up and apply bold / italics / lists / links.
+        //   - .html   → Same idea, for receivers that prefer HTML
+        //     (Slack web/Electron sometimes does).
+        let plainText: String
+        var rtfData: Data?
+        var htmlData: Data?
+
         if let source = markdownSource, !source.isEmpty {
-            payload = MarkdownToSlack.convert(source)
+            plainText = MarkdownToSlack.convert(source)
+            if let attr = Self.makeAttributedString(fromMarkdown: source) {
+                let range = NSRange(location: 0, length: attr.length)
+                rtfData = try? attr.data(
+                    from: range,
+                    documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
+                )
+                htmlData = try? attr.data(
+                    from: range,
+                    documentAttributes: [.documentType: NSAttributedString.DocumentType.html]
+                )
+            }
         } else {
-            payload = textView.string
+            plainText = textView.string
         }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(payload, forType: .string)
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        var types: [NSPasteboard.PasteboardType] = [.string]
+        if rtfData != nil { types.append(.rtf) }
+        if htmlData != nil { types.append(.html) }
+        pasteboard.declareTypes(types, owner: nil)
+        pasteboard.setString(plainText, forType: .string)
+        if let rtfData {
+            pasteboard.setData(rtfData, forType: .rtf)
+        }
+        if let htmlData {
+            pasteboard.setData(htmlData, forType: .html)
+        }
         onCopy?()
+    }
+
+    /// Build a neutral-styled `NSAttributedString` from raw markdown
+    /// using Foundation's built-in markdown parser (macOS 12+). Used
+    /// by the copy action to populate RTF/HTML pasteboard types so
+    /// pasting into Slack/Mail/Notes preserves bold / links / lists.
+    /// Returns nil when the parser fails — caller falls back to plain
+    /// text only.
+    static func makeAttributedString(fromMarkdown source: String) -> NSAttributedString? {
+        var options = AttributedString.MarkdownParsingOptions()
+        options.allowsExtendedAttributes = false
+        options.interpretedSyntax = .full
+        options.failurePolicy = .returnPartiallyParsedIfPossible
+        guard let attributed = try? AttributedString(markdown: source, options: options) else {
+            return nil
+        }
+        return NSAttributedString(attributed)
     }
 
     /// Update the bubble's markdown source as new content streams in.
@@ -80,25 +135,12 @@ extension ChatBubbleView {
 
         let targetContentWidth = rect.width
         let paddingWidth: CGFloat = 28
-
-        // Bubble max width adapts to the available transcript column. In
-        // the default-size popover the column is ~376pt, so the cap lands
-        // at roughly the historical 380; in the expanded popover the
-        // column is ~580pt+, so the bubble grows with it instead of
-        // sitting in the left half of a wide column. Soft-capped at 720
-        // so a 1000pt-wide popover doesn't produce hard-to-read line
-        // lengths.
-        let availableWidth: CGFloat
-        if let parentWidth = superview?.bounds.width, parentWidth > 0 {
-            // Subtract trailing gutter (56) used by the bubbleBackground
-            // constraint plus a small breathing buffer.
-            availableWidth = max(280, parentWidth - 56 - 4)
-        } else {
-            // No superview yet — initial layout. Fall back to the
-            // original cap so the first render isn't undersized.
-            availableWidth = 380
-        }
-        let maxWidth: CGFloat = min(720, availableWidth)
+        // `maxBubbleWidth` is set by the parent `TerminalView` after each
+        // layout pass — see TerminalView.layout(). Soft-capped at 720
+        // there so very wide popovers don't produce hard-to-read line
+        // lengths. Default stays at 380 for the initial render before
+        // the parent has had a chance to compute the column width.
+        let maxWidth: CGFloat = max(280, maxBubbleWidth)
         let desiredWidth = targetContentWidth + paddingWidth
 
         if let textWidthConstraint {

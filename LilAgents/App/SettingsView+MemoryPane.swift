@@ -16,7 +16,6 @@ extension SettingsView {
 /// behaviour can be turned off if either feels noisy.
 private struct MemoryPaneRoot: View {
     @AppStorage(AppSettings.autoExtractMemoryKey) private var autoExtractEnabled: Bool = true
-    @AppStorage(AppSettings.conversationHistoryEnabledKey) private var historyEnabled: Bool = true
 
     @State private var entries: [MemoryEntry] = []
     @State private var editingEntry: MemoryEntry?
@@ -26,35 +25,20 @@ private struct MemoryPaneRoot: View {
         VStack(alignment: .leading, spacing: 20) {
             SettingsHeader(
                 title: "Memory",
-                subtitle: "Durable facts LilJustin remembers about you between conversations. Stored on your Mac. Never includes specific names, emails, phone numbers, exact financials, or anything that looks like a secret."
+                subtitle: "Durable facts LilJustin remembers about you between conversations. Stored on your Mac. Never includes specific names, emails, phone numbers, exact financials, or anything that looks like a secret. Conversation transcripts are deliberately not stored — chats are fleeting by design."
             )
 
             SettingsSectionCard(title: "Behaviour", subtitle: "How LilJustin uses memory.") {
-                VStack(alignment: .leading, spacing: 14) {
-                    Toggle(isOn: $autoExtractEnabled) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Auto-remember durable facts")
-                                .font(.subheadline.weight(.medium))
-                            Text("After each substantive answer, run a one-shot extraction call on the connected provider to identify 0–2 facts worth saving. PII filter and prompt-side guidance keep sensitive specifics out. Off = LilJustin never adds memories on its own; you can still capture them manually with phrases like 'remember that…'")
-                                .settingsCaption()
-                        }
+                Toggle(isOn: $autoExtractEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Auto-remember durable facts")
+                            .font(.subheadline.weight(.medium))
+                        Text("After each substantive answer, run a one-shot extraction call on the connected provider to identify 0–2 facts worth saving. PII filter and prompt-side guidance keep sensitive specifics out. Off = LilJustin never adds memories on its own; you can still capture them manually with phrases like 'remember that…'")
+                            .settingsCaption()
                     }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-
-                    Divider()
-
-                    Toggle(isOn: $historyEnabled) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Persist conversation history")
-                                .font(.subheadline.weight(.medium))
-                            Text("Remember the transcript between app launches. Off = quitting LilJustin wipes the chat (the original behaviour).")
-                                .settingsCaption()
-                        }
-                    }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
                 }
+                .toggleStyle(.switch)
+                .controlSize(.small)
             }
 
             SettingsSectionCard(

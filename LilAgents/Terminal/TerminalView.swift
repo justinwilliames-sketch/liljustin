@@ -121,6 +121,25 @@ class TerminalView: NSView {
     override func layout() {
         super.layout()
         relayoutPanels()
+        propagateBubbleMaxWidth()
+    }
+
+    /// Tell every existing chat bubble what the maximum text-column
+    /// width should be, based on the current transcript stack width.
+    /// Called on every layout pass so bubbles re-flow when the popover
+    /// toggles between default and expanded modes. Soft-capped at
+    /// 720pt so very wide popovers don't produce hard-to-read line
+    /// lengths; floored at 280 so the first layout pass with a
+    /// not-yet-laid-out stack doesn't crush the bubbles.
+    private func propagateBubbleMaxWidth() {
+        let stackWidth = transcriptStack.bounds.width
+        guard stackWidth > 0 else { return }
+        let target = min(720, max(280, stackWidth))
+        for view in transcriptStack.arrangedSubviews {
+            if let bubble = view as? ChatBubbleView, bubble.maxBubbleWidth != target {
+                bubble.maxBubbleWidth = target
+            }
+        }
     }
 
     func setReturnToLennyVisible(_ visible: Bool) {

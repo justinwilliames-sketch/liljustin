@@ -107,20 +107,15 @@ extension WalkerCharacter {
             // the model to suggest follow-ups to a "got it" response.
             self.scheduleFollowUpGeneration()
 
-            // Persist the updated conversations dict so a quit-and-
-            // reopen restores the transcript. Saving is fast (a few KB
-            // JSON), but we still gate on a Settings toggle so users
-            // who specifically want a wiped-on-launch chat have a way
-            // to opt out.
-            if AppSettings.conversationHistoryEnabled, let session = self.claudeSession {
-                ConversationHistoryStore.save(session.conversations)
-            }
-
             // Run the long-term memory extractor on the just-completed
             // exchange. Fire-and-forget — runs on a background queue,
             // applies the sensitivity filter, only persists what passes.
             // The extractor itself checks the auto-extract toggle and
             // bails on chitchat / missing CLI.
+            //
+            // NB: conversation transcripts are deliberately NOT
+            // persisted — by design Mini Justin chats are fleeting.
+            // Only durable user-fact memories live across launches.
             if let session = self.claudeSession {
                 let history = session.history(for: self.focusedExpert)
                 let lastUser = history.last(where: { $0.role == .user })?.text ?? ""
