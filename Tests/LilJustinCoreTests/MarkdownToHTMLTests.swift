@@ -65,13 +65,22 @@ final class MarkdownToHTMLTests: XCTestCase {
     func testAllHeadingLevelsRenderAsBoldedParagraph() {
         // Every heading level collapses to <p><strong>...</strong></p>
         // for consistent paste behaviour across Slack/Mail/Notes.
-        // We trade heading-hierarchy semantics for paragraph spacing
-        // that Slack's WYSIWYG paste actually honours.
         for prefix in ["#", "##", "###", "####"] {
             let out = MarkdownToHTML.convert("\(prefix) Heading")
             XCTAssertTrue(out.contains("<p><strong>Heading</strong></p>"),
                           "Heading prefix '\(prefix) ' should render as <p><strong>")
         }
+    }
+
+    func testHeadingIsFollowedByEmptyParagraphSpacer() {
+        // Sir's repeat regression: even with `<p><strong>X</strong></p>
+        // <p>body</p>` Slack collapsed the visible break between
+        // heading and body. The fix is an explicit empty-paragraph
+        // sentinel after each heading so Slack registers a real
+        // paragraph boundary.
+        let out = MarkdownToHTML.convert("## The core problem\n\nMost sequences fail.")
+        XCTAssertTrue(out.contains("<p><strong>The core problem</strong></p>\n<p></p>"))
+        XCTAssertTrue(out.contains("<p>Most sequences fail.</p>"))
     }
 
     // MARK: - Inline formatting

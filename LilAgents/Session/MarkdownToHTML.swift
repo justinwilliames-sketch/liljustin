@@ -112,22 +112,22 @@ enum MarkdownToHTML {
             }
 
             // Heading. Emit as a bolded paragraph rather than an
-            // <h1>-<h6> tag — Slack's paste handler reliably honours
-            // paragraph spacing for `<p>`, but renders `<h>` with no
-            // blank line above the next paragraph (which produced
-            // Sir's "heading runs straight into the next sentence"
-            // feedback). `<p><strong>` reads identically in Apple
-            // Mail / Notes / Notion / Linear, so we get one shape
-            // that works everywhere.
+            // <h1>-<h6> tag — Slack's paste handler renders `<h>`
+            // with no blank line above the next paragraph.
             //
-            // The `level` is preserved by varying the strength of
-            // the marker — h1 also gets a leading newline-paragraph
-            // for top-of-section weight.
+            // Even with `<p><strong>X</strong></p>` followed by
+            // `<p>body</p>`, Slack collapses the spacing between
+            // the two when no empty paragraph separates them. So
+            // we follow the heading with an explicit `<p></p>`
+            // sentinel — Slack treats it as a real paragraph
+            // boundary and inserts the visible vertical break Sir
+            // expects between heading and body.
             if let (level, content) = headingMatch(line) {
                 flushParagraph()
                 flushList()
-                _ = level   // intentional: visual weight is uniform
+                _ = level
                 output.append("<p><strong>\(transformInline(content))</strong></p>")
+                output.append("<p></p>")
                 continue
             }
 
