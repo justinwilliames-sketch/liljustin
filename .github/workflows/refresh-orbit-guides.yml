@@ -1,0 +1,71 @@
+# Weekly corpus auto-refresh.
+#
+# LilJustin bundles the live Orbit guides export at LilAgents/orbit-guides.json
+# so the app can ground answers in actual guide content offline. When the
+# get-orbit site publishes new guides or edits existing ones, the bundled
+# JSON drifts and answers gradually stop reflecting the live corpus.
+#
+# This workflow runs every Monday morning AEST, calls the same refresh
+# script a developer would run locally, and opens a PR if the corpus
+# changed. Manual approval keeps a human in the loop — the PR is a
+# diff you can eyeball, not a silent auto-merge.
+#
+# Trigger manually any time via the Actions tab → "Refresh Orbit guides
+# corpus" → Run workflow.
+
+name: Refresh Orbit guides corpus
+
+on:
+  schedule:
+    # 22:00 UTC Sunday = 08:00 AEST Monday — picks up anything Sir
+    # shipped over the weekend before he opens the laptop on Monday.
+    - cron: "0 22 * * 0"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    name: Refresh corpus + open PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run refresh script
+        run: ./Scripts/refresh-orbit-guides.sh
+
+      - name: Stop if no diff
+        id: diff
+        run: |
+          if git diff --quiet -- LilAgents/orbit-guides.json; then
+            echo "Corpus unchanged — skipping PR."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            # Pull a one-liner summary of what moved for the PR body.
+            BEFORE_COUNT=$(git show HEAD:LilAgents/orbit-guides.json | python3 -c "import json,sys; print(json.load(sys.stdin)['count'])")
+            AFTER_COUNT=$(python3 -c "import json; print(json.load(open('LilAgents/orbit-guides.json'))['count'])")
+            echo "before_count=$BEFORE_COUNT" >> "$GITHUB_OUTPUT"
+            echo "after_count=$AFTER_COUNT" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Refresh Orbit guides corpus (auto)"
+          title: "Refresh Orbit guides corpus"
+          body: |
+            Automated weekly refresh of `LilAgents/orbit-guides.json` from
+            `https://get.yourorbit.team/api/guides/export`.
+
+            - Guide count: **${{ steps.diff.outputs.before_count }}** → **${{ steps.diff.outputs.after_count }}**
+
+            Eyeball the diff to confirm the change reflects what's live, then
+            merge. After merge, tag the next patch release to ship the new
+            corpus to users via Sparkle.
+          branch: chore/refresh-orbit-guides
+          delete-branch: true
+          add-paths: LilAgents/orbit-guides.json

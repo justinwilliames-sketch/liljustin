@@ -48,6 +48,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         AppSettings.prefetchDetectionState()
+        // Warm the Orbit guides embedding cache on a background queue.
+        // First run computes 87 vectors (milliseconds with Apple's
+        // built-in NLEmbedding) and persists them to App Support.
+        // Subsequent launches hit the disk cache. Until vectors are
+        // ready, retrieval falls back to keyword-only — so this is
+        // pure upside, never a startup blocker.
+        OrbitGuidesEmbeddings.precomputeIfNeeded()
         // Reconcile the OS login-item registration with the user's
         // preference. Default for first-install users is ON — the
         // first call here registers the app with macOS, which surfaces
