@@ -38,15 +38,23 @@ enum OrbitGuidesEmbeddings {
     private static let stateLock = NSLock()
     private static var isPrecomputing = false
 
-    /// Stable fingerprint of the bundled corpus. Used to invalidate the
-    /// cached embeddings when the corpus refresh script writes a new
-    /// JSON. Cheap derivation: count + first/last slug + total markdown
-    /// byte length — three signals that change whenever the export does
-    /// without us having to hash 856 KB of JSON on every launch.
+    /// Stable fingerprint of the bundled corpus AND the OS-provided
+    /// embedding model. Used to invalidate the cached embeddings when:
+    ///   - the corpus refresh script writes a new JSON
+    ///   - macOS ships a major update that may have swapped the
+    ///     underlying NLEmbedding model (Apple has done this between
+    ///     major OS versions before)
+    ///
+    /// Cheap derivation: count + first/last slug + total markdown
+    /// byte length + OS major.minor — five signals that catch any
+    /// real cause of cache staleness without forcing us to hash the
+    /// full 856 KB JSON on every launch.
     private static func corpusFingerprint(_ entries: [OrbitGuidesCorpus.Entry]) -> String {
         guard let first = entries.first, let last = entries.last else { return "empty" }
         let totalBytes = entries.reduce(0) { $0 + $1.markdown.utf8.count }
-        return "\(entries.count):\(first.slug):\(last.slug):\(totalBytes)"
+        let os = ProcessInfo.processInfo.operatingSystemVersion
+        let osTag = "macos-\(os.majorVersion).\(os.minorVersion)"
+        return "\(entries.count):\(first.slug):\(last.slug):\(totalBytes):\(osTag)"
     }
 
     /// Disk cache shape — version field reserved for forward-compat in

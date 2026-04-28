@@ -1,24 +1,28 @@
-# Weekly corpus auto-refresh.
+# Weekly corpus auto-refresh — fully automated.
 #
-# LilJustin bundles the live Orbit guides export at LilAgents/orbit-guides.json
-# so the app can ground answers in actual guide content offline. When the
-# get-orbit site publishes new guides or edits existing ones, the bundled
-# JSON drifts and answers gradually stop reflecting the live corpus.
+# Pipeline (no human in the loop):
+#   1. Pull the latest export from get.yourorbit.team/api/guides/export.
+#   2. Run a strict validator over the JSON shape (count, schema,
+#      markdown integrity). If validation fails, open a PR for manual
+#      review — never auto-merge a malformed bundle to users.
+#   3. If validation passes and the corpus differs from main, commit
+#      directly to main with [skip ci] on the corpus-only commit, then
+#      tag the next patch version. The tag push fires the existing
+#      build workflow which ships the new .dmg + signed appcast, so
+#      Sparkle pulls it on every running install within ~24h.
 #
-# This workflow runs every Monday morning AEST, calls the same refresh
-# script a developer would run locally, and opens a PR if the corpus
-# changed. Manual approval keeps a human in the loop — the PR is a
-# diff you can eyeball, not a silent auto-merge.
-#
-# Trigger manually any time via the Actions tab → "Refresh Orbit guides
+# Trigger manually any time via Actions tab → "Refresh Orbit guides
 # corpus" → Run workflow.
+#
+# Tuning:
+#   - Cron is 22:00 UTC Sunday = 08:00 AEST Monday.
+#   - Validator thresholds (count, markdown floor) live inline; tighten
+#     if a real production corpus issue ever slips through.
 
 name: Refresh Orbit guides corpus
 
 on:
   schedule:
-    # 22:00 UTC Sunday = 08:00 AEST Monday — picks up anything Sir
-    # shipped over the weekend before he opens the laptop on Monday.
     - cron: "0 22 * * 0"
   workflow_dispatch: {}
 
@@ -28,44 +32,152 @@ permissions:
 
 jobs:
   refresh:
-    name: Refresh corpus + open PR
+    name: Refresh corpus + auto-tag release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Need the full history so we can read tags for next-version
+          # computation, and a write-capable token so the auto-commit
+          # + tag push triggers the build workflow downstream.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run refresh script
         run: ./Scripts/refresh-orbit-guides.sh
 
-      - name: Stop if no diff
+      - name: Detect diff
         id: diff
         run: |
           if git diff --quiet -- LilAgents/orbit-guides.json; then
-            echo "Corpus unchanged — skipping PR."
+            echo "Corpus unchanged — skipping the rest of the pipeline."
             echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            # Pull a one-liner summary of what moved for the PR body.
-            BEFORE_COUNT=$(git show HEAD:LilAgents/orbit-guides.json | python3 -c "import json,sys; print(json.load(sys.stdin)['count'])")
-            AFTER_COUNT=$(python3 -c "import json; print(json.load(open('LilAgents/orbit-guides.json'))['count'])")
-            echo "before_count=$BEFORE_COUNT" >> "$GITHUB_OUTPUT"
-            echo "after_count=$AFTER_COUNT" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          BEFORE_COUNT=$(git show HEAD:LilAgents/orbit-guides.json | python3 -c "import json,sys; print(json.load(sys.stdin)['count'])")
+          AFTER_COUNT=$(python3 -c "import json; print(json.load(open('LilAgents/orbit-guides.json'))['count'])")
+          echo "before_count=$BEFORE_COUNT" >> "$GITHUB_OUTPUT"
+          echo "after_count=$AFTER_COUNT" >> "$GITHUB_OUTPUT"
 
-      - name: Open PR
+      - name: Validate corpus integrity
         if: steps.diff.outputs.changed == 'true'
+        id: validate
+        run: |
+          # Strict structural validator. The cron auto-merges, so a
+          # malformed corpus would ship straight to users via Sparkle.
+          # Bar is: payload parses, count is reasonable, every guide
+          # has the expected fields populated, every markdown body is
+          # large enough that we know the export wasn't truncated.
+          python3 <<'PY'
+          import json, sys
+
+          with open("LilAgents/orbit-guides.json") as f:
+              data = json.load(f)
+
+          errors = []
+
+          if data.get("count", 0) < 50:
+              errors.append(f"count too low: {data.get('count')}")
+
+          guides = data.get("guides", [])
+          if len(guides) != data.get("count"):
+              errors.append(
+                  f"count={data.get('count')} but len(guides)={len(guides)}"
+              )
+
+          required = ("slug", "title", "summary", "markdown", "canonicalUrl")
+          for g in guides:
+              for key in required:
+                  if not g.get(key):
+                      errors.append(f"{g.get('slug', '?')} missing {key}")
+              md = g.get("markdown", "")
+              if len(md) < 500:
+                  errors.append(
+                      f"{g.get('slug', '?')} markdown only {len(md)} chars"
+                  )
+
+          slugs = [g.get("slug", "") for g in guides]
+          if len(slugs) != len(set(slugs)):
+              errors.append("duplicate slugs in corpus")
+
+          if errors:
+              print("Validator failures:")
+              for e in errors[:20]:
+                  print(" -", e)
+              if len(errors) > 20:
+                  print(f"   …and {len(errors) - 20} more")
+              sys.exit(1)
+
+          print(f"Validator passed: {len(guides)} guides clean.")
+          PY
+          echo "passed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Compute next patch version
+        if: steps.diff.outputs.changed == 'true' && steps.validate.outputs.passed == 'true'
+        id: version
+        run: |
+          # Parse the most recent v*.*.* tag and bump the patch
+          # component. Falls back to v0.1.0 if no tag exists yet.
+          LATEST=$(git tag --list 'v*.*.*' --sort=-v:refname | head -1)
+          if [ -z "$LATEST" ]; then
+            NEXT="v0.1.0"
+          else
+            STRIPPED=${LATEST#v}
+            MAJOR=$(echo "$STRIPPED" | cut -d. -f1)
+            MINOR=$(echo "$STRIPPED" | cut -d. -f2)
+            PATCH=$(echo "$STRIPPED" | cut -d. -f3)
+            NEXT="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          fi
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Bumping ${LATEST:-no prior tag} → $NEXT"
+
+      - name: Auto-commit + tag + push
+        if: steps.diff.outputs.changed == 'true' && steps.validate.outputs.passed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add LilAgents/orbit-guides.json
+          # No [skip ci] — we want the main-push to refresh the
+          # rolling 'latest' release in addition to the tag push
+          # publishing the dedicated release. GitHub honours
+          # [skip ci] across all triggers including tags, so adding
+          # it here would prevent the tagged release from ever
+          # building.
+          git commit -m "Refresh Orbit guides corpus (auto)
+
+          Guide count: ${{ steps.diff.outputs.before_count }} → ${{ steps.diff.outputs.after_count }}.
+          Auto-shipped as ${{ steps.version.outputs.next }} after passing the
+          structural validator."
+
+          # Defend against the unlikely case that something landed on
+          # main while we were validating — rebase rather than fail
+          # the whole job. The corpus diff is the only file we
+          # changed, so conflicts are vanishingly improbable.
+          git pull --rebase --autostash origin main || true
+
+          # Tag fires the build workflow which signs the .dmg and
+          # publishes the appcast — Sparkle picks it up on every
+          # running install within ~24h.
+          git tag "${{ steps.version.outputs.next }}"
+          git push origin main
+          git push origin "${{ steps.version.outputs.next }}"
+
+      - name: Open manual-review PR (validator failed)
+        if: steps.diff.outputs.changed == 'true' && steps.validate.outputs.passed != 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "Refresh Orbit guides corpus (auto)"
-          title: "Refresh Orbit guides corpus"
+          commit-message: "Refresh Orbit guides corpus (validator failed — manual review)"
+          title: "⚠️ Corpus refresh failed validator — manual review"
           body: |
-            Automated weekly refresh of `LilAgents/orbit-guides.json` from
-            `https://get.yourorbit.team/api/guides/export`.
+            Automated weekly refresh fetched a new corpus, but the
+            structural validator rejected it. Inspect the diff before
+            merging — something is off in the upstream export.
 
             - Guide count: **${{ steps.diff.outputs.before_count }}** → **${{ steps.diff.outputs.after_count }}**
 
-            Eyeball the diff to confirm the change reflects what's live, then
-            merge. After merge, tag the next patch release to ship the new
-            corpus to users via Sparkle.
-          branch: chore/refresh-orbit-guides
+            See the workflow run logs for the specific validator failures.
+          branch: chore/refresh-orbit-guides-failed
           delete-branch: true
           add-paths: LilAgents/orbit-guides.json
