@@ -157,7 +157,14 @@ extension TerminalView {
         let attachY = sendY
         let sendX = composerPanel.frame.width - rightInset - controlButtonSize
         let attachX = sendX - 10 - controlButtonSize
-        let dictateX = attachX - 10 - controlButtonSize
+        // Dictation feature is parked while we sort out the unsigned-app
+        // TCC behaviour Sir hit in v0.1.42 (multiple permission prompts
+        // in quick succession that read as an "infinite loop"). The
+        // button stays hidden but its slot is preserved at -inf so
+        // refreshComposerContentLayout() doesn't have to special-case
+        // a missing X. macOS system dictation (Globe key) still works
+        // in the composer's text field as a workaround.
+        let dictateX = attachX
 
         sendButton.frame = NSRect(x: sendX, y: sendY, width: controlButtonSize, height: controlButtonSize)
         sendButton.autoresizingMask = [.minXMargin]
@@ -197,29 +204,15 @@ extension TerminalView {
         attachButton.action = #selector(attachButtonTapped)
         composerPanel.addSubview(attachButton)
 
-        dictateButton.frame = NSRect(x: dictateX, y: attachY, width: controlButtonSize, height: controlButtonSize)
-        dictateButton.autoresizingMask = [.minXMargin]
-        dictateButton.isBordered = false
-        dictateButton.wantsLayer = true
-        dictateButton.normalBg = t.separatorColor.withAlphaComponent(0.14).cgColor
-        dictateButton.hoverBg = t.separatorColor.withAlphaComponent(0.28).cgColor
-        dictateButton.layer?.backgroundColor = t.separatorColor.withAlphaComponent(0.14).cgColor
-        dictateButton.layer?.cornerRadius = controlButtonSize / 2
-        if let img = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Dictate message") {
-            let config = NSImage.SymbolConfiguration(pointSize: 12, weight: .medium)
-            dictateButton.image = img.withSymbolConfiguration(config)
-        }
-        dictateButton.imageScaling = .scaleProportionallyDown
-        dictateButton.contentTintColor = t.textDim
-        dictateButton.toolTip = "Dictate message"
-        dictateButton.target = self
-        dictateButton.action = #selector(dictateButtonTapped)
-        composerPanel.addSubview(dictateButton)
+        // Dictation button parked — see comment above. Kept the
+        // construction lines so re-enabling is a one-line revert
+        // when the app is signed and TCC grants persist properly.
+        dictateButton.isHidden = true
 
         inputField.frame = NSRect(
             x: 16,
             y: 8,
-            width: dictateX - 16 - 8,   // 16px left inset, 8px gap before dictate button
+            width: attachX - 16 - 8,   // 16px left inset, 8px gap before attach button
             height: Layout.composerHeight - 16
         )
         inputField.autoresizingMask = [.width]
@@ -280,21 +273,21 @@ extension TerminalView {
         let sendY = (Layout.composerHeight - controlButtonSize) / 2
         let sendX = composerPanel.bounds.width - rightInset - controlButtonSize
         let attachX = sendX - controlGap - controlButtonSize
-        let dictateX = attachX - controlGap - controlButtonSize
 
         sendButton.frame = NSRect(x: sendX, y: sendY, width: controlButtonSize, height: controlButtonSize)
         attachButton.frame = NSRect(x: attachX, y: sendY, width: controlButtonSize, height: controlButtonSize)
-        dictateButton.frame = NSRect(x: dictateX, y: sendY, width: controlButtonSize, height: controlButtonSize)
+        // dictateButton remains hidden until the unsigned-app TCC
+        // dance is sorted; layout pretends it's not there.
 
         inputField.frame = NSRect(
             x: sideInset,
             y: 8,
-            width: max(80, dictateX - sideInset - 8),
+            width: max(80, attachX - sideInset - 8),
             height: Layout.composerHeight - 16
         )
 
         let statusLeading: CGFloat = sideInset
-        let statusTrailingInset: CGFloat = isShowingStatus ? 16 : (rightInset + (3 * controlButtonSize) + (2 * controlGap) + 8)
+        let statusTrailingInset: CGFloat = isShowingStatus ? 16 : (rightInset + (2 * controlButtonSize) + controlGap + 8)
         composerStatusLabel.frame = NSRect(
             x: statusLeading,
             y: (Layout.composerHeight - 18) / 2,
