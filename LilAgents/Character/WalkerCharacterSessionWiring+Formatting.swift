@@ -17,52 +17,55 @@ extension WalkerCharacter {
     }
 
     func formatLiveStatus(toolName: String, summary: String) -> String {
-        let lowered = toolName.lowercased()
-        let detail = statusDetail(from: summary)
+        // Sir asked for live status to mirror the simpler thinking
+        // verbs ("Thinking…", "Researching…", "Reading…", "Drafting…",
+        // "Typing…", "Looking…") rather than the long descriptive
+        // strings ("Reviewing the relevant context on lifecycle marketing",
+        // "Searching the archive for X", "Working through it", etc.)
+        // the model's tool-use stream produces directly.
+        //
+        // We keep the join-conversation message because it's
+        // informational and rare. Everything else collapses to a
+        // single-word verb based on the tool category. The elaborate
+        // helper functions (statusDetail, userFacingResearchStatus,
+        // etc.) are now dead code — kept in the file rather than
+        // deleted in case a future feature wants to opt back into
+        // detail-mode for a specific surface.
         if let joinStatus = liveExpertJoinStatus(from: summary) {
             return joinStatus
         }
-        if lowered == "tool result" {
-            if let detail, let rewritten = userFacingResearchStatus(from: detail) {
-                return rewritten
-            }
-            return "Reviewing the relevant context"
-        }
 
-        if lowered.contains("planning") || lowered.contains("calling model") {
-            if let planningStatus = userFacingPlanningStatus(from: detail ?? summary) {
-                return planningStatus
-            }
-            return detail ?? "Planning the next step"
+        let lowered = toolName.lowercased()
+
+        // Reading file contents / source material → "Reading…".
+        if lowered.contains("reading") {
+            return "Reading…"
         }
-        if lowered.contains("calling mcp tool") {
-            if let detail, let rewritten = userFacingResearchStatus(from: detail) {
-                return rewritten
-            }
-            return "Checking the archive"
+        // Search / browse / tool-result review / mcp tool calls all
+        // map to research activity in the user's mental model.
+        if lowered == "tool result"
+            || lowered.contains("search")
+            || lowered.contains("browse")
+            || lowered.contains("calling mcp tool") {
+            return "Researching…"
         }
-        if lowered.contains("search") || lowered.contains("reading") || lowered.contains("browse") {
-            if let detail, let rewritten = userFacingResearchStatus(from: detail) {
-                return rewritten
-            }
-            return lowered.contains("reading") ? "Reading source material" : "Searching the archive"
-        }
+        // Writing / generating output → "Drafting…". Closer to
+        // human composition language than "Writing the answer".
         if lowered.contains("writing") || lowered.contains("generating") {
-            if let detail, let rewritten = userFacingWritingStatus(from: detail) {
-                return rewritten
-            }
-            return "Writing the answer"
+            return "Drafting…"
         }
-        if let rewritten = userFacingNarration(from: detail ?? summary) {
-            return rewritten
+        // Planning, model invocation, generic thinking → "Thinking…".
+        if lowered.contains("planning")
+            || lowered.contains("calling model")
+            || lowered.contains("running")
+            || lowered.contains("progress")
+            || lowered.contains("thinking") {
+            return "Thinking…"
         }
-        if lowered.contains("tool") {
-            return detail.map { "Using \($0)" } ?? "Using a research tool"
-        }
-        if lowered.contains("running") || lowered.contains("progress") || lowered.contains("thinking") {
-            return detail ?? "Working through it"
-        }
-        return detail ?? "Working through it"
+        // Generic tool / catch-all → "Looking…". Vague enough to fit
+        // anything we haven't explicitly mapped above, while still
+        // reading like a real person doing the work.
+        return "Looking…"
     }
 
     func compactLiveStatus(_ status: String) -> String {
