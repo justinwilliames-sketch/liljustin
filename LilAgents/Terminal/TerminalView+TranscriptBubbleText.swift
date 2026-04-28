@@ -39,27 +39,40 @@ extension ChatBubbleView {
         if let source = markdownSource, !source.isEmpty {
             plainText = MarkdownToSlack.convert(source)
 
-            // HTML is the format Slack actually honours on paste. We
-            // build it from the markdown source via our own emitter
-            // (MarkdownToHTML) so paragraph / heading / list block
-            // boundaries survive — Foundation's AttributedString-to-
-            // HTML path collapses them, which produced Sir's
-            // "worse.That's / mechanismThe / pair.SourcesEmojis"
-            // wall-of-text bug. The HTML is wrapped in a minimal
-            // shell so Slack's paste handler reliably parses it as
-            // a fragment rather than guessing at encoding.
+            // HTML is the format we want every rich-text consumer to
+            // pick up. Built from the markdown source via our own
+            // emitter (MarkdownToHTML) so paragraph / heading / list
+            // block boundaries are explicit and honoured on paste.
             let html = MarkdownToHTML.convert(source)
             let wrapped = "<html><body>\(html)</body></html>"
-            htmlData = wrapped.data(using: .utf8)
+            let htmlBytes = wrapped.data(using: .utf8)
+            htmlData = htmlBytes
 
-            // RTF stays Foundation-built — it's used by Apple Mail
-            // and Notes, where a paragraph-collapsed AttributedString
-            // is still cosmetically tolerable. Slack will pick HTML
-            // ahead of RTF anyway. If the AttributedString init
-            // fails we just skip RTF; HTML + plain are enough.
-            if let attr = Self.makeAttributedString(fromMarkdown: source) {
-                let range = NSRange(location: 0, length: attr.length)
-                rtfData = try? attr.data(
+            // RTF used to be built from Foundation's
+            // AttributedString(markdown:) parser, which collapsed
+            // every paragraph boundary into a flat run — Sir saw
+            // pasted Slack messages with no spacing between
+            // paragraphs even after we shipped the HTML emitter.
+            // Slack desktop preferred the RTF on the pasteboard
+            // and rendered the collapsed version; the HTML we
+            // worked hard on was never picked up.
+            //
+            // Fix: derive RTF from the HTML we just built, via
+            // NSAttributedString(html:). The intermediate attributed
+            // string has proper paragraph boundaries (because the
+            // HTML did), so the RTF serialisation preserves them.
+            // Now both pasteboard formats agree on structure.
+            if let htmlBytes,
+               let attrFromHTML = try? NSAttributedString(
+                   data: htmlBytes,
+                   options: [
+                       .documentType: NSAttributedString.DocumentType.html,
+                       .characterEncoding: String.Encoding.utf8.rawValue
+                   ],
+                   documentAttributes: nil
+               ) {
+                let range = NSRange(location: 0, length: attrFromHTML.length)
+                rtfData = try? attrFromHTML.data(
                     from: range,
                     documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
                 )
