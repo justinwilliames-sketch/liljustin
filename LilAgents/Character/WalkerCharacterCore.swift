@@ -319,6 +319,16 @@ extension WalkerCharacter {
     }
 
     func setFacing(_ facing: WalkerFacing) {
+        // Sleep state owns the image. Any code path that tries to swap
+        // facing while LilJustin is asleep — drag, persona swap, expert
+        // focus, mid-pause idle facing reroll, walk-cycle pause entry —
+        // is silently ignored. Without this guard the sleep GIF would
+        // flicker briefly to a directional image whenever any of those
+        // paths fired during a nap, producing the "flicker from sleeping
+        // to standing to sleeping" Sir reported. The actual sleep / wake
+        // transition still routes through enterSleep() / wakeUp() which
+        // own image swapping during state changes.
+        guard !isSleeping else { return }
         imageView?.image = directionalImages[facing] ?? directionalImages[.front]
     }
 
@@ -448,6 +458,16 @@ extension WalkerCharacter {
     func updateSleepState() -> Bool {
         let now = CACurrentMediaTime()
         if isSleeping {
+            // Defensive image reassertion. The setFacing() guard above
+            // catches the common cases, but the runtime is full of
+            // animation/persona-swap paths that touch imageView.image
+            // through other routes. Reassign only when the image differs
+            // (using === reference comparison) so we don't re-trigger
+            // the GIF playback from frame 0 on every tick — that would
+            // freeze the sleeping animation visually.
+            if let sleepingImage, imageView?.image !== sleepingImage {
+                imageView?.image = sleepingImage
+            }
             // While sleeping, an in-flight model turn or open popover
             // should also wake LilJustin immediately so he's not napping
             // through someone trying to talk to him.
