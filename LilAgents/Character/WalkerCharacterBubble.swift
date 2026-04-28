@@ -120,38 +120,61 @@ extension WalkerCharacter {
             createThinkingBubble()
         }
 
-        let padding: CGFloat = 16
+        // Padding comes in two flavours:
+        //   - hPadding: total horizontal padding INSIDE the bubble
+        //     (8px each side). The label fills the bubble width minus
+        //     this and centres the text.
+        //   - safetyPad: extra width added on TOP of the measured text
+        //     before line wrapping is decided. AppKit's boundingRect
+        //     can underestimate the true rendered width by 1–3px on
+        //     certain fonts, which combined with .byTruncatingTail
+        //     trims the last character (Sir's "Getting organize"d bug).
+        //     5px buys reliable rendering without visibly inflating
+        //     short bubbles.
+        let hPadding: CGFloat = 16
+        let safetyPad: CGFloat = 5
         let font = t.bubbleFont
         let lineH = ceil(("Xg" as NSString).size(withAttributes: [.font: font]).height)
 
         // All bubbles share the same generous shape — 340px wide, up
-        // to 2 lines, gentle 14px corner radius. Sir wanted status,
-        // completion, and ambient bubbles to read consistently rather
-        // than the previous narrow single-line pill for status vs
-        // wider rounded box for ambient. Width auto-shrinks to fit
-        // shorter strings, so single-word statuses ("Thinking…") still
-        // render as compact bubbles rather than padded boxes.
+        // to 2 lines, gentle 14px corner radius. Width auto-shrinks
+        // to fit shorter strings, so single-word statuses ("Thinking…")
+        // still render as compact bubbles rather than padded boxes.
         let maxBubbleW: CGFloat = 340
         let maxLines: Int = multiline ? 2 : 1
 
-        let availableLabelWidth = maxBubbleW - padding
-        let wrapAttrs: [NSAttributedString.Key: Any] = [.font: font]
-        let wrappedRect = (text as NSString).boundingRect(
-            with: CGSize(width: availableLabelWidth, height: lineH * CGFloat(maxLines) + 4),
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: wrapAttrs
-        )
-        let neededLines = min(maxLines, max(1, Int(ceil(wrappedRect.height / lineH))))
+        // Step 1: measure the natural single-line width with no
+        // wrapping constraint at all. This is what AppKit will actually
+        // try to render before any wrapping logic kicks in. Reliable —
+        // doesn't suffer the boundingRect-with-line-fragment underestimate.
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+        let naturalWidth = ceil((text as NSString).size(withAttributes: attrs).width) + safetyPad
+
+        // Step 2: decide whether the natural width fits the cap. If it
+        // does, render single-line at that width regardless of `multiline`
+        // — no need to inflate. If it doesn't, fall back to the wrapped
+        // bounding rect to figure out the multi-line layout.
+        let bubbleW: CGFloat
+        let neededLines: Int
+        if naturalWidth + hPadding <= maxBubbleW || !multiline {
+            bubbleW = min(maxBubbleW, max(naturalWidth + hPadding, 48))
+            neededLines = 1
+        } else {
+            let availableLabelWidth = maxBubbleW - hPadding
+            let wrapped = (text as NSString).boundingRect(
+                with: CGSize(width: availableLabelWidth, height: lineH * CGFloat(maxLines) + 4),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: attrs
+            )
+            neededLines = min(maxLines, max(1, Int(ceil(wrapped.height / lineH))))
+            bubbleW = maxBubbleW
+        }
         let textBlockHeight = lineH * CGFloat(neededLines)
 
-        // Bubble height: text block + vertical padding. All bubbles
-        // now use the multi-line aesthetic with a 14px radius regardless
-        // of how many lines actually rendered, so the visual style stays
-        // consistent across status / completion / ambient.
+        // Bubble height: text block + vertical padding (8 top + 8 bottom).
+        // 14px corner radius gives the same shape as the multi-line
+        // ambient bubbles.
         let bubbleH: CGFloat = textBlockHeight + 16
-        // Width fits the wrapped text plus horizontal padding, capped.
-        let measuredW = ceil(wrappedRect.width) + padding * 2
-        let bubbleW = min(maxBubbleW, max(measuredW, 48))
         let bubbleRadius: CGFloat = 14
 
         let charFrame = window.frame
@@ -173,15 +196,20 @@ extension WalkerCharacter {
             container.layer?.borderColor = borderColor
             if let label = container.viewWithTag(100) as? NSTextField {
                 label.font = font
-                let labelW = bubbleW - padding
+                let labelW = bubbleW - hPadding
                 let labelX = (bubbleW - labelW) / 2
                 let labelY = round((bubbleH - textBlockHeight) / 2) - 1
                 label.frame = NSRect(x: labelX, y: labelY, width: labelW, height: textBlockHeight + 2)
                 label.stringValue = text
                 label.textColor = textColor
-                label.lineBreakMode = .byTruncatingTail
-                label.maximumNumberOfLines = maxLines
-                label.cell?.wraps = multiline
+                // Only truncate when wrapping was needed (text didn't
+                // fit single-line at maxBubbleW). Otherwise we sized
+                // the bubble to the text exactly, and any truncation
+                // would be a measurement bug — better to overflow the
+                // bubble visually so we can see and fix it.
+                label.lineBreakMode = neededLines > 1 ? .byTruncatingTail : .byClipping
+                label.maximumNumberOfLines = neededLines
+                label.cell?.wraps = neededLines > 1
                 label.cell?.isScrollable = false
                 label.alignment = .center
             }
