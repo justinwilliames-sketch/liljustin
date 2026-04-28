@@ -117,6 +117,13 @@ extension TerminalView {
             } : nil,
             onFollowUp: followUpHandler
         )
+        // Set the column-aware max width before adding to the stack
+        // so the bubble's first render lands at the correct size.
+        // Without this every new bubble renders at the 380pt default
+        // for one frame and only corrects when the next layout pass
+        // runs propagateBubbleMaxWidth — which left expanded-mode
+        // bubbles stuck at the narrow default size.
+        bubble.maxBubbleWidth = currentBubbleMaxWidth()
         transcriptStack.addArrangedSubview(bubble)
         bubble.widthAnchor.constraint(equalTo: transcriptStack.widthAnchor).isActive = true
         if !isReplayingTranscript {

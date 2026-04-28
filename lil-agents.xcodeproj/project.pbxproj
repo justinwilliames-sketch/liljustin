@@ -108,6 +108,7 @@
 		BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC000002000000000000000E /* SettingsView+MemoryPane.swift */; };
 		BC0000010000000000000010 /* DictationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000010 /* DictationManager.swift */; };
 		BC0000010000000000000011 /* TerminalView+Dictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000011 /* TerminalView+Dictation.swift */; };
+		BC0000010000000000000012 /* BubbleWidthMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000012 /* BubbleWidthMath.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -213,6 +214,7 @@
 		BC000002000000000000000E /* SettingsView+MemoryPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+MemoryPane.swift"; sourceTree = "<group>"; };
 		BC0000020000000000000010 /* DictationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationManager.swift; sourceTree = "<group>"; };
 		BC0000020000000000000011 /* TerminalView+Dictation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalView+Dictation.swift"; sourceTree = "<group>"; };
+		BC0000020000000000000012 /* BubbleWidthMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleWidthMath.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -381,6 +383,7 @@
 				A10000020000000000000077 /* MCPConnectionCards+OfficialMCP.swift */,
 				BC0000020000000000000004 /* BusinessContextPromptCardView.swift */,
 				BC0000020000000000000011 /* TerminalView+Dictation.swift */,
+				BC0000020000000000000012 /* BubbleWidthMath.swift */,
 			);
 			path = Terminal;
 			sourceTree = "<group>";
@@ -592,6 +595,7 @@
 				BC000001000000000000000E /* SettingsView+MemoryPane.swift in Sources */,
 				BC0000010000000000000010 /* DictationManager.swift in Sources */,
 				BC0000010000000000000011 /* TerminalView+Dictation.swift in Sources */,
+				BC0000010000000000000012 /* BubbleWidthMath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

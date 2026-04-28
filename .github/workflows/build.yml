@@ -76,6 +76,18 @@ jobs:
         run: |
           xcodebuild -list -project lil-agents.xcodeproj || true
 
+      - name: Run pure-logic unit tests (Swift Package)
+        # Tests live in `Package.swift` at the repo root and pin the
+        # behaviour of the modules we keep silently breaking
+        # (MarkdownToSlack, SensitivityFilter, MemoryEntry,
+        # BusinessContext). CI fails the whole build on any
+        # regression, so a broken sensitivity filter or a busted
+        # Slack-copy converter never makes it to a tagged release.
+        # Runs before the heavy xcodebuild step so test failures
+        # surface in seconds, not minutes.
+        run: |
+          swift test --package-path . 2>&1 | tail -120
+
       - name: Resolve Swift Package Manager dependencies
         run: |
           xcodebuild \

@@ -135,21 +135,39 @@ class TerminalView: NSView {
     }
 
     /// Tell every existing chat bubble what the maximum text-column
-    /// width should be, based on the current transcript stack width.
-    /// Called on every layout pass so bubbles re-flow when the popover
-    /// toggles between default and expanded modes. Soft-capped at
-    /// 720pt so very wide popovers don't produce hard-to-read line
-    /// lengths; floored at 280 so the first layout pass with a
-    /// not-yet-laid-out stack doesn't crush the bubbles.
+    /// width should be, based on the current TerminalView frame.
+    ///
+    /// Computed directly from `frame.width - padding*2` rather than
+    /// reading `transcriptStack.bounds.width` because the stack's
+    /// bounds lag the container's frame on the same layout tick (the
+    /// container width is set via direct frame mutation in
+    /// relayoutPanels; autolayout takes a tick to propagate that to
+    /// the constrained stack). The bubble width fix in v0.1.41 read
+    /// the stale stack bounds and routinely got 0, hitting the
+    /// early-return guard, which is why expand stayed broken.
+    ///
+    /// Soft-capped at 720pt so very wide popovers don't produce
+    /// hard-to-read line lengths; floored at 280 so first layout
+    /// passes (frame.width near zero) don't crush bubbles.
     private func propagateBubbleMaxWidth() {
-        let stackWidth = transcriptStack.bounds.width
-        guard stackWidth > 0 else { return }
-        let target = min(720, max(280, stackWidth))
+        let target = currentBubbleMaxWidth()
         for view in transcriptStack.arrangedSubviews {
             if let bubble = view as? ChatBubbleView, bubble.maxBubbleWidth != target {
                 bubble.maxBubbleWidth = target
             }
         }
+    }
+
+    /// The bubble max-width Sir's bubbles SHOULD use right now.
+    /// Public so `appendBubble` can apply it immediately on a
+    /// freshly-constructed bubble — without that, new bubbles render
+    /// at the 380pt default for one frame before the next layout
+    /// pass corrects them.
+    func currentBubbleMaxWidth() -> CGFloat {
+        BubbleWidthMath.maxBubbleWidth(
+            forFrameWidth: frame.width,
+            sidePadding: Layout.padding
+        )
     }
 
     func setReturnToLennyVisible(_ visible: Bool) {
