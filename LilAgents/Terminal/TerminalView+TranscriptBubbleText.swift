@@ -38,15 +38,30 @@ extension ChatBubbleView {
 
         if let source = markdownSource, !source.isEmpty {
             plainText = MarkdownToSlack.convert(source)
+
+            // HTML is the format Slack actually honours on paste. We
+            // build it from the markdown source via our own emitter
+            // (MarkdownToHTML) so paragraph / heading / list block
+            // boundaries survive — Foundation's AttributedString-to-
+            // HTML path collapses them, which produced Sir's
+            // "worse.That's / mechanismThe / pair.SourcesEmojis"
+            // wall-of-text bug. The HTML is wrapped in a minimal
+            // shell so Slack's paste handler reliably parses it as
+            // a fragment rather than guessing at encoding.
+            let html = MarkdownToHTML.convert(source)
+            let wrapped = "<html><body>\(html)</body></html>"
+            htmlData = wrapped.data(using: .utf8)
+
+            // RTF stays Foundation-built — it's used by Apple Mail
+            // and Notes, where a paragraph-collapsed AttributedString
+            // is still cosmetically tolerable. Slack will pick HTML
+            // ahead of RTF anyway. If the AttributedString init
+            // fails we just skip RTF; HTML + plain are enough.
             if let attr = Self.makeAttributedString(fromMarkdown: source) {
                 let range = NSRange(location: 0, length: attr.length)
                 rtfData = try? attr.data(
                     from: range,
                     documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
-                )
-                htmlData = try? attr.data(
-                    from: range,
-                    documentAttributes: [.documentType: NSAttributedString.DocumentType.html]
                 )
             }
         } else {

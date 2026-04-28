@@ -109,6 +109,7 @@
 		BC0000010000000000000010 /* DictationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000010 /* DictationManager.swift */; };
 		BC0000010000000000000011 /* TerminalView+Dictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000011 /* TerminalView+Dictation.swift */; };
 		BC0000010000000000000012 /* BubbleWidthMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000012 /* BubbleWidthMath.swift */; };
+		BC0000010000000000000013 /* MarkdownToHTML.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0000020000000000000013 /* MarkdownToHTML.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -215,6 +216,7 @@
 		BC0000020000000000000010 /* DictationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationManager.swift; sourceTree = "<group>"; };
 		BC0000020000000000000011 /* TerminalView+Dictation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalView+Dictation.swift"; sourceTree = "<group>"; };
 		BC0000020000000000000012 /* BubbleWidthMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleWidthMath.swift; sourceTree = "<group>"; };
+		BC0000020000000000000013 /* MarkdownToHTML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownToHTML.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -331,6 +333,7 @@
 				A10000020000000000000042 /* LocalArchive.swift */,
 				A10000020000000000000044 /* SessionDebugLogger.swift */,
 				BC0000020000000000000005 /* MarkdownToSlack.swift */,
+				BC0000020000000000000013 /* MarkdownToHTML.swift */,
 				BC0000020000000000000006 /* CitationLinkifier.swift */,
 			);
 			path = Session;
@@ -596,6 +599,7 @@
 				BC0000010000000000000010 /* DictationManager.swift in Sources */,
 				BC0000010000000000000011 /* TerminalView+Dictation.swift in Sources */,
 				BC0000010000000000000012 /* BubbleWidthMath.swift in Sources */,
+				BC0000010000000000000013 /* MarkdownToHTML.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
