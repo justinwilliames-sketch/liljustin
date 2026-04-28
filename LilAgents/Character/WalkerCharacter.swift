@@ -72,19 +72,24 @@ final class WalkerCharacter {
     var popoverBubbleShape: CAShapeLayer?
 
     // ── Sleep state machine ─────────────────────────────────────────
-    // After ~1.5–4 minutes of no interaction, LilJustin curls up for
-    // a 30–120s nap (`main-sleeping.gif`). Any click / popover open
-    // wakes him immediately; otherwise he wakes on his own and paces
-    // again. Cadence is randomised so the rhythm doesn't feel scripted.
+    // After ~3–6 minutes of no interaction, LilJustin curls up for a
+    // 20–60s nap (`main-sleeping.gif`). Any click / popover open wakes
+    // him immediately; otherwise he wakes on his own, paces, and
+    // delivers an ambient bubble within ~8–25s of standing back up.
+    //
+    // Awake windows are deliberately set wider than the ambient bubble
+    // cadence (60–180s) so several bubbles can fire per awake period
+    // — Sir wants the companion to actually talk to him, not nap
+    // through every shift. Steady-state target: ~75% awake.
     var sleepingImage: NSImage?
     var isSleeping: Bool = false
     var lastInteractionAt: CFTimeInterval = CACurrentMediaTime()
-    var idleSleepThreshold: TimeInterval = TimeInterval.random(in: 90...240)
+    var idleSleepThreshold: TimeInterval = TimeInterval.random(in: 180...360)
     var wakeAt: CFTimeInterval = 0
-    static let minIdleBeforeSleep: TimeInterval = 90      // 1.5 min
-    static let maxIdleBeforeSleep: TimeInterval = 240     // 4 min
-    static let minSleepDuration: TimeInterval = 30
-    static let maxSleepDuration: TimeInterval = 120
+    static let minIdleBeforeSleep: TimeInterval = 180     // 3 min
+    static let maxIdleBeforeSleep: TimeInterval = 360     // 6 min
+    static let minSleepDuration: TimeInterval = 20
+    static let maxSleepDuration: TimeInterval = 60
 
     // ── Idle facing variety ────────────────────────────────────────
     // During long idle pauses, periodically re-roll between front and

@@ -401,15 +401,38 @@ extension WalkerCharacter {
 
     /// Get up. Returns to the front-facing idle pose, takes a brief
     /// 1–3s pause, then the existing pause→walk loop kicks back in.
+    ///
+    /// CRITICAL: must reset `lastInteractionAt` to "now". Without this,
+    /// `updateSleepState` on the next tick computes `idleFor` against
+    /// the stale pre-sleep timestamp, instantly trips the threshold,
+    /// and sends him straight back to sleep — a frame after waking.
+    /// That bug is what made Sir feel like he was asleep "a really
+    /// long time" — natural wakes were near-zero awake windows.
+    ///
+    /// Also schedules an ambient bubble shortly after waking so the
+    /// transition feels like "stretches, looks around, says
+    /// something" rather than a silent re-pace until the cadence
+    /// timer next fires.
     func wakeUp() {
         guard isSleeping else { return }
+        let now = CACurrentMediaTime()
         isSleeping = false
         isWalking = false
         isPaused = true
-        pauseEndTime = CACurrentMediaTime() + TimeInterval.random(in: 1.0...3.0)
+        pauseEndTime = now + TimeInterval.random(in: 1.0...3.0)
+        lastInteractionAt = now
         idleSleepThreshold = TimeInterval.random(
             in: WalkerCharacter.minIdleBeforeSleep...WalkerCharacter.maxIdleBeforeSleep
         )
+        // Pull the next ambient bubble forward so a fresh wake produces
+        // a "morning hello" within 8–25s rather than waiting out the
+        // full 90–240s cadence. Caps Sir's perception of "he never
+        // says anything" without reducing the cadence in the steady
+        // state. Skips if a bubble is already queued sooner than that.
+        let postWakeBubbleAt = now + TimeInterval.random(in: 8.0...25.0)
+        if nextAmbientBubbleAt > postWakeBubbleAt {
+            nextAmbientBubbleAt = postWakeBubbleAt
+        }
         setFacing(.front)
     }
 
