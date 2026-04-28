@@ -54,6 +54,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.welcomePreviewModeKey) var welcomePreviewMode = AppSettings.WelcomePreviewMode.live.rawValue
     @AppStorage(AppSettings.mcpReconnectNeededKey) var mcpReconnectNeeded = false
     @AppStorage(AppSettings.launchAtLoginKey) var launchAtLogin: Bool = true
+    @AppStorage(AppSettings.useAmbientLLMKey) var useAmbientLLM: Bool = true
 
     @State var selectedPane: SettingsPane = .models
     @State var showResetConfirmation = false

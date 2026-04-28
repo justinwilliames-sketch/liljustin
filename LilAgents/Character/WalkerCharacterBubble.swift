@@ -299,21 +299,14 @@ extension WalkerCharacter {
     ]
 
     /// Per-tick check called from update() while the character is
-    /// genuinely idle. Picks a random ambient line, shows it as a
-    /// multi-line bubble, and re-schedules the next appearance.
+    /// genuinely idle. Asks the LLM (when enabled) for a fresh line,
+    /// or falls back to the hardcoded pool if the LLM is off / fails.
     func tickAmbientBubble() {
         let now = CACurrentMediaTime()
 
         // Ambient bubbles are forbidden during chat, sleep, expert
-        // focus, or while a model turn is in flight. The hard guards
-        // that already protect status bubbles in showBubble() also
-        // apply here — but we need to NOT schedule new ambients while
-        // those are true, otherwise we'd burn through the whole pool
-        // during a long chat.
+        // focus, or while a model turn is in flight.
         if popoverWindow?.isVisible == true || isClaudeBusy || isSleeping || isCompanionAvatar || focusedExpert != nil {
-            // If an ambient bubble is currently up, hide it and reset
-            // expiry so we don't leave a stale message while the user
-            // pivots into chat.
             if ambientBubbleExpiresAt > 0 {
                 hideBubble()
                 ambientBubbleExpiresAt = 0
@@ -322,8 +315,7 @@ extension WalkerCharacter {
             return
         }
 
-        // If a status / completion bubble is active, defer ambient.
-        if isClaudeBusy || showingCompletion { return }
+        if showingCompletion { return }
 
         // If an ambient is currently showing, expire it on schedule.
         if ambientBubbleExpiresAt > 0 {
@@ -336,17 +328,162 @@ extension WalkerCharacter {
         }
 
         // Time to fire a new ambient?
-        guard now >= nextAmbientBubbleAt, !Self.ambientLines.isEmpty else { return }
+        guard now >= nextAmbientBubbleAt else { return }
 
-        // Avoid repeating the most recent line back-to-back.
+        // Block re-entry while the LLM call is in flight.
+        guard !isAmbientLLMRequestInFlight else { return }
+
+        if AppSettings.useAmbientLLMEnabled {
+            isAmbientLLMRequestInFlight = true
+            generateAmbientLineViaLLM { [weak self] line in
+                guard let self else { return }
+                self.isAmbientLLMRequestInFlight = false
+                let chosen = line ?? self.pickFallbackAmbientLine()
+                self.showAmbientLine(chosen, at: CACurrentMediaTime())
+            }
+        } else {
+            let chosen = pickFallbackAmbientLine()
+            showAmbientLine(chosen, at: now)
+        }
+    }
+
+    private func pickFallbackAmbientLine() -> String {
+        guard !Self.ambientLines.isEmpty else { return "..." }
         var idx = Int.random(in: 0..<Self.ambientLines.count)
         if Self.ambientLines.count > 1 && idx == lastAmbientLineIndex {
             idx = (idx + 1) % Self.ambientLines.count
         }
         lastAmbientLineIndex = idx
-        let line = Self.ambientLines[idx]
+        return Self.ambientLines[idx]
+    }
 
+    private func showAmbientLine(_ line: String, at now: CFTimeInterval) {
+        // Re-check guards — the LLM call is async, so the user may
+        // have opened the popover or triggered chat between the
+        // request and the response.
+        if popoverWindow?.isVisible == true || isClaudeBusy || isSleeping || focusedExpert != nil {
+            ambientBubbleExpiresAt = 0
+            nextAmbientBubbleAt = now + TimeInterval.random(in: WalkerCharacter.minAmbientGap...WalkerCharacter.maxAmbientGap)
+            return
+        }
         showBubble(text: line, isCompletion: false, multiline: true)
         ambientBubbleExpiresAt = now + WalkerCharacter.ambientBubbleLinger
+    }
+
+    // MARK: - LLM dispatch for ambient bubbles
+
+    /// Recent LLM-generated lines, sent to the model on the next call
+    /// as "avoid these" so it doesn't loop. Trimmed to the cap.
+    private static let ambientRecentCap = 5
+    private static var ambientRecentLines: [String] = []
+
+    /// Spawn `claude -p "<prompt>"` as a one-shot, parse stdout, and
+    /// hand back the trimmed line on the main queue. Calls completion
+    /// with nil on any failure (binary not found, timeout, garbage
+    /// output, etc.) — caller falls back to the hardcoded pool.
+    func generateAmbientLineViaLLM(completion: @escaping (String?) -> Void) {
+        guard let claudePath = AppSettings.resolveExecutablePath(named: "claude") else {
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
+
+        let recent = WalkerCharacter.ambientRecentLines.suffix(WalkerCharacter.ambientRecentCap)
+        var avoidBlock = ""
+        if !recent.isEmpty {
+            avoidBlock = "\n\nAVOID these recent lines (don't repeat or paraphrase):\n" +
+                recent.map { "- \($0)" }.joined(separator: "\n")
+        }
+
+        let prompt = """
+        You are LilJustin — Justin Williames, founder of Orbit (the lifecycle marketing OS for Claude). Output ONE short, dry, observational comment in your voice. Maximum 14 words. ONE sentence. Topic: a CRM / lifecycle / deliverability / Braze / email-marketing micro-tip, in-joke, dry observation, or sharp take. No introduction, no formatting, no surrounding quotes — just the bare sentence on a single line. Do not start with phrases like 'Sure' or 'Here's'. Do not include the word 'LilJustin'.\(avoidBlock)
+        """
+
+        DispatchQueue.global(qos: .utility).async {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: claudePath)
+            task.arguments = ["-p", prompt]
+            task.environment = ProcessInfo.processInfo.environment
+
+            let stdoutPipe = Pipe()
+            let stderrPipe = Pipe()
+            task.standardOutput = stdoutPipe
+            task.standardError = stderrPipe
+
+            do {
+                try task.run()
+            } catch {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            // Bound the wait — ambient calls shouldn't hold a worker
+            // longer than 25s.
+            let deadline = Date().addingTimeInterval(25)
+            while task.isRunning && Date() < deadline {
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+            if task.isRunning {
+                task.terminate()
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+            let raw = String(data: data, encoding: .utf8) ?? ""
+            let cleaned = WalkerCharacter.cleanAmbientLLMResponse(raw)
+
+            guard !cleaned.isEmpty, cleaned.count <= 200 else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            DispatchQueue.main.async {
+                WalkerCharacter.ambientRecentLines.append(cleaned)
+                if WalkerCharacter.ambientRecentLines.count > WalkerCharacter.ambientRecentCap * 2 {
+                    WalkerCharacter.ambientRecentLines.removeFirst(
+                        WalkerCharacter.ambientRecentLines.count - WalkerCharacter.ambientRecentCap
+                    )
+                }
+                completion(cleaned)
+            }
+        }
+    }
+
+    /// LLM responses sometimes come wrapped in quotes, prefixed with
+    /// "Sure," or include trailing periods that look weird in a chip-
+    /// sized bubble. Strip the obvious junk.
+    private static func cleanAmbientLLMResponse(_ raw: String) -> String {
+        var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Strip surrounding quotes (single, double, smart).
+        let quotePairs: [(String, String)] = [("\"", "\""), ("'", "'"), ("\u{201C}", "\u{201D}"), ("\u{2018}", "\u{2019}")]
+        for (open, close) in quotePairs {
+            if s.hasPrefix(open) && s.hasSuffix(close) && s.count >= open.count + close.count {
+                s = String(s.dropFirst(open.count).dropLast(close.count))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+
+        // Strip common conversational prefixes.
+        let conversationalPrefixes = [
+            "sure,", "sure!", "sure.", "sure ",
+            "here's a line:", "here's one:", "here's a line", "here's one", "here's:",
+            "okay,", "ok,",
+        ]
+        let lower = s.lowercased()
+        for prefix in conversationalPrefixes where lower.hasPrefix(prefix) {
+            s = String(s.dropFirst(prefix.count))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            break
+        }
+
+        // First line only — sometimes the model emits a follow-up
+        // explanation on subsequent lines.
+        if let firstLineEnd = s.firstIndex(of: "\n") {
+            s = String(s[s.startIndex..<firstLineEnd])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return s
     }
 }

@@ -267,6 +267,14 @@ extension AppSettings {
 
     // MARK: - Executable path detection
 
+    /// Public path resolver — tries PATH, shell-resolved PATH, then a
+    /// short list of well-known install locations. Used by ambient-
+    /// bubble LLM dispatch to find the `claude` (or `codex`) binary
+    /// without spinning up the full session machinery.
+    static func resolveExecutablePath(named name: String) -> String? {
+        executablePathForDetection(named: name)
+    }
+
     private static func executablePathForDetection(named name: String) -> String? {
         // 1. Try the app process PATH first (fast, works if nvm is active in the environment)
         if let rawPath = ProcessInfo.processInfo.environment["PATH"],

@@ -119,6 +119,7 @@ enum AppSettings {
     static let welcomePreviewModeKey             = "welcomePreviewMode"
     static let mcpReconnectNeededKey             = "mcpReconnectNeeded"
     static let launchAtLoginKey                  = "launchAtLogin"
+    static let useAmbientLLMKey                  = "useAmbientLLM"
 
     // MARK: - Preferences
 
@@ -137,6 +138,23 @@ enum AppSettings {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: launchAtLoginKey)
+        }
+    }
+
+    /// AI-generated ambient comments. When ON, LilJustin makes a
+    /// one-shot LLM call (via the connected provider) to generate a
+    /// fresh ambient bubble line every 90–240s of idle time. Falls
+    /// back to a hardcoded pool if the provider call fails or no
+    /// provider is connected. Default ON.
+    static var useAmbientLLMEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: useAmbientLLMKey) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: useAmbientLLMKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: useAmbientLLMKey)
         }
     }
 

@@ -11,7 +11,7 @@ extension SettingsView {
             )
 
             SettingsSectionCard(title: "Behaviour", subtitle: "How LilJustin shows up on this Mac.") {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 14) {
                     Toggle(isOn: Binding(
                         get: { launchAtLogin },
                         set: { newValue in
@@ -23,6 +23,19 @@ extension SettingsView {
                             Text("Launch at login")
                                 .font(.subheadline.weight(.medium))
                             Text("Open LilJustin automatically when you log in to your Mac.")
+                                .settingsCaption()
+                        }
+                    }
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+
+                    Divider()
+
+                    Toggle(isOn: $useAmbientLLM) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("AI-generated ambient comments")
+                                .font(.subheadline.weight(.medium))
+                            Text("When idle, LilJustin makes a one-shot LLM call (via Claude Code) to generate a fresh dry comment every 90–240 seconds. Falls back to a built-in pool if Claude Code isn't installed or the call fails. Off = uses the built-in pool only (no per-bubble cost).")
                                 .settingsCaption()
                         }
                     }

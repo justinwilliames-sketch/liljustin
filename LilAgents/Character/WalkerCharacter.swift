@@ -102,6 +102,7 @@ final class WalkerCharacter {
     var nextAmbientBubbleAt: CFTimeInterval = CACurrentMediaTime() + TimeInterval.random(in: 60...180)
     var ambientBubbleExpiresAt: CFTimeInterval = 0
     var lastAmbientLineIndex: Int = -1
+    var isAmbientLLMRequestInFlight: Bool = false
     static let minAmbientGap: TimeInterval = 90
     static let maxAmbientGap: TimeInterval = 240
     static let ambientBubbleLinger: TimeInterval = 12
