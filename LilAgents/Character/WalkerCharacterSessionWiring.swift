@@ -281,11 +281,14 @@ extension WalkerCharacter {
             return
         }
 
+        // Sentence case throughout. "Searching archive" replaced with
+        // "Searching the guides" — LilJustin queries the bundled Orbit
+        // guides corpus, not an archive (the upstream Lenny term).
         let fallbackStatuses = [
             "On it…",
-            "Searching archive",
-            "Reading",
-            "Writing answer"
+            "Searching the guides…",
+            "Reading…",
+            "Writing answer…",
         ]
 
         let index = min(liveStatusFallbackIndex, fallbackStatuses.count - 1)

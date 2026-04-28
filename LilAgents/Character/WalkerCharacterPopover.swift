@@ -63,6 +63,13 @@ extension WalkerCharacter {
     }
 
     func openPopover() {
+        // Capture any visible ambient line BEFORE noteUserInteraction
+        // → hideBubble runs and clears it. If Sir clicks LilJustin
+        // while a tip / quote / observation is on screen, that text
+        // becomes the seed prompt for the new chat — turning the
+        // passing remark into a thread he can drill into.
+        let drillInSeed = currentAmbientLineText
+
         // Real user interaction → wake from sleep + reset idle timer.
         noteUserInteraction()
 
@@ -115,6 +122,32 @@ extension WalkerCharacter {
         }
 
         refreshPopoverEventMonitors()
+
+        // Drill-in: if Sir clicked while an ambient bubble was showing,
+        // seed the chat with a "tell me more" prompt referencing the
+        // line he just saw and send it. Skipped on a session that
+        // already has history (he might be reopening a paused chat,
+        // not following up on a tip). Skipped if the ambient line is
+        // suspiciously short to be useful as context.
+        if let seed = drillInSeed,
+           seed.trimmingCharacters(in: .whitespacesAndNewlines).count >= 8,
+           let session = claudeSession,
+           session.history(for: focusedExpert).isEmpty,
+           let terminal = terminalView {
+            let prompt = "Tell me more about this — who said it, the topic behind it, or how to think about it: \(seed)"
+            // Tiny delay so the welcome state finishes rendering and
+            // the input field is the first responder before the
+            // synthesised submit fires. Without it the inputSubmitted
+            // sometimes runs before showWelcomeGreeting wipes its own
+            // welcome panel, leaving a stale chip grid behind the
+            // user's question.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.10) { [weak self, weak terminal] in
+                guard let terminal else { return }
+                _ = self
+                terminal.inputField.stringValue = prompt
+                terminal.inputSubmitted()
+            }
+        }
     }
 
     @objc func expandToggleTapped() {

@@ -1,13 +1,19 @@
 import AppKit
 
 extension WalkerCharacter {
+    // Sentence case throughout — Sir asked for all speech and
+    // notifications to use sentence case rather than the lowercase
+    // upstream Lenny pattern. "Checking the archive…" was also a
+    // leftover Lenny string referring to RAG that LilJustin doesn't
+    // do — replaced with "Checking the guides…" which matches the
+    // bundled corpus retrieval the app actually performs.
     private static let thinkingPhrases = [
-        "digging...", "searching...", "checking the archive...",
-        "one sec...", "looking...", "pulling excerpts...",
-        "finding the best answer..."
+        "Digging…", "Searching…", "Checking the guides…",
+        "One sec…", "Looking…", "Pulling excerpts…",
+        "Finding the best answer…",
     ]
 
-    private static let completionPhrases = ["found one!", "got it!", "ready!", "answer’s up", "here you go"]
+    private static let completionPhrases = ["Found one!", "Got it!", "Ready!", "Answer's up", "Here you go"]
 
     private static let bubbleH: CGFloat = 26
     static let expertNameTagH: CGFloat = 24
@@ -69,6 +75,12 @@ extension WalkerCharacter {
         if thinkingBubbleWindow?.isVisible ?? false {
             thinkingBubbleWindow?.orderOut(nil)
         }
+        // Drop the click-to-drill-in handle whenever the bubble goes
+        // away. openPopover() reads currentAmbientLineText while the
+        // bubble is visible to seed the chat with "tell me more about
+        // <line>"; we don't want a dismissed line to seed a click that
+        // happens five minutes later.
+        currentAmbientLineText = nil
     }
 
     private func animatePhraseChange(to newText: String, isCompletion: Bool) {
@@ -96,7 +108,7 @@ extension WalkerCharacter {
         })
     }
 
-    func showBubble(text: String, isCompletion: Bool, multiline: Bool = false) {
+    func showBubble(text: String, isCompletion: Bool, multiline: Bool = true) {
         // Hard suppression — never show a bubble while the chat popover
         // is open (the popover IS the conversation surface).
         if popoverWindow?.isVisible == true {
@@ -112,11 +124,14 @@ extension WalkerCharacter {
         let font = t.bubbleFont
         let lineH = ceil(("Xg" as NSString).size(withAttributes: [.font: font]).height)
 
-        // Status / completion bubbles stay narrow + single-line so they
-        // ellipsis-clip cleanly. Ambient comments get a wider bubble
-        // and up to 2 lines of word-wrapped text so a one-sentence
-        // remark fits visibly.
-        let maxBubbleW: CGFloat = multiline ? 340 : 220
+        // All bubbles share the same generous shape — 340px wide, up
+        // to 2 lines, gentle 14px corner radius. Sir wanted status,
+        // completion, and ambient bubbles to read consistently rather
+        // than the previous narrow single-line pill for status vs
+        // wider rounded box for ambient. Width auto-shrinks to fit
+        // shorter strings, so single-word statuses ("Thinking…") still
+        // render as compact bubbles rather than padded boxes.
+        let maxBubbleW: CGFloat = 340
         let maxLines: Int = multiline ? 2 : 1
 
         let availableLabelWidth = maxBubbleW - padding
@@ -129,21 +144,22 @@ extension WalkerCharacter {
         let neededLines = min(maxLines, max(1, Int(ceil(wrappedRect.height / lineH))))
         let textBlockHeight = lineH * CGFloat(neededLines)
 
-        // Bubble height: text block + vertical padding (8 top + 8 bottom).
-        // Single-line keeps the original 26px so the existing pill aesthetic
-        // for status bubbles is preserved.
-        let bubbleH: CGFloat = neededLines == 1 ? Self.bubbleH : textBlockHeight + 16
+        // Bubble height: text block + vertical padding. All bubbles
+        // now use the multi-line aesthetic with a 14px radius regardless
+        // of how many lines actually rendered, so the visual style stays
+        // consistent across status / completion / ambient.
+        let bubbleH: CGFloat = textBlockHeight + 16
         // Width fits the wrapped text plus horizontal padding, capped.
         let measuredW = ceil(wrappedRect.width) + padding * 2
         let bubbleW = min(maxBubbleW, max(measuredW, 48))
-        // Pill for single-line, gentler corners for multi-line.
-        let bubbleRadius: CGFloat = neededLines == 1 ? bubbleH / 2 : 14
+        let bubbleRadius: CGFloat = 14
 
         let charFrame = window.frame
         let x = charFrame.midX - bubbleW / 2
-        // Anchor bubble bottom higher when multi-line so it sits above
-        // the head with breathing room.
-        let yBase = charFrame.origin.y + charFrame.height * (multiline ? 0.92 : 0.88)
+        // Anchor bubble bottom higher so it sits above the head with
+        // breathing room. Same formula regardless of line count for
+        // consistent vertical placement.
+        let yBase = charFrame.origin.y + charFrame.height * 0.92
         let y = yBase + (neededLines > 1 ? CGFloat(neededLines - 1) * lineH * 0.5 : 0)
         thinkingBubbleWindow?.setFrame(CGRect(x: x, y: y, width: bubbleW, height: bubbleH), display: false)
 
@@ -190,7 +206,7 @@ extension WalkerCharacter {
     }
 
     func showCompletionBubble() {
-        currentPhrase = Self.completionPhrases.randomElement() ?? "done!"
+        currentPhrase = Self.completionPhrases.randomElement() ?? "Done!"
         showingCompletion = true
         completionBubbleExpiry = CACurrentMediaTime() + 3.0
         lastPhraseUpdate = 0
@@ -363,11 +379,13 @@ extension WalkerCharacter {
         // request and the response.
         if popoverWindow?.isVisible == true || isClaudeBusy || isSleeping || focusedExpert != nil {
             ambientBubbleExpiresAt = 0
+            currentAmbientLineText = nil
             nextAmbientBubbleAt = now + TimeInterval.random(in: WalkerCharacter.minAmbientGap...WalkerCharacter.maxAmbientGap)
             return
         }
         showBubble(text: line, isCompletion: false, multiline: true)
         ambientBubbleExpiresAt = now + WalkerCharacter.ambientBubbleLinger
+        currentAmbientLineText = line
     }
 
     // MARK: - LLM dispatch for ambient bubbles
@@ -395,7 +413,7 @@ extension WalkerCharacter {
         }
 
         let prompt = """
-        You are LilJustin — Justin Williames, founder of Orbit (the lifecycle marketing OS for Claude). Output ONE short, dry, observational comment in your voice. Maximum 14 words. ONE sentence. Topic: a CRM / lifecycle / deliverability / Braze / email-marketing micro-tip, in-joke, dry observation, or sharp take. No introduction, no formatting, no surrounding quotes — just the bare sentence on a single line. Do not start with phrases like 'Sure' or 'Here's'. Do not include the word 'LilJustin'.\(avoidBlock)
+        You are LilJustin — Justin Williames, founder of Orbit (the lifecycle marketing OS for Claude). Output ONE short, dry, observational comment in your voice. Maximum 14 words. ONE sentence. SENTENCE CASE — capitalise the first word and proper nouns only, lowercase everything else. Topic: a CRM / lifecycle / deliverability / Braze / email-marketing micro-tip, in-joke, dry observation, or sharp take. No introduction, no formatting, no surrounding quotes — just the bare sentence on a single line. Do not start with phrases like 'Sure' or 'Here's'. Do not include the word 'LilJustin'.\(avoidBlock)
         """
 
         DispatchQueue.global(qos: .utility).async {

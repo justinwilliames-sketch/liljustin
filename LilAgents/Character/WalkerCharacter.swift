@@ -113,6 +113,13 @@ final class WalkerCharacter {
     var ambientBubbleExpiresAt: CFTimeInterval = 0
     var lastAmbientLineIndex: Int = -1
     var isAmbientLLMRequestInFlight: Bool = false
+    /// Text of the ambient bubble currently visible. Set in
+    /// showAmbientLine, cleared when the bubble expires or hides.
+    /// Read by openPopover so a click on LilJustin while a tip is
+    /// showing pre-fills the composer with a "tell me more" prompt
+    /// and sends — turning the passing observation into a chat
+    /// thread on demand.
+    var currentAmbientLineText: String?
     // Steady-state gap between bubbles. Average ~97s = ~37 bubbles/hr
     // when LilJustin is idle. Tighter than this risks stacking — the
     // ambient LLM call takes up to 25s and we don't want a new bubble
@@ -120,10 +127,12 @@ final class WalkerCharacter {
     // dispatch is still in flight.
     static let minAmbientGap: TimeInterval = 45
     static let maxAmbientGap: TimeInterval = 150
-    // Linger time on screen. 15s gives Sir comfortable reading time
-    // for a two-line CRM/lifecycle observation without making the
-    // bubble feel sticky.
-    static let ambientBubbleLinger: TimeInterval = 15
+    // Linger time on screen. 25s — long enough for Sir to read a
+    // two-line CRM/lifecycle observation, decide whether it's worth
+    // drilling into, and click LilJustin to ask for more before the
+    // bubble fades. Click-to-drill-in only works while the bubble is
+    // visible, so this dictates the click window too.
+    static let ambientBubbleLinger: TimeInterval = 25
 
     /// Build the speech-bubble outline as a single closed CGPath:
     /// rounded body on top + downward-pointing tail below. Drawing the
