@@ -32,13 +32,16 @@ final class MarkdownToHTMLTests: XCTestCase {
     func testHeadingFollowedByParagraphRendersSeparately() {
         // The exact shape Sir's bug screenshot showed: a heading
         // immediately followed by a paragraph getting merged.
+        // Headings emit as <p><strong>...</strong></p> rather than
+        // <h*> so Slack's paste handler reliably gives them a blank
+        // line above the next paragraph.
         let input = """
         ## The mechanism
 
         The emoji that earns its place is doing semantic work.
         """
         let out = MarkdownToHTML.convert(input)
-        XCTAssertTrue(out.contains("<h2>The mechanism</h2>"))
+        XCTAssertTrue(out.contains("<p><strong>The mechanism</strong></p>"))
         XCTAssertTrue(out.contains("<p>The emoji that earns its place is doing semantic work.</p>"))
     }
 
@@ -59,10 +62,16 @@ final class MarkdownToHTMLTests: XCTestCase {
 
     // MARK: - Headings
 
-    func testEachHeadingLevelRenders() {
-        XCTAssertTrue(MarkdownToHTML.convert("# H1").contains("<h1>H1</h1>"))
-        XCTAssertTrue(MarkdownToHTML.convert("## H2").contains("<h2>H2</h2>"))
-        XCTAssertTrue(MarkdownToHTML.convert("### H3").contains("<h3>H3</h3>"))
+    func testAllHeadingLevelsRenderAsBoldedParagraph() {
+        // Every heading level collapses to <p><strong>...</strong></p>
+        // for consistent paste behaviour across Slack/Mail/Notes.
+        // We trade heading-hierarchy semantics for paragraph spacing
+        // that Slack's WYSIWYG paste actually honours.
+        for prefix in ["#", "##", "###", "####"] {
+            let out = MarkdownToHTML.convert("\(prefix) Heading")
+            XCTAssertTrue(out.contains("<p><strong>Heading</strong></p>"),
+                          "Heading prefix '\(prefix) ' should render as <p><strong>")
+        }
     }
 
     // MARK: - Inline formatting
@@ -109,6 +118,42 @@ final class MarkdownToHTMLTests: XCTestCase {
     }
 
     // MARK: - Lists
+
+    // MARK: - List items with bold prefix
+
+    func testNumberedItemWithBoldPrefixGetsLineBreakAfterTitle() {
+        // Sir's deliverability post had four numbered items each
+        // shaped `**Title** body text...`. Without the line break,
+        // the title and body run together as one wall of text.
+        // The break makes the pasted Slack list look like
+        // `1. **Title**` / `   body text` — which mirrors the
+        // logical structure.
+        let input = "1. **Authentication** SPF, DKIM, and DMARC. Since early 2024."
+        let out = MarkdownToHTML.convert(input)
+        XCTAssertTrue(out.contains("<strong>Authentication</strong><br>SPF, DKIM, and DMARC. Since early 2024."))
+    }
+
+    func testBulletItemWithBoldPrefixAlsoBreaks() {
+        let input = "- **List quality** Your list hygiene policy is a reputation policy."
+        let out = MarkdownToHTML.convert(input)
+        XCTAssertTrue(out.contains("<strong>List quality</strong><br>Your list hygiene policy is a reputation policy."))
+    }
+
+    func testListItemWithOnlyBoldDoesNotInsertBreak() {
+        // If the entire item is just the bold (no body text), don't
+        // emit a stray <br> at the end.
+        let input = "1. **Done**"
+        let out = MarkdownToHTML.convert(input)
+        XCTAssertTrue(out.contains("<li><strong>Done</strong></li>"))
+        XCTAssertFalse(out.contains("<strong>Done</strong><br>"))
+    }
+
+    func testListItemWithoutBoldPrefixIsUntouched() {
+        let input = "- a regular bullet with no bold prefix"
+        let out = MarkdownToHTML.convert(input)
+        XCTAssertTrue(out.contains("<li>a regular bullet with no bold prefix</li>"))
+        XCTAssertFalse(out.contains("<br>"))
+    }
 
     func testUnorderedListRendersWithUlAndLi() {
         let input = "- one\n- two\n- three"

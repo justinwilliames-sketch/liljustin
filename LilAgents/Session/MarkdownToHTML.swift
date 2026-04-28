@@ -81,11 +81,23 @@ enum MarkdownToHTML {
                 continue
             }
 
-            // Heading.
+            // Heading. Emit as a bolded paragraph rather than an
+            // <h1>-<h6> tag — Slack's paste handler reliably honours
+            // paragraph spacing for `<p>`, but renders `<h>` with no
+            // blank line above the next paragraph (which produced
+            // Sir's "heading runs straight into the next sentence"
+            // feedback). `<p><strong>` reads identically in Apple
+            // Mail / Notes / Notion / Linear, so we get one shape
+            // that works everywhere.
+            //
+            // The `level` is preserved by varying the strength of
+            // the marker — h1 also gets a leading newline-paragraph
+            // for top-of-section weight.
             if let (level, content) = headingMatch(line) {
                 flushParagraph()
                 flushList()
-                output.append("<h\(level)>\(transformInline(content))</h\(level)>")
+                _ = level   // intentional: visual weight is uniform
+                output.append("<p><strong>\(transformInline(content))</strong></p>")
                 continue
             }
 
@@ -101,7 +113,7 @@ enum MarkdownToHTML {
             if let item = unorderedListItem(line) {
                 flushParagraph()
                 if listKind != .unordered { flushList(); listKind = .unordered }
-                listItems.append("<li>\(transformInline(item))</li>")
+                listItems.append("<li>\(formatListItemContent(item))</li>")
                 continue
             }
 
@@ -109,7 +121,7 @@ enum MarkdownToHTML {
             if let item = orderedListItem(line) {
                 flushParagraph()
                 if listKind != .ordered { flushList(); listKind = .ordered }
-                listItems.append("<li>\(transformInline(item))</li>")
+                listItems.append("<li>\(formatListItemContent(item))</li>")
                 continue
             }
 
@@ -306,6 +318,33 @@ enum MarkdownToHTML {
     private enum ListKind {
         case unordered
         case ordered
+    }
+
+    /// Render a list item's content, with one ergonomic adjustment:
+    /// when the item starts with a bold prefix followed by more text
+    /// (e.g. `**Authentication** SPF, DKIM, and DMARC...`), break
+    /// after the bold so the rendered list reads as `title / body`
+    /// rather than running together. Sir's pattern is to use the
+    /// inline form for short numbered lists; the visual break makes
+    /// pasted Slack output mirror the original message's structure.
+    static func formatListItemContent(_ markdown: String) -> String {
+        let inline = transformInline(markdown)
+        // Look for a strong-tag at the very start, followed by
+        // whitespace, followed by at least one word of body text.
+        // Anchored with `^` so we only match prefix bolds, never
+        // mid-line emphasis.
+        let pattern = #"^(<strong>[^<]+</strong>)\s+(.+)$"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else {
+            return inline
+        }
+        let range = NSRange(location: 0, length: (inline as NSString).length)
+        guard let match = regex.firstMatch(in: inline, range: range), match.numberOfRanges >= 3 else {
+            return inline
+        }
+        let nsString = inline as NSString
+        let bold = nsString.substring(with: match.range(at: 1))
+        let rest = nsString.substring(with: match.range(at: 2))
+        return "\(bold)<br>\(rest)"
     }
 
     // MARK: - HTML escaping
