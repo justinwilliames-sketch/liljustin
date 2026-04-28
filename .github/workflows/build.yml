@@ -293,7 +293,17 @@ jobs:
             ${{ steps.appcast.outputs.appcast_path }}
           name: LilJustin ${{ github.ref_name }}
           generate_release_notes: true
-          prerelease: true
+          # Tagged semver releases must be non-prerelease so GitHub's
+          # /releases/latest/download/* redirect resolves correctly.
+          # Sparkle's SUFeedURL points at that URL — when this was
+          # `true` (the prior default), Sparkle hit a 404 and threw
+          # "An error occurred in retrieving update information" on
+          # every Check for Updates click. Mark it stable; the rolling
+          # `latest` tag below uses make_latest:false so this
+          # tagged release becomes the canonical Latest on the repo
+          # homepage and the redirect target.
+          prerelease: false
+          make_latest: "true"
           body: |
             **Mini Justin — the founder of [Orbit](https://get.yourorbit.team), on your desktop.**
 
