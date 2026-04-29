@@ -75,7 +75,7 @@ final class WalkerCharacter {
     var popoverBubbleShape: CAShapeLayer?
 
     // ── Sleep state machine ─────────────────────────────────────────
-    // After ~2–4 minutes of no interaction, LilJustin curls up for a
+    // After ~2–4 minutes of no interaction, Orion curls up for a
     // 30–90s nap (`main-sleeping.gif`). Any click / popover open / drag
     // wakes him immediately; otherwise he wakes on his own, paces, and
     // delivers an ambient bubble within ~8–25s of standing back up.
@@ -102,18 +102,18 @@ final class WalkerCharacter {
 
     // ── Idle facing variety ────────────────────────────────────────
     // During long idle pauses, periodically re-roll between front and
-    // back facing so LilJustin doesn't just stare at the camera the
+    // back facing so Orion doesn't just stare at the camera the
     // whole time. Driven from the per-tick update().
     var nextIdleFacingRollAt: CFTimeInterval = 0
 
     // ── Ambient bubbles ────────────────────────────────────────────
     // While idle (no popover, no chat in flight, awake, not focused on
-    // an expert) LilJustin periodically pipes up with a short Justin/
+    // an expert) Orion periodically pipes up with a short Justin/
     // Orbit-voice comment — a CRM micro-tip, a deliverability gripe,
     // or a dry remark. Cadence is a randomised 90–240s gap between
     // bubbles. Each bubble lingers ~12s so Sir actually has time to
     // read it.
-    // First bubble fires 20–90s after launch — Sir wanted LilJustin
+    // First bubble fires 20–90s after launch — Sir wanted Orion
     // to introduce himself sooner rather than waiting 1–3 minutes.
     var nextAmbientBubbleAt: CFTimeInterval = CACurrentMediaTime() + TimeInterval.random(in: 20...90)
     var ambientBubbleExpiresAt: CFTimeInterval = 0
@@ -121,13 +121,13 @@ final class WalkerCharacter {
     var isAmbientLLMRequestInFlight: Bool = false
     /// Text of the ambient bubble currently visible. Set in
     /// showAmbientLine, cleared when the bubble expires or hides.
-    /// Read by openPopover so a click on LilJustin while a tip is
+    /// Read by openPopover so a click on Orion while a tip is
     /// showing pre-fills the composer with a "tell me more" prompt
     /// and sends — turning the passing observation into a chat
     /// thread on demand.
     var currentAmbientLineText: String?
     // Steady-state gap between bubbles. Average ~97s = ~37 bubbles/hr
-    // when LilJustin is idle. Tighter than this risks stacking — the
+    // when Orion is idle. Tighter than this risks stacking — the
     // ambient LLM call takes up to 25s and we don't want a new bubble
     // queueing while the previous one is still rendering or its LLM
     // dispatch is still in flight.
@@ -135,7 +135,7 @@ final class WalkerCharacter {
     static let maxAmbientGap: TimeInterval = 150
     // Linger time on screen. 25s — long enough for Sir to read a
     // two-line CRM/lifecycle observation, decide whether it's worth
-    // drilling into, and click LilJustin to ask for more before the
+    // drilling into, and click Orion to ask for more before the
     // bubble fades. Click-to-drill-in only works while the bubble is
     // visible, so this dictates the click window too.
     static let ambientBubbleLinger: TimeInterval = 25
@@ -193,7 +193,7 @@ final class WalkerCharacter {
     var isClaudeBusy: Bool { claudeSession?.isBusy ?? false }
 
     var directionalImages: [WalkerFacing: NSImage] = [:]
-    var persona: WalkerPersona = .justin
+    var persona: WalkerPersona = .orion
 
     var lastPhraseUpdate: CFTimeInterval = 0
     var currentPhrase = ""
@@ -204,7 +204,7 @@ final class WalkerCharacter {
     var liveStatusFallbackTimer: Timer?
     /// Drives the gravity-fall animation when the user releases a drag.
     /// Held here (rather than scoped to `endHorizontalDrag`) so we can
-    /// invalidate it if the user grabs LilJustin again mid-fall —
+    /// invalidate it if the user grabs Orion again mid-fall —
     /// otherwise two animations would race for the window frame.
     var dropTimer: Timer?
     var lastLiveStatusEventAt: Date?

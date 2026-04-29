@@ -192,7 +192,7 @@ extension TerminalView {
     }
 
     private func appendOfficialMCPSetupCard() {
-        // LilJustin: archive-auth setup card permanently disabled — see
+        // Orion: archive-auth setup card permanently disabled — see
         // showOfficialMCPSetupPanel() in TerminalView+WelcomePanel.swift.
         return
     }
@@ -226,16 +226,16 @@ extension TerminalView {
         let t = theme
         let greeting: String
         if requiresInitialConnectionSetup {
-            greeting = "LilJustin here — founder of Orbit, on your desktop. Connect Claude Code or Codex in Settings and we'll get into it."
+            greeting = "Orion here — founder of Orbit, on your desktop. Connect Claude Code or Codex in Settings and we'll get into it."
         } else {
-            greeting = "LilJustin here — founder of Orbit. Ask about lifecycle, deliverability, Braze, retention economics — anything from the Orbit playbook. I'll lead with the sharpest answer and go deeper if you want it."
+            greeting = "Orion here — founder of Orbit. Ask about lifecycle, deliverability, Braze, retention economics — anything from the Orbit playbook. I'll lead with the sharpest answer and go deeper if you want it."
         }
         _ = archiveMode
         let attrText = NSAttributedString(string: greeting, attributes: [
             .font: t.font,
             .foregroundColor: t.textPrimary,
         ])
-        appendBubble(text: attrText, isUser: false, speaker: TranscriptSpeaker(name: "LilJustin", avatarPath: nil, kind: .justin))
+        appendBubble(text: attrText, isUser: false, speaker: TranscriptSpeaker(name: "Orion", avatarPath: nil, kind: .orion))
 
         lastObservedFirstRunConfigurationSignature = firstRunConfigurationSignature()
         lastRenderedWelcomeSignature = welcomeSignature
@@ -320,16 +320,16 @@ extension TerminalView {
 
     func beginAssistantTurn(name: String?) {
         // Always render the streaming-placeholder bubble as
-        // LilJustin (kind: .justin) so the sparkle avatar shows
+        // Orion (kind: .orion) so the sparkle avatar shows
         // exactly the same as it does post-response. Earlier this
-        // code did `kind: labelName.lowercased() == "liljustin" ? .justin : .system`,
+        // code did `kind: labelName.lowercased() == "orion" ? .orion : .system`,
         // and any theme whose titleString didn't lowercase to
-        // exactly "liljustin" (the upstream LIL-LENNY themes
+        // exactly "orion" (the upstream LIL-LENNY themes
         // still around for backwards-compat) routed the bubble to
         // `.system`, which renders with a person icon instead of
         // the sparkle. Single-persona app — no reason to detect.
-        let labelName = (name?.isEmpty == false) ? name! : "LilJustin"
-        let speaker = TranscriptSpeaker(name: labelName, avatarPath: nil, kind: .justin)
+        let labelName = (name?.isEmpty == false) ? name! : "Orion"
+        let speaker = TranscriptSpeaker(name: labelName, avatarPath: nil, kind: .orion)
         appendBubble(text: NSAttributedString(string: ""), isUser: false, speaker: speaker)
     }
 
@@ -458,7 +458,7 @@ extension TerminalView {
                 appendUser(msg.text)
             case .assistant:
                 assistantCount += 1
-                let speaker = msg.speaker ?? TranscriptSpeaker(name: t.titleString, avatarPath: nil, kind: .justin)
+                let speaker = msg.speaker ?? TranscriptSpeaker(name: t.titleString, avatarPath: nil, kind: .orion)
                 let formatted = TerminalMarkdownRenderer.render(msg.text, theme: t)
                 appendBubble(text: formatted, isUser: false, speaker: speaker, followUpExpert: msg.followUpExpert, markdownSource: msg.text)
             case .error:

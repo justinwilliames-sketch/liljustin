@@ -23,7 +23,7 @@ import NaturalLanguage
 ///      compares against the cached fingerprint on disk, and only
 ///      rebuilds when the corpus has actually changed.
 ///   3. Cache lives at
-///      `~/Library/Application Support/LilJustin/orbit-guides-embeddings.json`
+///      `~/Library/Application Support/Orion/orbit-guides-embeddings.json`
 ///      so subsequent launches skip recomputation entirely.
 ///   4. Per-query embeddings are tiny (one vector each) so we recompute
 ///      them on every call rather than maintaining a query cache.
@@ -185,7 +185,7 @@ enum OrbitGuidesEmbeddings {
             appropriateFor: nil,
             create: true
         ) else { return nil }
-        let dir = support.appendingPathComponent("LilJustin", isDirectory: true)
+        let dir = support.appendingPathComponent("Orion", isDirectory: true)
         if !fm.fileExists(atPath: dir.path) {
             try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         }

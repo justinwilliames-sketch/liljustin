@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate placeholder Mini Justin sprites at 304x415 RGBA, matching Lenny dims."""
+"""Generate placeholder Orion sprites at 304x415 RGBA, matching Lenny dims."""
 from PIL import Image, ImageDraw, ImageFont
 import os
 

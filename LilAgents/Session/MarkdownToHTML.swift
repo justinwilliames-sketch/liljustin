@@ -1,6 +1,6 @@
 import Foundation
 
-/// Convert markdown to HTML so a LilJustin reply can be copied to
+/// Convert markdown to HTML so a Orion reply can be copied to
 /// Slack (and Apple Mail / Notes / Notion / Linear) and pasted with
 /// formatting intact.
 ///
@@ -21,7 +21,7 @@ import Foundation
 /// `<blockquote>` etc. natively on paste and renders them correctly.
 ///
 /// Conservative line-based parser, same shape as MarkdownToSlack:
-/// no full CommonMark conformance, just the constructs Mini Justin
+/// no full CommonMark conformance, just the constructs Orion
 /// actually emits in answers.
 enum MarkdownToHTML {
 

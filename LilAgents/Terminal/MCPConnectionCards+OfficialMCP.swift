@@ -63,7 +63,7 @@ class OfficialMCPConnectCardView: NSView {
         stack.addArrangedSubview(titleRow)
         titleRow.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
 
-        let title = NSTextField(wrappingLabelWithString: compact ? "Hidden in LilJustin" : "Hidden in LilJustin")
+        let title = NSTextField(wrappingLabelWithString: compact ? "Hidden in Orion" : "Hidden in Orion")
         title.font = NSFont.systemFont(ofSize: compact ? 13 : 14, weight: .semibold)
         title.textColor = theme.textPrimary
         title.maximumNumberOfLines = 1
@@ -131,7 +131,7 @@ class OfficialMCPConnectCardView: NSView {
     }
 
     private func addCompactLayout(to stack: NSStackView) {
-        let body = NSTextField(wrappingLabelWithString: "Archive auth-key flow disabled in LilJustin.")
+        let body = NSTextField(wrappingLabelWithString: "Archive auth-key flow disabled in Orion.")
         body.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         body.textColor = theme.textDim
         body.maximumNumberOfLines = 1
@@ -157,7 +157,7 @@ class OfficialMCPConnectCardView: NSView {
     }
 
     private func addFullLayout(to stack: NSStackView) {
-        let body = NSTextField(wrappingLabelWithString: "Archive auth-key flow disabled in LilJustin.")
+        let body = NSTextField(wrappingLabelWithString: "Archive auth-key flow disabled in Orion.")
         body.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         body.textColor = theme.textDim
         body.maximumNumberOfLines = 2
@@ -329,7 +329,7 @@ class OfficialMCPConnectCardView: NSView {
             detectionLabel.textColor = theme.accentColor
             detectionLabel.isHidden = false
             if result.storedTokenOnly {
-                detectionLabel.stringValue = "Saved locally. LilJustin will use it automatically."
+                detectionLabel.stringValue = "Saved locally. Orion will use it automatically."
             } else {
                 detectionLabel.stringValue = "Connected. The key is saved on this Mac and CLI access was configured."
             }

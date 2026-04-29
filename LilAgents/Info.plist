@@ -10,9 +10,9 @@
          INFOPLIST_KEY_CFBundleDisplayName from project.pbxproj OVERRIDES
          this static value. Both must match to avoid drift. -->
     <key>CFBundleDisplayName</key>
-    <string>LilJustin by Orbit</string>
+    <string>Orion by Orbit</string>
     <key>CFBundleName</key>
-    <string>LilJustin by Orbit</string>
+    <string>Orion by Orbit</string>
 
     <!-- Sparkle compares the running app's CFBundleShortVersionString
          to sparkle:shortVersionString in the appcast. The CI workflow
@@ -39,7 +39,7 @@
          GitHub Actions secret used by CI to sign each .dmg. Sparkle
          refuses to install an update without a matching signature. -->
     <key>SUFeedURL</key>
-    <string>https://github.com/justinwilliames-sketch/liljustin/releases/latest/download/appcast.xml</string>
+    <string>https://github.com/justinwilliames-sketch/orion-by-orbit/releases/latest/download/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>bNQR7ti9TfIVO9mwWWH5hge2A8JzV98AczkncKfitQY=</string>
     <key>SUEnableAutomaticChecks</key>
@@ -55,40 +55,40 @@
     <integer>1800</integer>
 
     <!-- TCC usage descriptions.
-         LilJustin spawns Claude Code / Codex CLI as subprocesses to
+         Orion spawns Claude Code / Codex CLI as subprocesses to
          answer the user's questions. Those subprocesses may legitimately
          touch protected user folders (Downloads, Documents, Desktop,
          etc.) when the user mentions a file or asks for something to be
          saved/read. macOS attributes those file-access prompts to the
-         "responsible app" — i.e. LilJustin — and requires a usage
+         "responsible app" — i.e. Orion — and requires a usage
          description string for the prompt to display anything beyond a
          bare path.
          Without these strings the prompts look unexplained and alarming
-         ("LilJustin would like to access Downloads"). With them the user
+         ("Orion would like to access Downloads"). With them the user
          sees a one-sentence rationale that matches reality.
          Note: an unsigned app's TCC grants are tied to the binary hash,
          so every Sparkle update wipes prior Allows. Signing the app
          would persist the grants across updates. -->
     <key>NSDownloadsFolderUsageDescription</key>
-    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files in Downloads when you mention them.</string>
+    <string>Orion spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files in Downloads when you mention them.</string>
     <key>NSDocumentsFolderUsageDescription</key>
-    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files in Documents when you mention them.</string>
+    <string>Orion spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files in Documents when you mention them.</string>
     <key>NSDesktopFolderUsageDescription</key>
-    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on the Desktop when you mention them.</string>
+    <string>Orion spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on the Desktop when you mention them.</string>
     <key>NSRemovableVolumesUsageDescription</key>
-    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on external drives when you mention them.</string>
+    <string>Orion spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on external drives when you mention them.</string>
     <key>NSNetworkVolumesUsageDescription</key>
-    <string>LilJustin spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on network shares when you mention them.</string>
+    <string>Orion spawns the Claude Code / Codex CLI to answer your questions. The CLI may need to read or write files on network shares when you mention them.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>LilJustin uses Apple Events to launch Terminal for the post-update Gatekeeper helper, and to invoke the Claude Code / Codex CLI on your behalf.</string>
+    <string>Orion uses Apple Events to launch Terminal for the post-update Gatekeeper helper, and to invoke the Claude Code / Codex CLI on your behalf.</string>
 
     <!-- Voice dictation via SFSpeechRecognizer. Required by macOS for the
          microphone-input prompt and the speech-recognition-permission prompt.
          Triggered only when the user clicks the dictation mic button in the
-         composer; LilJustin never opens the mic on its own. -->
+         composer; Orion never opens the mic on its own. -->
     <key>NSMicrophoneUsageDescription</key>
-    <string>LilJustin records audio only while you hold the dictation button in the composer, so you can speak your message instead of typing it.</string>
+    <string>Orion records audio only while you hold the dictation button in the composer, so you can speak your message instead of typing it.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>LilJustin uses Apple's on-device speech recognition to transcribe what you say into the chat box. Audio is processed locally on your Mac whenever the OS supports it.</string>
+    <string>Orion uses Apple's on-device speech recognition to transcribe what you say into the chat box. Audio is processed locally on your Mac whenever the OS supports it.</string>
 </dict>
 </plist>

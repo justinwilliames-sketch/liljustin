@@ -45,7 +45,7 @@ struct BusinessContext: Codable, Equatable {
         !teamSize.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// System-prompt fragment shaped to brief Mini Justin without
+    /// System-prompt fragment shaped to brief Orion without
     /// changing his persona. Empty string when not yet complete.
     func systemPromptSection() -> String {
         guard isComplete else { return "" }

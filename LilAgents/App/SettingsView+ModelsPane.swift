@@ -7,10 +7,10 @@ extension SettingsView {
         return VStack(alignment: .leading, spacing: 20) {
             SettingsHeader(
                 title: "Models",
-                subtitle: "Choose how LilJustin should answer on this Mac."
+                subtitle: "Choose how Orion should answer on this Mac."
             )
 
-            SettingsSectionCard(title: "Behaviour", subtitle: "How LilJustin shows up on this Mac.") {
+            SettingsSectionCard(title: "Behaviour", subtitle: "How Orion shows up on this Mac.") {
                 VStack(alignment: .leading, spacing: 14) {
                     Toggle(isOn: Binding(
                         get: { launchAtLogin },
@@ -22,7 +22,7 @@ extension SettingsView {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Launch at login")
                                 .font(.subheadline.weight(.medium))
-                            Text("Open LilJustin automatically when you log in to your Mac.")
+                            Text("Open Orion automatically when you log in to your Mac.")
                                 .settingsCaption()
                         }
                     }
@@ -35,7 +35,7 @@ extension SettingsView {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("AI-generated ambient comments")
                                 .font(.subheadline.weight(.medium))
-                            Text("When idle, LilJustin makes a one-shot LLM call (via Claude Code) to generate a fresh dry comment every 90–240 seconds. Falls back to a built-in pool if Claude Code isn't installed or the call fails. Off = uses the built-in pool only (no per-bubble cost).")
+                            Text("When idle, Orion makes a one-shot LLM call (via Claude Code) to generate a fresh dry comment every 90–240 seconds. Falls back to a built-in pool if Claude Code isn't installed or the call fails. Off = uses the built-in pool only (no per-bubble cost).")
                                 .settingsCaption()
                         }
                     }
@@ -44,9 +44,9 @@ extension SettingsView {
                 }
             }
 
-            SettingsSectionCard(title: "Connectors & extensions", subtitle: "Share MCP servers between Claude Desktop and LilJustin.") {
+            SettingsSectionCard(title: "Connectors & extensions", subtitle: "Share MCP servers between Claude Desktop and Orion.") {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("LilJustin chats through the Claude Code CLI, which uses a separate MCP registry from Claude Desktop. This button copies any MCP servers you've set up in Claude Desktop into Claude Code's config (~/.claude.json) so LilJustin can use them too. Existing entries are never overwritten — only missing ones are added. A backup is written to ~/.claude.json.liljustin-backup before any change.")
+                    Text("Orion chats through the Claude Code CLI, which uses a separate MCP registry from Claude Desktop. This button copies any MCP servers you've set up in Claude Desktop into Claude Code's config (~/.claude.json) so Orion can use them too. Existing entries are never overwritten — only missing ones are added. A backup is written to ~/.claude.json.liljustin-backup before any change.")
                         .settingsCaption()
 
                     HStack(spacing: 12) {
@@ -103,7 +103,7 @@ extension SettingsView {
                             SecureField("Paste OpenAI API key", text: $openAIAPIKey)
                                 .textFieldStyle(.roundedBorder)
 
-                            Text("Used only when LilJustin needs to fall back to the OpenAI API on this Mac.")
+                            Text("Used only when Orion needs to fall back to the OpenAI API on this Mac.")
                                 .settingsCaption()
                         }
                     }
@@ -119,10 +119,10 @@ extension SettingsView {
                 subtitle: "Credits, project story, and links to learn more."
             )
 
-            SettingsSectionCard(title: "Version", subtitle: "Which release of LilJustin you're running.") {
+            SettingsSectionCard(title: "Version", subtitle: "Which release of Orion you're running.") {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        Text("LilJustin")
+                        Text("Orion")
                             .font(.subheadline.weight(.medium))
                         Text(Self.formattedAppVersion())
                             .font(.subheadline.monospaced())
@@ -131,14 +131,14 @@ extension SettingsView {
                     }
                     Text("Sparkle checks for updates automatically every 24 hours. You can also click 'Check for Updates…' from the menu bar icon.")
                         .settingsCaption()
-                    Link("All releases on GitHub", destination: URL(string: "https://github.com/justinwilliames-sketch/liljustin/releases")!)
+                    Link("All releases on GitHub", destination: URL(string: "https://github.com/justinwilliames-sketch/orion-by-orbit/releases")!)
                         .font(.subheadline.weight(.medium))
                 }
             }
 
             SettingsSectionCard(title: "Credits", subtitle: "Original projects this builds on.") {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("LilJustin is built on top of the original lil agents project by Ryan Stephen, and the Lil-Lenny fork by Ben Shih.")
+                    Text("Orion is built on top of the original lil agents project by Ryan Stephen, and the Lil-Lenny fork by Ben Shih.")
                         .settingsCaption()
 
                     Link("Ryan Stephen · Original lil agents project", destination: URL(string: "https://github.com/ryanstephen/lil-agents")!)
@@ -149,9 +149,9 @@ extension SettingsView {
                 }
             }
 
-            SettingsSectionCard(title: "About LilJustin", subtitle: "Founder of Orbit, on your desktop.") {
+            SettingsSectionCard(title: "About Orion", subtitle: "Founder of Orbit, on your desktop.") {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("LilJustin is the dock-pinned companion version of Orbit's founder. Ask him about lifecycle marketing, deliverability, Braze, retention economics — anything from the Orbit playbook.")
+                    Text("Orion is the dock-pinned companion version of Orbit's founder. Ask him about lifecycle marketing, deliverability, Braze, retention economics — anything from the Orbit playbook.")
                         .settingsCaption()
 
                     Link("Orbit · The lifecycle marketing OS for Claude", destination: URL(string: "https://get.yourorbit.team")!)
@@ -225,7 +225,7 @@ extension SettingsView {
                         Text("Reset")
                             .font(.headline)
 
-                        Text("Clear LilJustin's local settings and remove its Claude/Codex archive MCP configuration so you can test the setup flow from a clean state.")
+                        Text("Clear Orion's local settings and remove its Claude/Codex archive MCP configuration so you can test the setup flow from a clean state.")
                             .settingsCaption()
 
                         Button("Reset all local data…", role: .destructive) {
@@ -258,18 +258,18 @@ extension SettingsView {
 
     var modelSectionSubtitle: String {
         switch effectiveModelTransport {
-        case .claudeCode: return "LilJustin will answer through Claude Code."
-        case .codex:      return "LilJustin will answer through Codex."
-        case .openAIAPI:  return "LilJustin will answer through the OpenAI API."
+        case .claudeCode: return "Orion will answer through Claude Code."
+        case .codex:      return "Orion will answer through Codex."
+        case .openAIAPI:  return "Orion will answer through the OpenAI API."
         case .automatic:  return "Detecting available runtimes…"
         }
     }
 
     var selectedRuntimeDescription: String {
         switch effectiveModelTransport {
-        case .claudeCode: return "Choose which Claude model LilJustin should use."
-        case .codex:      return "Choose which Codex model LilJustin should use."
-        case .openAIAPI:  return "Choose which OpenAI model LilJustin should use and add an API key below."
+        case .claudeCode: return "Choose which Claude model Orion should use."
+        case .codex:      return "Choose which Codex model Orion should use."
+        case .openAIAPI:  return "Choose which OpenAI model Orion should use and add an API key below."
         case .automatic:  return "Detecting available runtimes…"
         }
     }

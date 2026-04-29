@@ -14,7 +14,7 @@ extension ClaudeSession {
                 if kind == "expert", let expert = expertSuggestion(named: speakerName) {
                     segments.append(AssistantSegment(speaker: speaker(for: expert), markdown: linkified, followUpExpert: expert))
                 } else {
-                    let speakerValue = normalize(speakerName) == normalize("LilJustin")
+                    let speakerValue = normalize(speakerName) == normalize("Orion")
                         ? justinSpeaker()
                         : TranscriptSpeaker(name: speakerName, avatarPath: nil, kind: .system)
                     segments.append(AssistantSegment(speaker: speakerValue, markdown: linkified, followUpExpert: nil))
@@ -50,7 +50,7 @@ extension ClaudeSession {
         guard !knownExperts.isEmpty else { return segments }
 
         return segments.map { segment in
-            guard segment.speaker.kind == .justin else { return segment }
+            guard segment.speaker.kind == .orion else { return segment }
             let sanitized = sanitizedOrchestrationMarkdown(segment.markdown, experts: knownExperts)
             guard sanitized != segment.markdown else { return segment }
             return AssistantSegment(speaker: segment.speaker, markdown: sanitized, followUpExpert: segment.followUpExpert)

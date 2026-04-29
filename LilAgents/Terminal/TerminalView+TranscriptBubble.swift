@@ -246,7 +246,7 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         let image: NSImage?
         if let avatarPath = speaker.avatarPath {
             image = resolvedAvatarImage(at: avatarPath)
-        } else if speaker.kind == .justin {
+        } else if speaker.kind == .orion {
             image = resolvedLennyAvatarImage()
         } else {
             image = nil
@@ -269,7 +269,7 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
         }
 
         let icon = NSImageView()
-        let symbolName = speaker.kind == .justin ? "sparkles" : "person.crop.circle.fill"
+        let symbolName = speaker.kind == .orion ? "sparkles" : "person.crop.circle.fill"
         if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) {
             let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
             icon.image = image.withSymbolConfiguration(config)
@@ -291,11 +291,11 @@ class ChatBubbleView: NSView, NSTextViewDelegate {
             $0.removeFromSuperview()
         }
 
-        // Show copy button for both .justin (LilJustin himself) and
+        // Show copy button for both .orion (Orion himself) and
         // .expert speakers. Originally upstream gated on .expert only —
-        // LilJustin's own replies were never copyable, which silently
+        // Orion's own replies were never copyable, which silently
         // killed the most common copy case for users.
-        if (speaker.kind == .justin || speaker.kind == .expert), onCopy != nil {
+        if (speaker.kind == .orion || speaker.kind == .expert), onCopy != nil {
             configureCopyAction(copyButton, action: #selector(copyTapped))
             actionRow.addArrangedSubview(copyButton)
         }

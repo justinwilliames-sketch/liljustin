@@ -28,7 +28,7 @@ extension WalkerCharacter {
         }
 
         let welcome = """
-        LilJustin — founder of Orbit, on your desktop.
+        Orion — founder of Orbit, on your desktop.
 
         Ask about lifecycle, deliverability, Braze, retention. The Orbit playbook, in dock form.
         """
@@ -64,7 +64,7 @@ extension WalkerCharacter {
 
     func openPopover() {
         // Capture any visible ambient line BEFORE noteUserInteraction
-        // → hideBubble runs and clears it. If Sir clicks LilJustin
+        // → hideBubble runs and clears it. If Sir clicks Orion
         // while a tip / quote / observation is on screen, that text
         // becomes the seed prompt for the new chat — turning the
         // passing remark into a thread he can drill into.
@@ -346,7 +346,7 @@ extension WalkerCharacter {
     /// through the animation and tears them down naturally. Then
     /// openPopover() on the next runloop tick re-renders cleanly.
     @objc func clearConversationTapped() {
-        NSLog("[LilJustin] clearConversationTapped fired — close-and-reopen for clean reset")
+        NSLog("[Orion] clearConversationTapped fired — close-and-reopen for clean reset")
 
         // Wipe the in-memory conversation BEFORE close so the
         // reopen's restoreTranscriptState reads an empty history.

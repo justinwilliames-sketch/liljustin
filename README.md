@@ -1,16 +1,16 @@
 <div align="center">
 
-# LilJustin
+# Orion
 
 ### The founder of [Orbit](https://get.yourorbit.team), on your desktop.
 
 A free macOS dock companion that talks like Justin Williames — the founder of Orbit. Click him, ask anything about lifecycle marketing, deliverability, Braze, retention. Direct, no-fluff answers in the founder voice, with real Orbit guides cited as sources.
 
-[![Latest release](https://img.shields.io/github/v/release/justinwilliames-sketch/liljustin?include_prereleases&label=latest&color=6366F1)](https://github.com/justinwilliames-sketch/liljustin/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/justinwilliames-sketch/orion-by-orbit?include_prereleases&label=latest&color=6366F1)](https://github.com/justinwilliames-sketch/orion-by-orbit/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-6366F1)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-14%2B-6366F1)](https://www.apple.com/macos/)
 
-[**↓ Download LilJustin**](https://github.com/justinwilliames-sketch/liljustin/releases/latest)
+[**↓ Download Orion**](https://github.com/justinwilliames-sketch/orion-by-orbit/releases/latest)
 
 </div>
 
@@ -20,29 +20,29 @@ A free macOS dock companion that talks like Justin Williames — the founder of 
 
 ### 1. Download the `.dmg`
 
-Grab the **latest** `.dmg` from [the Releases page](https://github.com/justinwilliames-sketch/liljustin/releases/latest) and open it.
+Grab the **latest** `.dmg` from [the Releases page](https://github.com/justinwilliames-sketch/orion-by-orbit/releases/latest) and open it.
 
-### 2. Drag **LilJustin** into Applications
+### 2. Drag **Orion** into Applications
 
-Drag the LilJustin icon into the **Applications** shortcut inside the mounted DMG window.
+Drag the Orion icon into the **Applications** shortcut inside the mounted DMG window.
 
 ### 3. ⚠️ Run this in Terminal once
 
-LilJustin is unsigned (free side-project, no Apple Developer ID), so macOS Gatekeeper will block it on first launch. Open **Terminal** and paste:
+Orion is unsigned (free side-project, no Apple Developer ID), so macOS Gatekeeper will block it on first launch. Open **Terminal** and paste:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/LilJustin.app
 ```
 
-Then double-click LilJustin in Applications. Mini Justin appears above your Dock.
+Then double-click Orion in Applications. Orion appears above your Dock.
 
-> **Don't want to use Terminal?** Right-click `LilJustin.app` in Applications → **Open** → confirm. Or System Settings → Privacy & Security → "Open Anyway". Either works.
+> **Don't want to use Terminal?** Right-click `Orion` in Applications → **Open** → confirm. Or System Settings → Privacy & Security → "Open Anyway". Either works.
 
 ---
 
 ## What you can ask
 
-Click LilJustin. The popover shows 4 random prompt chips drawn from Orbit's full guide library — try one, or type your own. He answers in the founder voice, grounded in actual Orbit guide content with sources cited.
+Click Orion. The popover shows 4 random prompt chips drawn from Orbit's full guide library — try one, or type your own. He answers in the founder voice, grounded in actual Orbit guide content with sources cited.
 
 Some examples of what he'll handle well:
 
@@ -53,20 +53,20 @@ Some examples of what he'll handle well:
 - **Measurement** — A/B test sample sizes, holdouts, incrementality, false positives, churn cohorts
 - **Tools** — Braze, Iterable, Customer.io, HubSpot — what each gets right and wrong
 
-For deeper, structured Orbit tooling (95 guides, 50+ skills, native Braze API), install the full **[Orbit MCP for Claude Desktop](https://get.yourorbit.team/download)**. LilJustin will use those tools when they're available.
+For deeper, structured Orbit tooling (95 guides, 50+ skills, native Braze API), install the full **[Orbit MCP for Claude Desktop](https://get.yourorbit.team/download)**. Orion will use those tools when they're available.
 
 ## What's in the box
 
 - **87 Orbit guides bundled offline** — the full live corpus is shipped inside the app. On every question, the top 3 most relevant guides get spliced into the prompt so answers are grounded in the actual published content, not just slug-citations.
-- **Ambient comments** — when idle, LilJustin pipes up with short Orbit-voice observations on lifecycle, deliverability, and CRM craft. Driven by your connected model when available, hardcoded fallback otherwise.
+- **Ambient comments** — when idle, Orion pipes up with short Orbit-voice observations on lifecycle, deliverability, and CRM craft. Driven by your connected model when available, hardcoded fallback otherwise.
 - **Sleep state** — after 1.5–4 minutes of inactivity, he curls up for a nap. Wakes on click.
 - **Auto-updates** — Sparkle keeps you on the latest. After each update, a one-click Gatekeeper helper handles the unsigned-app dance for you.
 - **Launch at login** — on by default. Toggle in Settings.
-- **MCP sync from Claude Desktop** — LilJustin can mirror the MCP servers you've already configured in Claude Desktop, so any tools you use there work here too.
+- **MCP sync from Claude Desktop** — Orion can mirror the MCP servers you've already configured in Claude Desktop, so any tools you use there work here too.
 
 ## Connect a model provider
 
-Mini Justin needs a model. Open **Settings → Models** and pick one:
+Orion needs a model. Open **Settings → Models** and pick one:
 
 | Provider | What you need |
 |---|---|
@@ -78,7 +78,7 @@ Automatic mode prefers Claude Code → Codex → OpenAI in that order, depending
 
 ## Privacy
 
-- **No analytics, no telemetry, no backend** — LilJustin runs entirely on your Mac.
+- **No analytics, no telemetry, no backend** — Orion runs entirely on your Mac.
 - **Settings stay local** — provider choice, API keys, onboarding state all live in macOS `UserDefaults`.
 - **Conversation traffic** goes only to the provider you connected (Claude / Codex / OpenAI). Not to me.
 - **MIT licensed** — fork it, audit it, change it.
@@ -93,8 +93,8 @@ Automatic mode prefers Claude Code → Codex → OpenAI in that order, depending
 Clone, open in Xcode 16+ on macOS 14+, run the `LilAgents` scheme. Or from the command line:
 
 ```bash
-git clone https://github.com/justinwilliames-sketch/liljustin.git
-cd liljustin
+git clone https://github.com/justinwilliames-sketch/orion-by-orbit.git
+cd orion-by-orbit
 xcodebuild -project lil-agents.xcodeproj -scheme LilAgents -configuration Debug build
 ```
 
@@ -106,7 +106,7 @@ The system prompt lives in [`LilAgents/Session/ClaudeSessionState.swift`](LilAge
 
 ### Refresh the bundled guides corpus
 
-LilJustin ships with the full Orbit guides export at [`LilAgents/orbit-guides.json`](LilAgents/orbit-guides.json). When new guides go live or existing ones change, regenerate the bundle:
+Orion ships with the full Orbit guides export at [`LilAgents/orbit-guides.json`](LilAgents/orbit-guides.json). When new guides go live or existing ones change, regenerate the bundle:
 
 ```bash
 ./Scripts/refresh-orbit-guides.sh
@@ -151,7 +151,7 @@ The CI run takes ~3 minutes. The `.dmg` ships unsigned with the install instruct
 
 ### Credits
 
-LilJustin builds on two open-source predecessors, both MIT-licensed and credited in [LICENSE](LICENSE):
+Orion builds on two open-source predecessors, both MIT-licensed and credited in [LICENSE](LICENSE):
 
 - **[lil-agents](https://github.com/ryanstephen/lil-agents)** by Ryan Stephen — original macOS dock companion concept.
 - **[lenny-lil-agents](https://github.com/hbshih/lenny-lil-agents)** by Ben Shih — pixel-art sprite layer + terminal-style popover.

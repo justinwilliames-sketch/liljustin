@@ -1,9 +1,9 @@
 import Foundation
 
-/// Durable fact LilJustin remembers about Sir between conversations.
+/// Durable fact Orion remembers about Sir between conversations.
 ///
 /// Stored as a single JSON file per entry on disk. The body is the
-/// load-bearing field — it's what gets spliced into Mini Justin's
+/// load-bearing field — it's what gets spliced into Orion's
 /// system prompt when retrieved. Name and description are for the
 /// Settings UI: name is the headline, description is the one-line
 /// hook shown alongside the body.

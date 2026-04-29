@@ -328,7 +328,7 @@ extension WalkerCharacter {
             setFacing(.front)
             setPersona(.expert(expert))
         } else {
-            setPersona(.justin)
+            setPersona(.orion)
             if wasExpertMode, !movementLocked, !isDraggingHorizontally, !isOnboarding {
                 isPaused = true
                 isWalking = false
@@ -446,7 +446,7 @@ extension WalkerCharacter {
     }
 
     private func loadDirectionalImages() {
-        // All four poses are animated 36-frame GIFs in LilJustin (vs the
+        // All four poses are animated 36-frame GIFs in Orion (vs the
         // upstream Lenny mix of static PNG idles + GIF walks). NSImageView
         // is already configured with `animates = true`, so multi-frame GIFs
         // animate automatically when assigned to `imageView.image`.
@@ -479,7 +479,7 @@ extension WalkerCharacter {
 
     func setFacing(_ facing: WalkerFacing) {
         // Sleep state owns the image. Any code path that tries to swap
-        // facing while LilJustin is asleep — drag, persona swap, expert
+        // facing while Orion is asleep — drag, persona swap, expert
         // focus, mid-pause idle facing reroll, walk-cycle pause entry —
         // is silently ignored. Without this guard the sleep GIF would
         // flicker briefly to a directional image whenever any of those
@@ -496,7 +496,7 @@ extension WalkerCharacter {
         self.persona = persona
 
         switch persona {
-        case .justin:
+        case .orion:
             loadDirectionalImages()
             characterColor = NSColor(red: 0.96, green: 0.63, blue: 0.23, alpha: 1.0)
 
@@ -522,7 +522,7 @@ extension WalkerCharacter {
         if let expert = focusedExpert ?? representedExpert {
             tooltip = "Ask \(expert.name)"
         } else {
-            tooltip = "Ask LilJustin"
+            tooltip = "Ask Orion"
         }
         window.contentView?.toolTip = tooltip
     }
@@ -533,7 +533,7 @@ extension WalkerCharacter {
 }
 
 // MARK: - Sleep state machine
-// After ~1.5–4 minutes of no interaction LilJustin curls up for a 30–120s
+// After ~1.5–4 minutes of no interaction Orion curls up for a 30–120s
 // nap (`main-sleeping.gif`). Any click / popover open wakes him; otherwise
 // he wakes on his own and paces again. Cadence is randomised so the
 // rhythm doesn't feel scripted. State vars + tunables live on
@@ -541,7 +541,7 @@ extension WalkerCharacter {
 extension WalkerCharacter {
 
     /// Bump the last-interaction timestamp, re-randomise the next
-    /// idle-before-sleep threshold, and wake LilJustin if he was asleep.
+    /// idle-before-sleep threshold, and wake Orion if he was asleep.
     /// Call from any code path representing real user interaction
     /// (click on the sprite, popover open, drag, message sent).
     func noteUserInteraction() {
@@ -628,7 +628,7 @@ extension WalkerCharacter {
                 imageView?.image = sleepingImage
             }
             // While sleeping, an in-flight model turn or open popover
-            // should also wake LilJustin immediately so he's not napping
+            // should also wake Orion immediately so he's not napping
             // through someone trying to talk to him.
             if isClaudeBusy || isIdleForPopover {
                 wakeUp()

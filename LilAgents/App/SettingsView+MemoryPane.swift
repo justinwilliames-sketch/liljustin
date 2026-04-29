@@ -9,7 +9,7 @@ extension SettingsView {
 
 /// Settings → Memory pane.
 ///
-/// Lists every fact LilJustin has remembered. Sir can pin (always
+/// Lists every fact Orion has remembered. Sir can pin (always
 /// included in system prompt), edit body, delete a single entry, or
 /// clear them all. Two top-level toggles — auto-extract and
 /// conversation-history persistence — sit above the list so the
@@ -25,15 +25,15 @@ private struct MemoryPaneRoot: View {
         VStack(alignment: .leading, spacing: 20) {
             SettingsHeader(
                 title: "Memory",
-                subtitle: "Durable facts LilJustin remembers about you between conversations. Stored on your Mac. Never includes specific names, emails, phone numbers, exact financials, or anything that looks like a secret. Conversation transcripts are deliberately not stored — chats are fleeting by design."
+                subtitle: "Durable facts Orion remembers about you between conversations. Stored on your Mac. Never includes specific names, emails, phone numbers, exact financials, or anything that looks like a secret. Conversation transcripts are deliberately not stored — chats are fleeting by design."
             )
 
-            SettingsSectionCard(title: "Behaviour", subtitle: "How LilJustin uses memory.") {
+            SettingsSectionCard(title: "Behaviour", subtitle: "How Orion uses memory.") {
                 Toggle(isOn: $autoExtractEnabled) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Auto-remember durable facts")
                             .font(.subheadline.weight(.medium))
-                        Text("After each substantive answer, run a one-shot extraction call on the connected provider to identify 0–2 facts worth saving. PII filter and prompt-side guidance keep sensitive specifics out. Off = LilJustin never adds memories on its own; you can still capture them manually with phrases like 'remember that…'")
+                        Text("After each substantive answer, run a one-shot extraction call on the connected provider to identify 0–2 facts worth saving. PII filter and prompt-side guidance keep sensitive specifics out. Off = Orion never adds memories on its own; you can still capture them manually with phrases like 'remember that…'")
                             .settingsCaption()
                     }
                 }

@@ -1,7 +1,7 @@
 import XCTest
 @testable import LilJustinCore
 
-/// The system prompt that ships to Mini Justin every turn pulls
+/// The system prompt that ships to Orion every turn pulls
 /// from `BusinessContext.systemPromptSection()`. A regression here
 /// would silently strip Sir's program details out of every answer
 /// without any visible UI cue. These tests pin the contract.

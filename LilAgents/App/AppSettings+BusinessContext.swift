@@ -66,10 +66,10 @@ extension AppSettings {
 extension Notification.Name {
     /// Fired when the saved business context changes (saved, edited,
     /// or cleared). Welcome panel listens to refresh the prompt card.
-    static let liLJustinBusinessContextDidChange = Notification.Name("LilJustinBusinessContextDidChange")
+    static let liLJustinBusinessContextDidChange = Notification.Name("OrionBusinessContextDidChange")
 
     /// Request that the Settings window route to a specific pane on
     /// next open (or immediately, if already visible). Object is the
     /// `SettingsPane.rawValue` to switch to.
-    static let liLJustinOpenSettingsPane = Notification.Name("LilJustinOpenSettingsPane")
+    static let liLJustinOpenSettingsPane = Notification.Name("OrionOpenSettingsPane")
 }

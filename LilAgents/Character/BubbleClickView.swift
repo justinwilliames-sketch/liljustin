@@ -4,7 +4,7 @@ import AppKit
 ///
 /// Forwards two lightweight interactions to the owning character:
 ///
-///   - `onClick` fires on `mouseDown`. When LilJustin is showing an
+///   - `onClick` fires on `mouseDown`. When Orion is showing an
 ///     ambient tip / quote / observation, clicking the bubble itself
 ///     (rather than the character sprite below it) opens the chat
 ///     pre-loaded to expand on the topic.
@@ -31,7 +31,7 @@ final class BubbleClickView: NSView {
         if let existing = trackingArea {
             removeTrackingArea(existing)
         }
-        // .activeAlways so hover registers even when the LilJustin
+        // .activeAlways so hover registers even when the Orion
         // process isn't the frontmost app — the bubble lives on the
         // user's primary workspace, not in our windowed UI.
         // .inVisibleRect so the area auto-resizes when the bubble is

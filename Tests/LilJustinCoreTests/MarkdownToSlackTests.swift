@@ -71,7 +71,7 @@ final class MarkdownToSlackTests: XCTestCase {
     }
 
     func testMultilineMixedFormattingDoesNotCorruptLinks() {
-        // The exact shape of a typical LilJustin Sources block. The
+        // The exact shape of a typical Orion Sources block. The
         // citation links must come through with the Slack
         // `<url|label>` form and the bold "Sources" header above
         // them must collapse `**` to `*`.

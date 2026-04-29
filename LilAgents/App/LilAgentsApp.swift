@@ -113,19 +113,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
     func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem?.button {
-            button.image = NSImage(named: "MenuBarIcon") ?? NSImage(systemSymbolName: "figure.walk", accessibilityDescription: "LilJustin")
+            button.image = NSImage(named: "MenuBarIcon") ?? NSImage(systemSymbolName: "figure.walk", accessibilityDescription: "Orion")
             button.image?.isTemplate = false
-            button.toolTip = "Open LilJustin"
+            button.toolTip = "Open Orion"
         }
 
         let menu = NSMenu()
 
-        let char1Item = NSMenuItem(title: "Show LilJustin", action: #selector(toggleChar1), keyEquivalent: "1")
+        let char1Item = NSMenuItem(title: "Show Orion", action: #selector(toggleChar1), keyEquivalent: "1")
         char1Item.state = .on
         menu.addItem(char1Item)
         self.char1Item = char1Item
 
-        let backToCharacterItem = NSMenuItem(title: "Back to LilJustin", action: #selector(backToCharacter), keyEquivalent: "")
+        let backToCharacterItem = NSMenuItem(title: "Back to Orion", action: #selector(backToCharacter), keyEquivalent: "")
         backToCharacterItem.isEnabled = false
         menu.addItem(backToCharacterItem)
         self.backToCharacterItem = backToCharacterItem
@@ -318,7 +318,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
                 backing: .buffered,
                 defer: false
             )
-            window.title = "LilJustin Settings"
+            window.title = "Orion Settings"
             window.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 11)
             window.collectionBehavior = [.canJoinAllSpaces]
             let hostingController = NSHostingController(rootView: SettingsView())
@@ -376,9 +376,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
         let command = "xattr -dr com.apple.quarantine /Applications/LilJustin.app"
 
         let alert = NSAlert()
-        alert.messageText = "LilJustin updated to \(current)"
+        alert.messageText = "Orion updated to \(current)"
         alert.informativeText = """
-            macOS may quarantine the new build the first time it relaunches and refuse to open it (you'll see "LilJustin can't be opened because Apple cannot check it for malicious software" or similar).
+            macOS may quarantine the new build the first time it relaunches and refuse to open it (you'll see "Orion can't be opened because Apple cannot check it for malicious software" or similar).
 
             Run this command in Terminal once to allow it through:
 

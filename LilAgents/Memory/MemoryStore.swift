@@ -3,7 +3,7 @@ import Foundation
 /// File-based CRUD over `MemoryEntry` instances.
 ///
 /// Each entry is one JSON file at
-/// `~/Library/Application Support/LilJustin/memory/<uuid>.json`.
+/// `~/Library/Application Support/Orion/memory/<uuid>.json`.
 /// One-file-per-entry mirrors how the global Claude memory system
 /// works — easy to inspect, edit, or delete from Finder, easy to
 /// back up, and atomic writes don't risk corrupting other entries.
@@ -18,7 +18,7 @@ enum MemoryStore {
     /// Notification fired whenever the store changes (save, delete,
     /// clear). The system-prompt builder and Settings UI both listen
     /// so they refresh without polling.
-    static let didChangeNotification = Notification.Name("LilJustinMemoryStoreDidChange")
+    static let didChangeNotification = Notification.Name("OrionMemoryStoreDidChange")
 
     // MARK: - Reading
 
@@ -107,7 +107,7 @@ enum MemoryStore {
             create: true
         ) else { return nil }
         let dir = support
-            .appendingPathComponent("LilJustin", isDirectory: true)
+            .appendingPathComponent("Orion", isDirectory: true)
             .appendingPathComponent("memory", isDirectory: true)
         if !fm.fileExists(atPath: dir.path) {
             try? fm.createDirectory(at: dir, withIntermediateDirectories: true)

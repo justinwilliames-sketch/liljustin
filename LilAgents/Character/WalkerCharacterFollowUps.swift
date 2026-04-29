@@ -5,7 +5,7 @@ extension WalkerCharacter {
     /// Spawn a one-shot Claude CLI call to generate two short follow-up
     /// suggestions based on the most recent assistant turn. Behaviour
     /// mirrors `generateAmbientLineViaLLM` in WalkerCharacterBubble:
-    /// background queue, 25s deadline, cwd pinned to the LilJustin temp
+    /// background queue, 25s deadline, cwd pinned to the Orion temp
     /// dir so we don't trigger TCC prompts in the user's home folders.
     ///
     /// Result is delivered on the main queue. Callers must defensively
@@ -35,11 +35,11 @@ extension WalkerCharacter {
         let trimmedAssistant = String(assistantReply.prefix(900))
 
         let prompt = """
-        You are LilJustin's follow-up suggester. Given the conversation excerpt below, output exactly TWO short follow-up questions the user might ask next, in their voice. Each ≤ 7 words. Practical and specific to the topic — not generic ("Tell me more"). Output ONLY a JSON array of two strings, no prose, no code fences, no surrounding quotes inside the strings.
+        You are Orion's follow-up suggester. Given the conversation excerpt below, output exactly TWO short follow-up questions the user might ask next, in their voice. Each ≤ 7 words. Practical and specific to the topic — not generic ("Tell me more"). Output ONLY a JSON array of two strings, no prose, no code fences, no surrounding quotes inside the strings.
 
         User asked: \(trimmedUser)
 
-        LilJustin replied: \(trimmedAssistant)
+        Orion replied: \(trimmedAssistant)
 
         Output:
         """

@@ -2,7 +2,7 @@ import Foundation
 
 /// Safety net for citation rendering.
 ///
-/// The system prompt instructs Mini Justin to emit Orbit guide
+/// The system prompt instructs Orion to emit Orbit guide
 /// citations as proper markdown links — `[Title](https://get.yourorbit.team/guides/<slug>)`.
 /// When he does, the renderer makes them clickable. This module catches
 /// the slip-cases: he names a slug as a bare token (`see apple-mpp-four-years`,

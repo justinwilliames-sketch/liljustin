@@ -189,7 +189,7 @@ extension WalkerCharacter {
             return
         }
 
-        // Sleep check — if LilJustin is sleeping (or just transitioned
+        // Sleep check — if Orion is sleeping (or just transitioned
         // into sleep), hold position and skip all movement logic. The
         // sleeping GIF is already swapped in by enterSleep().
         if updateSleepState() {

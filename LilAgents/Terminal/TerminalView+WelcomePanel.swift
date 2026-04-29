@@ -33,7 +33,7 @@ extension TerminalView {
     }
 
     var shouldShowStarterPackUpsell: Bool {
-        // LilJustin has no archive — the Starter Pack / LennyData
+        // Orion has no archive — the Starter Pack / LennyData
         // upsell is permanently disabled. Always false.
         false
     }
@@ -60,8 +60,8 @@ extension TerminalView {
     }
 
     func showOfficialMCPSetupPanel() {
-        // LilJustin: the lennysdata.com auth-key card is permanently disabled.
-        // Orbit content is free; LilJustin should never block the user behind
+        // Orion: the lennysdata.com auth-key card is permanently disabled.
+        // Orbit content is free; Orion should never block the user behind
         // an auth prompt for an upstream service it doesn't even use.
         AppSettings.mcpReconnectNeeded = false
         isShowingOfficialMCPSetupPanel = false

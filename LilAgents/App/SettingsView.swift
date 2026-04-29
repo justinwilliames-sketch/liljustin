@@ -3,14 +3,14 @@ import Combine
 import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case source       // Hidden in LilJustin — archive mode is not used.
+    case source       // Hidden in Orion — archive mode is not used.
     case models
     case businessContext
     case memory
     case about
     case developer
 
-    // LilJustin hides the `.source` pane (archive switcher) from the sidebar.
+    // Orion hides the `.source` pane (archive switcher) from the sidebar.
     // The pane itself stays in the file tree to keep the upstream merge surface small.
     static var allCases: [SettingsPane] { [.models, .businessContext, .memory, .about, .developer] }
 
@@ -121,7 +121,7 @@ struct SettingsView: View {
                 selectedPane = .models
             }
         }
-        .alert("Reset LilJustin data?", isPresented: $showResetConfirmation) {
+        .alert("Reset Orion data?", isPresented: $showResetConfirmation) {
             Button("Reset All Data", role: .destructive) {
                 do {
                     try AppSettings.resetAllData()
@@ -132,7 +132,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This clears LilJustin's saved token, API keys, model/runtime settings, onboarding state, and removes the archive MCP config it wrote for Claude and Codex.")
+            Text("This clears Orion's saved token, API keys, model/runtime settings, onboarding state, and removes the archive MCP config it wrote for Claude and Codex.")
         }
         .alert("Reset Failed", isPresented: Binding(
             get: { resetErrorMessage != nil },
@@ -153,7 +153,7 @@ struct SettingsView: View {
     }
 
     private var visiblePanes: [SettingsPane] {
-        // Lenny `.source` pane is intentionally absent — LilJustin doesn't
+        // Lenny `.source` pane is intentionally absent — Orion doesn't
         // use the upstream archive at all.
         var panes: [SettingsPane] = [.models, .businessContext, .memory, .about]
         if AppSettings.showsDeveloperTools {

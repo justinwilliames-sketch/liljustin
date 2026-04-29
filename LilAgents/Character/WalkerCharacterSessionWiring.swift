@@ -114,7 +114,7 @@ extension WalkerCharacter {
             // bails on chitchat / missing CLI.
             //
             // NB: conversation transcripts are deliberately NOT
-            // persisted — by design Mini Justin chats are fleeting.
+            // persisted — by design Orion chats are fleeting.
             // Only durable user-fact memories live across launches.
             if let session = self.claudeSession {
                 let history = session.history(for: self.focusedExpert)
@@ -199,8 +199,8 @@ extension WalkerCharacter {
             self?.terminalView?.clearApprovalRequest()
         }
 
-        // LilJustin: the archive auth-failure flow is intentionally a no-op.
-        // LilJustin doesn't use the upstream archive at all, and the session
+        // Orion: the archive auth-failure flow is intentionally a no-op.
+        // Orion doesn't use the upstream archive at all, and the session
         // parser sometimes mis-classifies "no archive MCP detected" (which is
         // always true for us) as "archive auth failed", which used to call
         // failTurn (chat shows error) and display the auth-key prompt. Both

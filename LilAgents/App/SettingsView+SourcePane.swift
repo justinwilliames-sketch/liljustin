@@ -7,7 +7,7 @@ extension SettingsView {
         return VStack(alignment: .leading, spacing: 20) {
             SettingsHeader(
                 title: "Lenny source",
-                subtitle: "Choose whether LilJustin answers from the local archive or the full archive MCP."
+                subtitle: "Choose whether Orion answers from the local archive or the full archive MCP."
             )
 
             SettingsSectionCard(title: "Answer source", subtitle: "Local archive is fast. Remote archive MCP is broader.") {
@@ -47,7 +47,7 @@ extension SettingsView {
                             SettingsInfoRow(
                                 icon: "checkmark.circle.fill",
                                 iconColor: .accentColor,
-                                text: "Your auth key is saved on this Mac. LilJustin will use it automatically when you send a message."
+                                text: "Your auth key is saved on this Mac. Orion will use it automatically when you send a message."
                             )
                         } else {
                             // Show a hint when native CLI config is detected but no Settings token
@@ -75,7 +75,7 @@ extension SettingsView {
                                 .buttonStyle(.bordered)
                             }
 
-                            Text("LilJustin stores this auth key locally on this Mac and, when you save it here, configures any detected Codex or Claude Code install for the official archive too.")
+                            Text("Orion stores this auth key locally on this Mac and, when you save it here, configures any detected Codex or Claude Code install for the official archive too.")
                                 .settingsCaption()
                         }
 
@@ -163,7 +163,7 @@ extension SettingsView {
             officialToken = trimmed
 
             if result.storedTokenOnly {
-                sourcePaneStatusMessage = "Saved locally. LilJustin will use it automatically, and detected CLI tools can be configured later."
+                sourcePaneStatusMessage = "Saved locally. Orion will use it automatically, and detected CLI tools can be configured later."
             } else {
                 let updated = result.updatedTargets.map(\.label)
                 let preserved = result.preservedTargets.map(\.label)

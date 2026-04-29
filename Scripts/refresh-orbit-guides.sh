@@ -2,7 +2,7 @@
 #
 # Refresh the bundled Orbit guides corpus.
 #
-# LilJustin ships with a snapshot of the live Orbit guides export so it
+# Orion ships with a snapshot of the live Orbit guides export so it
 # can ground answers in actual guide content offline. When new guides
 # go live or existing guides get edited, run this script to pull the
 # latest payload and commit the result.
@@ -29,7 +29,7 @@ curl -fsSL "$URL" -o "$TMP"
 
 # Sanity check + strip noise-only fields. The live export stamps an
 # `exportedAt` timestamp on every deploy, which would otherwise turn
-# every site redeploy into a "diff" and trigger a no-op LilJustin
+# every site redeploy into a "diff" and trigger a no-op Orion
 # release for users via Sparkle. The retrieval code never reads
 # `exportedAt`, so dropping it here gives us a deterministic file
 # whose hash only changes when actual guide content changes.

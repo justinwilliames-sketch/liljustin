@@ -95,15 +95,15 @@ enum OfficialMCPInstaller {
         let summary: String
         switch (detectedTargets.count, configuredTargets.count) {
         case (0, _):
-            summary = "No Claude Code or Codex install was detected yet. LilJustin will still save the key locally for later."
+            summary = "No Claude Code or Codex install was detected yet. Orion will still save the key locally for later."
         case (_, 2):
-            summary = "Claude Code and Codex are already detected. LilJustin will keep any existing archive MCP setup and prefer Claude Code first when both are available."
+            summary = "Claude Code and Codex are already detected. Orion will keep any existing archive MCP setup and prefer Claude Code first when both are available."
         case (_, 1):
             let detectedLabels = naturalList(detectedTargets.map(\.label))
             let configuredLabels = naturalList(configuredTargets.map(\.label))
-            summary = "\(detectedLabels) \(detectedTargets.count == 1 ? "is" : "are") detected. LilJustin will keep the existing archive MCP in \(configuredLabels) and configure the other detected client locally if needed."
+            summary = "\(detectedLabels) \(detectedTargets.count == 1 ? "is" : "are") detected. Orion will keep the existing archive MCP in \(configuredLabels) and configure the other detected client locally if needed."
         default:
-            summary = "LilJustin will detect Claude Code and Codex on this Mac, keep any existing archive MCP setup, and configure whichever detected clients still need it."
+            summary = "Orion will detect Claude Code and Codex on this Mac, keep any existing archive MCP setup, and configure whichever detected clients still need it."
         }
         logInstallTargetDiagnostics(context: "status summary", summary: summary)
         return summary
@@ -122,7 +122,7 @@ enum OfficialMCPInstaller {
         case (_, 1):
             hint = "\(naturalList(detectedTargets.map(\.label))) detected. Existing setup stays in place."
         default:
-            hint = "\(naturalList(detectedTargets.map(\.label))) detected. LilJustin will configure what is missing."
+            hint = "\(naturalList(detectedTargets.map(\.label))) detected. Orion will configure what is missing."
         }
 
         SessionDebugLogger.log("mcp-install", "context=compact hint | hint=\(hint)")

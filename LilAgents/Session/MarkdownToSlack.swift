@@ -1,7 +1,7 @@
 import Foundation
 
 /// Convert standard CommonMark-ish markdown into Slack mrkdwn so a
-/// LilJustin reply can be copied to the clipboard and pasted into a
+/// Orion reply can be copied to the clipboard and pasted into a
 /// Slack message with formatting intact.
 ///
 /// Slack mrkdwn diverges from CommonMark in three load-bearing ways:

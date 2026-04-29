@@ -1,7 +1,7 @@
 // swift-tools-version:5.9
 import PackageDescription
 
-// LilJustin's automated test surface.
+// Orion's automated test surface.
 //
 // The Xcode project (lil-agents.xcodeproj) builds the actual app.
 // This Package exists only to compile and run the regression tests

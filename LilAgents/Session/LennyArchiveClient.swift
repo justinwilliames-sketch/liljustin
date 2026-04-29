@@ -103,7 +103,7 @@ final class LennyArchiveClient {
                 "protocolVersion": protocolVersion,
                 "capabilities": [:],
                 "clientInfo": [
-                    "name": "LilJustin",
+                    "name": "Orion",
                     "version": "1.0"
                 ]
             ]

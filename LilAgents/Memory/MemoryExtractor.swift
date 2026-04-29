@@ -26,12 +26,12 @@ enum MemoryExtractor {
     /// Notification fired with `userInfo: ["memory": MemoryEntry]` when
     /// a candidate clears the sensitivity filter and lands on disk.
     /// Surfaces for an inline "remembered: X" toast (built later).
-    static let didExtractNotification = Notification.Name("LilJustinMemoryExtractorDidExtract")
+    static let didExtractNotification = Notification.Name("OrionMemoryExtractorDidExtract")
 
     /// Notification fired when extraction starts, finishes (success or
     /// failure), or is skipped. Useful for debug tooling. Object is the
     /// `Phase` value below.
-    static let didChangePhaseNotification = Notification.Name("LilJustinMemoryExtractorDidChangePhase")
+    static let didChangePhaseNotification = Notification.Name("OrionMemoryExtractorDidChangePhase")
 
     enum Phase: Equatable {
         case skipped(reason: String)
@@ -122,7 +122,7 @@ enum MemoryExtractor {
             : ""
 
         return """
-        You are extracting durable facts about a CRM/lifecycle marketing operator from their last conversation turn, for long-term memory used by LilJustin (a desktop companion that grounds future answers in remembered context).
+        You are extracting durable facts about a CRM/lifecycle marketing operator from their last conversation turn, for long-term memory used by Orion (a desktop companion that grounds future answers in remembered context).
 
         Read the exchange below. Output JSON listing 0–2 facts worth remembering for future conversations. Quality > quantity. If nothing about this turn is worth remembering, return an empty list.
 

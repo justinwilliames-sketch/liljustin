@@ -202,7 +202,7 @@ class LilAgentsController {
 
     /// Wired up once at start(). Subscribes to:
     ///   - NSApplication.didBecomeActiveNotification — fires when
-    ///     LilJustin returns to foreground (clicks into the popover,
+    ///     Orion returns to foreground (clicks into the popover,
     ///     etc.). Refresh first thing.
     ///   - DistributedNotificationCenter "com.apple.dock.prefchanged"
     ///     — the Dock app posts this whenever it writes new prefs
@@ -221,7 +221,7 @@ class LilAgentsController {
             object: nil
         )
         // One initial sync so the first tick after launch already
-        // sees any pending updates that landed before LilJustin
+        // sees any pending updates that landed before Orion
         // attached its observers.
         refreshDockPreferences()
     }
@@ -274,8 +274,8 @@ class LilAgentsController {
     /// the canonical level eliminates that whole class of mistake.
     ///
     /// Diagnostic candidates are NSLog'd whenever the picked pill moves
-    /// (or no pill is found), tagged with "[LilJustin]" — visible in
-    /// Console.app via Action ▸ Include Info Messages, filter "LilJustin".
+    /// (or no pill is found), tagged with "[Orion]" — visible in
+    /// Console.app via Action ▸ Include Info Messages, filter "Orion".
     /// If a future macOS reshapes the Dock window topology we can read
     /// the log and adjust the filter without another full revert.
     ///
@@ -325,7 +325,7 @@ class LilAgentsController {
         guard let pill = qualified.max(by: { $0.rect.width < $1.rect.width }) else {
             if lastLoggedPillBounds != nil {
                 lastLoggedPillBounds = nil
-                NSLog("[LilJustin] Dock pill: NO MATCH (level=\(dockLevel), bottomQuartz=\(screenBottomQuartz))\n" + diagLines.joined(separator: "\n"))
+                NSLog("[Orion] Dock pill: NO MATCH (level=\(dockLevel), bottomQuartz=\(screenBottomQuartz))\n" + diagLines.joined(separator: "\n"))
             }
             return nil
         }
@@ -346,7 +346,7 @@ class LilAgentsController {
 
         if changed {
             lastLoggedPillBounds = cocoaRect
-            NSLog("[LilJustin] Dock pill picked: \(cocoaRect) (level=\(dockLevel))\n" + diagLines.joined(separator: "\n"))
+            NSLog("[Orion] Dock pill picked: \(cocoaRect) (level=\(dockLevel))\n" + diagLines.joined(separator: "\n"))
         }
 
         return cocoaRect

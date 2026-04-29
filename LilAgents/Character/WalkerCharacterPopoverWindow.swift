@@ -2,7 +2,7 @@ import AppKit
 
 private struct ExpertSwitcherEntry: Equatable {
     enum Destination: Equatable {
-        case justin
+        case orion
         case expert(name: String, avatarPath: String)
     }
 
@@ -17,7 +17,7 @@ private struct ExpertSwitcherEntry: Equatable {
     }
 
     var isJustin: Bool {
-        if case .justin = destination { return true }
+        if case .orion = destination { return true }
         return false
     }
 }
@@ -36,11 +36,11 @@ private enum ExpertSwitcherCatalog {
 
         var entries: [ExpertSwitcherEntry] = [
             ExpertSwitcherEntry(
-                id: "justin",
-                name: "LilJustin",
+                id: "orion",
+                name: "Orion",
                 title: "Founder of Orbit",
                 avatarPath: nil,
-                destination: .justin
+                destination: .orion
             )
         ]
 
@@ -116,7 +116,7 @@ private final class ExpertSwitcherRowView: NSTableCellView {
             avatarView.isHidden = false
             fallbackIcon.isHidden = true
         } else if entry.isJustin, let orbitLogo = NSImage(named: "OrbitLogo") {
-            // LilJustin row → show the Orbit logo (bundled imageset, white
+            // Orion row → show the Orbit logo (bundled imageset, white
             // mark on transparent). Tinted with the theme accent so it picks
             // up the indigo brand colour against the row background.
             avatarView.image = nil
@@ -522,8 +522,8 @@ extension WalkerCharacter {
         titleLabel.usesSingleLineMode = true
         popoverTitleLabel = titleLabel
 
-        // Expert switcher button — LilJustin is the only persona in
-        // LilJustin, so the switcher dropdown has nothing meaningful to
+        // Expert switcher button — Orion is the only persona in
+        // Orion, so the switcher dropdown has nothing meaningful to
         // offer. Created (so the rest of the layout maths still has the
         // reference) but hidden + disabled. Removing it entirely would
         // require rewiring layout constraints throughout the title bar.
@@ -667,13 +667,13 @@ extension WalkerCharacter {
         returnPill.layer?.borderWidth = 0.75
         returnPill.layer?.borderColor = t.separatorColor.withAlphaComponent(0.55).cgColor
         returnPill.attributedTitle = NSAttributedString(
-            string: "Back to LilJustin",
+            string: "Back to Orion",
             attributes: [
                 .font: NSFont.systemFont(ofSize: 11, weight: .medium),
                 .foregroundColor: t.accentColor
             ]
         )
-        returnPill.toolTip = "Return to LilJustin"
+        returnPill.toolTip = "Return to Orion"
         returnPill.isHidden = true
         titleBar.addSubview(returnPill)
         popoverReturnButton = returnPill
@@ -764,7 +764,7 @@ extension WalkerCharacter {
         let entries = availableExpertSwitcherEntries()
         guard !entries.isEmpty else { return }
 
-        let currentSelectionID = focusedExpert.map { "expert:\($0.name)" } ?? "justin"
+        let currentSelectionID = focusedExpert.map { "expert:\($0.name)" } ?? "orion"
         let controller = ExpertSwitcherViewController(
             theme: resolvedTheme,
             entries: entries,
@@ -776,7 +776,7 @@ extension WalkerCharacter {
             WalkerCharacter.playSelectionSound()
 
             switch entry.destination {
-            case .justin:
+            case .orion:
                 guard self.focusedExpert != nil else { return }
                 self.controller?.returnToGenie()
             case .expert(let name, let avatarPath):

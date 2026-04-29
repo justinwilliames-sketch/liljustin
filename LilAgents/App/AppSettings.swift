@@ -8,20 +8,20 @@ enum AppSettings {
     /// Two reasons this lives in AppSettings rather than at each
     /// spawn site:
     ///   1. Without an explicit cwd, the spawned CLI inherits whatever
-    ///      directory LilJustin happened to be launched in. After a
+    ///      directory Orion happened to be launched in. After a
     ///      Sparkle relaunch that's often `~/Downloads` (where Finder
     ///      runs the unsigned-app open dialog) — every ambient-bubble
     ///      spawn then triggers a TCC prompt for Downloads access. Bug
     ///      shipped in v0.1.15, fixed in v0.1.24.
     ///   2. Some prompts/tool-use surfaces echo the cwd back to the
-    ///      model, so the directory name needs to read as LilJustin —
+    ///      model, so the directory name needs to read as Orion —
     ///      not "Downloads" or some random temp slug.
     ///
     /// The temp dir is created on demand and lives at
-    /// `$TMPDIR/LilJustinCLI`, which the OS cleans up periodically.
+    /// `$TMPDIR/OrionCLI`, which the OS cleans up periodically.
     /// The CLI doesn't store anything important there.
     static func cliWorkingDirectoryURL() -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("LilJustinCLI", isDirectory: true)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("OrionCLI", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -165,7 +165,7 @@ enum AppSettings {
         }
     }
 
-    /// AI-generated ambient comments. When ON, LilJustin makes a
+    /// AI-generated ambient comments. When ON, Orion makes a
     /// one-shot LLM call (via the connected provider) to generate a
     /// fresh ambient bubble line every 90–240s of idle time. Falls
     /// back to a hardcoded pool if the provider call fails or no
@@ -354,7 +354,7 @@ enum AppSettings {
 }
 
 extension Notification.Name {
-    static let liLJustinDidResetData = Notification.Name("LilJustinDidResetData")
+    static let liLJustinDidResetData = Notification.Name("OrionDidResetData")
 }
 
 // MARK: - MCP mirror from Claude Desktop → Claude Code
@@ -395,8 +395,8 @@ extension AppSettings {
     /// entries to Claude Code's `~/.claude.json`. Existing Claude Code
     /// MCP entries are NEVER overwritten — same-named MCP in both
     /// configs leaves Claude Code's version untouched. The `claude`
-    /// CLI (which LilJustin spawns for chat) reads `~/.claude.json`,
-    /// so any MCP added here becomes available to LilJustin.
+    /// CLI (which Orion spawns for chat) reads `~/.claude.json`,
+    /// so any MCP added here becomes available to Orion.
     ///
     /// Backs up `~/.claude.json` to `~/.claude.json.liljustin-backup`
     /// before writing. If Claude Desktop's config is missing or
@@ -455,7 +455,7 @@ extension AppSettings {
         }
         do {
             try merged.write(to: claudeCodeConfigURL)
-            NSLog("[LilJustin] Mirrored \(added.count) MCPs from Claude Desktop: \(added.joined(separator: ", "))")
+            NSLog("[Orion] Mirrored \(added.count) MCPs from Claude Desktop: \(added.joined(separator: ", "))")
             return MCPSyncResult(added: added, skipped: skipped, error: nil)
         } catch {
             return MCPSyncResult(added: [], skipped: skipped, error: "Couldn't write ~/.claude.json: \(error.localizedDescription)")
@@ -495,7 +495,7 @@ extension AppSettings {
                 if want { try service.register() }
             }
         } catch {
-            NSLog("[LilJustin] Launch-at-login update failed: \(error.localizedDescription)")
+            NSLog("[Orion] Launch-at-login update failed: \(error.localizedDescription)")
         }
     }
 }
