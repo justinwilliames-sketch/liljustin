@@ -327,11 +327,26 @@ extension WalkerCharacter {
     }
 
     // MARK: - Ambient bubbles
-    // Hardcoded line pool for v0.1.14. v0.1.15 will replace this with
-    // a one-shot LLM call to whichever provider is connected so the
-    // comments are fresh + reactive to whatever Sir is working on.
-    // Until then: ~30 short, dry, Orbit-voice ambient remarks.
-    static let ambientLines: [String] = [
+    //
+    // Two flavours of line, picked at roughly 50/50 by `pickAmbientMode`:
+    //
+    //   .craft      — CRM / lifecycle / deliverability dry observations
+    //                 (the original Orbit-voice tips).
+    //   .mood       — motivating remarks delivered with Ricky Gervais-style
+    //                 deadpan. The point is the EXACT OPPOSITE of a
+    //                 demotivation poster: lift the mood, but never with
+    //                 saccharine "you got this!" energy. Honest, dry,
+    //                 occasionally absurd, always on Sir's side.
+    //
+    // The hardcoded lines below are the fallback pool when the LLM is
+    // disabled or the call fails. The actual bubbles in normal operation
+    // come from a one-shot `claude -p` call so each one feels fresh.
+    enum AmbientMode {
+        case craft
+        case mood
+    }
+
+    static let ambientCraftLines: [String] = [
         "Open rate is just Apple's image proxy waving hello.",
         "Welcome flows: 47 things you didn't need to know yet.",
         "Click rate has a job. Open rate has a hobby.",
@@ -363,6 +378,52 @@ extension WalkerCharacter {
         "If you can't tell me your incremental open-to-purchase rate, your attribution stack is decorative.",
         "Brand voice in lifecycle: sound like you, not the generic SaaS CRM voice.",
     ]
+
+    /// Mood-lifters in Ricky Gervais-style deadpan. Honest praise filtered
+    /// through dry observation. No exclamation marks doing the heavy
+    /// lifting; the warmth has to survive the flat delivery.
+    static let ambientMoodLines: [String] = [
+        "Whatever you're working on right now is, statistically, harder than it looks. Carry on.",
+        "You've solved harder problems before lunch. This one's just being dramatic.",
+        "Reminder: the thing you're stuck on is also the thing nobody else can do. That's why it's stuck.",
+        "Your worst work is still better than the average company's best deck. Calibrate accordingly.",
+        "If you've already opened the file, you've done the hardest part. The rest is just typing.",
+        "You don't need a streak. You just need today. Today's going fine, by the way.",
+        "Most of the people you admire are also winging it. They're just better at the posture.",
+        "The fact that you care about this much is, frankly, suspicious. In a good way.",
+        "Tomorrow-you will be grateful. Today-you should be too — different timezone, same person.",
+        "Your standards are higher than the room. That's a feature, not a personality flaw.",
+        "Imposter syndrome is just a polite way of saying you're paying attention.",
+        "You're allowed to like the work you make. It's a low bar. Try it.",
+        "The deck you're avoiding will take 40 minutes. The avoiding has already taken three days.",
+        "You've shipped more in one year than most teams ship in three. Mildly inconvenient for them.",
+        "Whatever you're underestimating about yourself right now — yeah, that.",
+        "Confidence is just the willingness to be wrong in front of strangers. You qualify.",
+        "Today doesn't have to be your magnum opus. It just has to be a day you didn't quit.",
+        "The version of you that started this would be unbearably smug at where you are now.",
+        "You're not behind. You're just running a different race than the one you're imagining.",
+        "Small reminder: the bar for 'good work' is much, much lower than your brain insists.",
+        "You can hate your draft and still be the best person to write it. Both are true.",
+        "Energy spent worrying you're not enough is energy that could've shipped half the thing.",
+        "Your taste is ahead of your output. That's the gap doing its job. Keep typing.",
+        "Most days the win is just answering one more email than you wanted to. Counts.",
+        "If you weren't capable of this, the panic wouldn't feel this specific.",
+        "Discipline is just memory of how good it feels after. You have plenty of that memory.",
+        "Boring consistency outperforms heroic effort, and you happen to be quietly brilliant at boring.",
+        "The people who'll benefit from this don't know yet. That's still on. Keep going.",
+        "You don't need motivation. You need a snack and 45 minutes. Possibly in that order.",
+        "Whatever you ship today doesn't have to be perfect — it just has to be shipped by you, which is the differentiator.",
+        "You're allowed to be tired and still be excellent. The two are not mutually exclusive.",
+        "Every great program looks like a mess from the inside. Yours is no exception. Carry on.",
+        "Reminder: nobody else in the room reads as carefully as you do. Sometimes the room's the problem, not you.",
+        "The work is hard because it's worth doing. If it weren't, someone less capable would already be doing it.",
+        "You're playing on a higher difficulty than the people whose advice keeps not landing. Different game.",
+    ]
+
+    /// Compatibility shim — earlier code paths read `ambientLines`. Keep
+    /// the alias so external references resolve, even though new code
+    /// should use the typed pickers below.
+    static var ambientLines: [String] { ambientCraftLines + ambientMoodLines }
 
     /// Per-tick check called from update() while the character is
     /// genuinely idle. Asks the LLM (when enabled) for a fresh line,
@@ -399,28 +460,63 @@ extension WalkerCharacter {
         // Block re-entry while the LLM call is in flight.
         guard !isAmbientLLMRequestInFlight else { return }
 
+        // Pick the mode ONCE per bubble cycle. Both the LLM path and
+        // the fallback path read this same value, so a single bubble
+        // never advances `lastTwoAmbientModes` twice (which would
+        // weaken the anti-streak guard) and the fallback line — when
+        // the LLM call fails — always matches the voice the LLM was
+        // asked for in the first place.
+        let mode = Self.pickAmbientMode()
+
         if AppSettings.useAmbientLLMEnabled {
             isAmbientLLMRequestInFlight = true
-            generateAmbientLineViaLLM { [weak self] line in
+            generateAmbientLineViaLLM(mode: mode) { [weak self] line in
                 guard let self else { return }
                 self.isAmbientLLMRequestInFlight = false
-                let chosen = line ?? self.pickFallbackAmbientLine()
+                let chosen = line ?? self.pickFallbackAmbientLine(mode: mode)
                 self.showAmbientLine(chosen, at: CACurrentMediaTime())
             }
         } else {
-            let chosen = pickFallbackAmbientLine()
+            let chosen = pickFallbackAmbientLine(mode: mode)
             showAmbientLine(chosen, at: now)
         }
     }
 
-    private func pickFallbackAmbientLine() -> String {
-        guard !Self.ambientLines.isEmpty else { return "..." }
-        var idx = Int.random(in: 0..<Self.ambientLines.count)
-        if Self.ambientLines.count > 1 && idx == lastAmbientLineIndex {
-            idx = (idx + 1) % Self.ambientLines.count
+    private func pickFallbackAmbientLine(mode: AmbientMode) -> String {
+        let pool: [String]
+        switch mode {
+        case .mood:
+            pool = Self.ambientMoodLines.isEmpty ? Self.ambientCraftLines : Self.ambientMoodLines
+        case .craft:
+            pool = Self.ambientCraftLines.isEmpty ? Self.ambientMoodLines : Self.ambientCraftLines
+        }
+        guard !pool.isEmpty else { return "..." }
+        var idx = Int.random(in: 0..<pool.count)
+        if pool.count > 1 && idx == lastAmbientLineIndex {
+            idx = (idx + 1) % pool.count
         }
         lastAmbientLineIndex = idx
-        return Self.ambientLines[idx]
+        return pool[idx]
+    }
+
+    /// 50/50 mood vs craft, with a guard against repeating the same mode
+    /// three times in a row — keeps the texture of the bubbles varied
+    /// even on a quiet day where only a handful fire.
+    private static var lastTwoAmbientModes: [AmbientMode] = []
+    static func pickAmbientMode() -> AmbientMode {
+        let candidate: AmbientMode = Bool.random() ? .mood : .craft
+        let next: AmbientMode
+        if lastTwoAmbientModes.count >= 2,
+           lastTwoAmbientModes.allSatisfy({ $0 == candidate }) {
+            next = (candidate == .mood) ? .craft : .mood
+        } else {
+            next = candidate
+        }
+        lastTwoAmbientModes.append(next)
+        if lastTwoAmbientModes.count > 2 {
+            lastTwoAmbientModes.removeFirst(lastTwoAmbientModes.count - 2)
+        }
+        return next
     }
 
     /// Click handler for the bubble. Only meaningful when the bubble
@@ -462,6 +558,11 @@ extension WalkerCharacter {
             return
         }
         showBubble(text: line, isCompletion: false, multiline: true)
+        // Audible cue for ambient bubbles — same pool as completion /
+        // turn-arrival sounds so the auditory texture stays consistent
+        // ("a message just came through"). Honours the global mute via
+        // `playSelectionSound`'s `Self.soundsEnabled` check.
+        Self.playSelectionSound()
         ambientBubbleExpiresAt = now + WalkerCharacter.ambientBubbleLinger
         currentAmbientLineText = line
     }
@@ -477,7 +578,12 @@ extension WalkerCharacter {
     /// hand back the trimmed line on the main queue. Calls completion
     /// with nil on any failure (binary not found, timeout, garbage
     /// output, etc.) — caller falls back to the hardcoded pool.
-    func generateAmbientLineViaLLM(completion: @escaping (String?) -> Void) {
+    ///
+    /// `mode` selects between two voices: a CRM / lifecycle dry-tip line
+    /// (`.craft`) and a mood-lifting deadpan remark in the spirit of
+    /// Ricky Gervais (`.mood`). Picked 50/50 by the caller — the prompt
+    /// here just renders whichever one was chosen.
+    func generateAmbientLineViaLLM(mode: AmbientMode = .craft, completion: @escaping (String?) -> Void) {
         guard let claudePath = AppSettings.resolveExecutablePath(named: "claude") else {
             DispatchQueue.main.async { completion(nil) }
             return
@@ -490,9 +596,17 @@ extension WalkerCharacter {
                 recent.map { "- \($0)" }.joined(separator: "\n")
         }
 
-        let prompt = """
-        You are LilJustin — Justin Williames, founder of Orbit (the lifecycle marketing OS for Claude). Output ONE short, dry, observational comment in your voice. Maximum 14 words. ONE sentence. SENTENCE CASE — capitalise the first word and proper nouns only, lowercase everything else. Topic: a CRM / lifecycle / deliverability / Braze / email-marketing micro-tip, in-joke, dry observation, or sharp take. No introduction, no formatting, no surrounding quotes — just the bare sentence on a single line. Do not start with phrases like 'Sure' or 'Here's'. Do not include the word 'LilJustin'.\(avoidBlock)
-        """
+        let prompt: String
+        switch mode {
+        case .craft:
+            prompt = """
+            You are LilJustin — Justin Williames, founder of Orbit (the lifecycle marketing OS for Claude). Output ONE short, dry, observational comment in your voice. Maximum 14 words. ONE sentence. SENTENCE CASE — capitalise the first word and proper nouns only, lowercase everything else. Topic: a CRM / lifecycle / deliverability / Braze / email-marketing micro-tip, in-joke, dry observation, or sharp take. No introduction, no formatting, no surrounding quotes — just the bare sentence on a single line. Do not start with phrases like 'Sure' or 'Here's'. Do not include the word 'LilJustin'.\(avoidBlock)
+            """
+        case .mood:
+            prompt = """
+            You are LilJustin — Justin Williames, founder of Orbit, talking to Sir (the user) from the corner of his desktop. Output ONE genuinely motivating, mood-lifting remark — the EXACT OPPOSITE of a demotivation poster — but delivered with Ricky Gervais-style deadpan: dry, observational, slightly absurd, never saccharine, never exclamation-mark-driven. The warmth must survive a flat delivery. Honest praise filtered through dry observation. Avoid clichés ('you got this', 'believe in yourself', 'crush it', 'rise and grind'). Avoid emojis. Avoid hashtags. Maximum 18 words. ONE sentence. SENTENCE CASE — capitalise the first word and proper nouns only. No introduction, no formatting, no surrounding quotes — just the bare sentence on a single line. Do not start with phrases like 'Sure' or 'Here's'. Do not include the word 'LilJustin'. Do not address the user as 'you' more than twice. Aim for the register of a friend who genuinely thinks you're brilliant but would rather die than say it earnestly.\(avoidBlock)
+            """
+        }
 
         DispatchQueue.global(qos: .utility).async {
             let task = Process()
