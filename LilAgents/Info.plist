@@ -44,8 +44,15 @@
     <string>bNQR7ti9TfIVO9mwWWH5hge2A8JzV98AczkncKfitQY=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
+    <!-- Check every 30 minutes. Default was 86400 (24h), which made
+         Sir's "Sparkle always one behind" experience: during active
+         iteration he'd accept a v0.1.X prompt by which time v0.1.X+1
+         had shipped, and Sparkle wouldn't notice for another 24h
+         without an app relaunch. 1800s closes the gap for active
+         users without being noisy — most installs upgrade within
+         an hour of a tag landing. -->
     <key>SUScheduledCheckInterval</key>
-    <integer>86400</integer>
+    <integer>1800</integer>
 
     <!-- TCC usage descriptions.
          LilJustin spawns Claude Code / Codex CLI as subprocesses to
