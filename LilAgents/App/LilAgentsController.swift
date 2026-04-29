@@ -33,6 +33,7 @@ class LilAgentsController {
 
         setupDebugLine()
         startDisplayLink()
+        registerDockRefreshObservers()
 
         if !UserDefaults.standard.bool(forKey: Self.onboardingKey) {
             triggerOnboarding()
@@ -177,6 +178,70 @@ class LilAgentsController {
         win.setFrame(CGRect(x: dockX, y: dockTopY, width: dockWidth, height: 2), display: true)
     }
 
+    // MARK: - Dock prefs cache invalidation
+
+    /// Force cfprefsd to flush its cache for com.apple.dock so the
+    /// next read picks up icon adds/removes immediately. Called on
+    /// app activation, on the dock's own prefs-changed distributed
+    /// notification, and at intervals from the tick loop.
+    @objc func refreshDockPreferences() {
+        let dockDomain = "com.apple.dock" as CFString
+        CFPreferencesAppSynchronize(dockDomain)
+    }
+
+    /// Wired up once at start(). Subscribes to:
+    ///   - NSApplication.didBecomeActiveNotification — fires when
+    ///     LilJustin returns to foreground (clicks into the popover,
+    ///     etc.). Refresh first thing.
+    ///   - DistributedNotificationCenter "com.apple.dock.prefchanged"
+    ///     — the Dock app posts this whenever it writes new prefs
+    ///     (icons added/removed/reordered, tile size changed).
+    func registerDockRefreshObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshDockPreferences),
+            name: NSApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        DistributedNotificationCenter.default().addObserver(
+            self,
+            selector: #selector(refreshDockPreferences),
+            name: NSNotification.Name("com.apple.dock.prefchanged"),
+            object: nil
+        )
+        // One initial sync so the first tick after launch already
+        // sees any pending updates that landed before LilJustin
+        // attached its observers.
+        refreshDockPreferences()
+    }
+
+    // Helpers — read Dock prefs via CFPreferences directly. Bypasses
+    // UserDefaults' per-process cache so updates from the Dock app
+    // propagate within one tick after refreshDockPreferences fires.
+    private func readDockNumber(key: String, default fallback: Double) -> Double {
+        let dockDomain = "com.apple.dock" as CFString
+        if let value = CFPreferencesCopyAppValue(key as CFString, dockDomain) as? NSNumber {
+            return value.doubleValue
+        }
+        return fallback
+    }
+
+    private func readDockBool(key: String, default fallback: Bool) -> Bool {
+        let dockDomain = "com.apple.dock" as CFString
+        if let value = CFPreferencesCopyAppValue(key as CFString, dockDomain) as? NSNumber {
+            return value.boolValue
+        }
+        return fallback
+    }
+
+    private func readDockArrayCount(key: String) -> Int {
+        let dockDomain = "com.apple.dock" as CFString
+        if let value = CFPreferencesCopyAppValue(key as CFString, dockDomain) as? [Any] {
+            return value.count
+        }
+        return 0
+    }
+
     // MARK: - Dock Geometry
 
     private func getDockIconArea(screen: NSScreen) -> (x: CGFloat, width: CGFloat) {
@@ -184,30 +249,26 @@ class LilAgentsController {
         // attempts to "do better" via CGWindowListCopyWindowInfo
         // (v0.1.57, v0.1.59) each picked a wrong-sized Dock-owned
         // window — first too wide (click-catcher layer), then too
-        // narrow (smallest-width matching window). The original
-        // estimator below was a deliberate approximation that
-        // worked well in practice.
+        // narrow (smallest-width matching window).
         //
-        // Math: total icons (persistent-apps + persistent-others +
-        // recent-apps when show-recents) × tile slot width × 1.25
-        // padding factor, plus 12pt for each section divider, plus
-        // edge padding scaled with tile size. The 45% screen-width
-        // floor at the bottom is upstream's belt-and-braces — it
-        // ensures the walkable range is generous even when the dock
-        // is tiny, accepting that the character may walk slightly
-        // past the visible icons in those edge cases.
-        let dockDefaults = UserDefaults(suiteName: "com.apple.dock")
-        let tileSize = CGFloat(dockDefaults?.double(forKey: "tilesize") ?? 48)
+        // Reads use CFPreferencesCopyAppValue rather than
+        // UserDefaults(suiteName:) — the latter has a per-process
+        // cache that doesn't always invalidate when the Dock app
+        // writes new prefs (e.g. when Sir drag-removes an icon).
+        // CFPreferencesCopyAppValue hits cfprefsd directly each call
+        // so changes show up on the next tick after a sync, no app
+        // restart needed.
+        let dockDomain = "com.apple.dock" as CFString
+
+        let tileSize = CGFloat(readDockNumber(key: "tilesize", default: 48))
         // Each dock slot is the icon + padding. The padding scales with tile size.
         // At default 48pt: slot ≈ 58pt. At 37pt: slot ≈ 47pt. Roughly tileSize * 1.25.
         let slotWidth = tileSize * 1.25
 
-        let persistentApps = dockDefaults?.array(forKey: "persistent-apps")?.count ?? 0
-        let persistentOthers = dockDefaults?.array(forKey: "persistent-others")?.count ?? 0
-
-        // Only count recent apps if show-recents is enabled
-        let showRecents = dockDefaults?.bool(forKey: "show-recents") ?? true
-        let recentApps = showRecents ? (dockDefaults?.array(forKey: "recent-apps")?.count ?? 0) : 0
+        let persistentApps = readDockArrayCount(key: "persistent-apps")
+        let persistentOthers = readDockArrayCount(key: "persistent-others")
+        let showRecents = readDockBool(key: "show-recents", default: true)
+        let recentApps = showRecents ? readDockArrayCount(key: "recent-apps") : 0
         let totalIcons = persistentApps + persistentOthers + recentApps
 
         var dividers = 0
@@ -220,13 +281,13 @@ class LilAgentsController {
         var dockWidth = slotWidth * CGFloat(totalIcons) + CGFloat(dividers) * dividerWidth
         let edgePadding = max(14.0, tileSize * 0.28)
 
-        let magnificationEnabled = dockDefaults?.bool(forKey: "magnification") ?? false
-        if magnificationEnabled,
-           let largeSize = dockDefaults?.object(forKey: "largesize") as? CGFloat {
+        let magnificationEnabled = readDockBool(key: "magnification", default: false)
+        if magnificationEnabled {
             // Magnification only affects the hovered area; at rest the dock is normal size.
             // Don't inflate the width — characters should stay within the at-rest bounds.
-            _ = largeSize
+            _ = readDockNumber(key: "largesize", default: 0)
         }
+        _ = dockDomain  // referenced by helpers below — keeps intent clear
 
         if totalIcons == 0 {
             dockWidth = max(220.0, tileSize * 4.0)

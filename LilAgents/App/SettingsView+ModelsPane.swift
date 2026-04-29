@@ -119,6 +119,23 @@ extension SettingsView {
                 subtitle: "Credits, project story, and links to learn more."
             )
 
+            SettingsSectionCard(title: "Version", subtitle: "Which release of LilJustin you're running.") {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 8) {
+                        Text("LilJustin")
+                            .font(.subheadline.weight(.medium))
+                        Text(Self.formattedAppVersion())
+                            .font(.subheadline.monospaced())
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                    }
+                    Text("Sparkle checks for updates automatically every 24 hours. You can also click 'Check for Updates…' from the menu bar icon.")
+                        .settingsCaption()
+                    Link("All releases on GitHub", destination: URL(string: "https://github.com/justinwilliames-sketch/liljustin/releases")!)
+                        .font(.subheadline.weight(.medium))
+                }
+            }
+
             SettingsSectionCard(title: "Credits", subtitle: "Original projects this builds on.") {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("LilJustin is built on top of the original lil agents project by Ryan Stephen, and the Lil-Lenny fork by Ben Shih.")
@@ -148,6 +165,28 @@ extension SettingsView {
                 }
             }
         }
+    }
+
+    /// Human-readable build label.
+    /// Format: `v0.1.63 (build 142)` when both fields are present;
+    /// gracefully degrades when one is missing.
+    static func formattedAppVersion() -> String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let short = (info["CFBundleShortVersionString"] as? String) ?? ""
+        let build = (info["CFBundleVersion"] as? String) ?? ""
+        let cleanedShort = short.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedBuild = build.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !cleanedShort.isEmpty && !cleanedBuild.isEmpty {
+            return "v\(cleanedShort) (build \(cleanedBuild))"
+        }
+        if !cleanedShort.isEmpty {
+            return "v\(cleanedShort)"
+        }
+        if !cleanedBuild.isEmpty {
+            return "build \(cleanedBuild)"
+        }
+        return "version unknown"
     }
 
     var developerPane: some View {
