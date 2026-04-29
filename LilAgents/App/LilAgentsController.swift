@@ -179,103 +179,23 @@ class LilAgentsController {
 
     // MARK: - Dock Geometry
 
-    /// Ask the Window Server directly for the Dock process's
-    /// visible-pill bounds on this screen. The Dock app owns
-    /// several windows simultaneously (backdrop, running-app
-    /// indicator dots, magnification overlay, click-through gesture
-    /// catchers that span much of the screen). We need to pick the
-    /// VISIBLE PILL, not the click-through layer.
-    ///
-    /// v0.1.57 used "largest area" — that tended to grab an
-    /// oversized click-catcher window that extended beyond the
-    /// visible dock pill, so LilJustin walked past the visible
-    /// trash icon. v0.1.59 tightens the filter:
-    ///   1. Bottom edge within 12pt of screen bottom (the pill is
-    ///      pinned).
-    ///   2. Height in the typical dock pill range (40–160pt).
-    ///   3. Width <= 90% of screen width (excludes screen-spanning
-    ///      click-catchers).
-    ///   4. Among matches, prefer the SMALLEST width — that's the
-    ///      visible pill, not any wider invisible companion.
-    ///
-    /// Returns nil if no Dock window matches. Caller falls back to
-    /// the UserDefaults estimator.
-    private func readDockWindowBounds(on screen: NSScreen) -> CGRect? {
-        let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
-        guard let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else {
-            return nil
-        }
-
-        let screenFrame = screen.frame
-        let primaryHeight = NSScreen.screens.first?.frame.height ?? screenFrame.height
-
-        var candidates: [CGRect] = []
-
-        for window in windowList {
-            guard let ownerName = window[kCGWindowOwnerName as String] as? String,
-                  ownerName == "Dock" else { continue }
-            guard let boundsDict = window[kCGWindowBounds as String] as? [String: Any],
-                  let x = boundsDict["X"] as? CGFloat,
-                  let y = boundsDict["Y"] as? CGFloat,
-                  let width = boundsDict["Width"] as? CGFloat,
-                  let height = boundsDict["Height"] as? CGFloat else { continue }
-
-            // CGWindowListCopyWindowInfo Y is flipped (origin top-left
-            // of primary display). Convert to Cocoa Y.
-            let flippedY = primaryHeight - y - height
-            let bounds = CGRect(x: x, y: flippedY, width: width, height: height)
-
-            // Must overlap this screen.
-            guard bounds.intersects(screenFrame) else { continue }
-
-            // Pinned to the bottom edge — the actual pill is here.
-            // Click-catcher layers tend to span the full screen and
-            // wouldn't pass this test.
-            let bottomGap = bounds.minY - screenFrame.minY
-            guard bottomGap >= 0, bottomGap <= 12 else { continue }
-
-            // Visible pill height range. Apple's tile sizes top out
-            // around 128pt; the pill adds padding/border. 40–160pt
-            // is the working range.
-            guard bounds.height >= 40, bounds.height <= 160 else { continue }
-
-            // Reject windows wider than 90% of the screen — those
-            // are click-catchers, not the visible pill.
-            guard bounds.width <= screenFrame.width * 0.90 else { continue }
-
-            candidates.append(bounds)
-        }
-
-        // Of the surviving candidates, pick the SMALLEST width —
-        // that's the visible pill. A wider Dock-owned window at the
-        // same Y is almost certainly an invisible companion layer.
-        let pill = candidates.min(by: { $0.width < $1.width })
-        if let pill {
-            SessionDebugLogger.log("dock", "detected pill bounds: x=\(Int(pill.minX)) w=\(Int(pill.width)) h=\(Int(pill.height)) (from \(candidates.count) candidate(s))")
-        } else {
-            SessionDebugLogger.log("dock", "no visible-pill window matched filters; falling back to estimator")
-        }
-        return pill
-    }
-
     private func getDockIconArea(screen: NSScreen) -> (x: CGFloat, width: CGFloat) {
-        // Live read first — the Window Server knows the truth.
-        if let dockBounds = readDockWindowBounds(on: screen) {
-            // Apply a small inset so the character doesn't walk to
-            // the literal pixel edge of the dock pill (the rounded
-            // corners + the drop shadow eat ~12pt visually). Sub-
-            // sequent horizontalRangeMetrics() in the character
-            // adds its own edge inset on top of this — keep this
-            // conservative.
-            let edgeInset: CGFloat = 12
-            let trimmedWidth = max(0, dockBounds.width - edgeInset * 2)
-            return (dockBounds.minX + edgeInset, trimmedWidth)
-        }
-
-        // Fallback estimator — UserDefaults icon-count × tile-size.
-        // Used when the Window Server query returns nothing (dock
-        // auto-hidden, or whatever future privacy gate Apple adds
-        // around CGWindowListCopyWindowInfo).
+        // Reverted to the upstream Lil-Lenny estimator after my
+        // attempts to "do better" via CGWindowListCopyWindowInfo
+        // (v0.1.57, v0.1.59) each picked a wrong-sized Dock-owned
+        // window — first too wide (click-catcher layer), then too
+        // narrow (smallest-width matching window). The original
+        // estimator below was a deliberate approximation that
+        // worked well in practice.
+        //
+        // Math: total icons (persistent-apps + persistent-others +
+        // recent-apps when show-recents) × tile slot width × 1.25
+        // padding factor, plus 12pt for each section divider, plus
+        // edge padding scaled with tile size. The 45% screen-width
+        // floor at the bottom is upstream's belt-and-braces — it
+        // ensures the walkable range is generous even when the dock
+        // is tiny, accepting that the character may walk slightly
+        // past the visible icons in those edge cases.
         let dockDefaults = UserDefaults(suiteName: "com.apple.dock")
         let tileSize = CGFloat(dockDefaults?.double(forKey: "tilesize") ?? 48)
         // Each dock slot is the icon + padding. The padding scales with tile size.
@@ -315,14 +235,13 @@ class LilAgentsController {
         }
 
         let maximumDockWidth = screen.visibleFrame.width - 24.0
-        // Floor only — never inflate the walkable range past the
-        // actual dock's footprint. Earlier this code forced a
-        // 45%-of-screen minimum to give the character "more room to
-        // walk", but that pushed him outside the visible dock area
-        // when Sir's dock was narrow (few icons), which read as the
-        // character drifting across empty desktop. 220pt is enough
-        // for a 96pt-wide character to take a visible step or two.
-        let minimumUsableWidth: CGFloat = 220.0
+        // Restored upstream's 45%-of-screen floor. v0.1.55 removed
+        // it on a misread of Sir's "going outside the dock" report
+        // (which was about popover positioning, not horizontal
+        // drift). The floor gives the character a generous walking
+        // range even when the dock has few icons; on dense docks
+        // the actual icon-count math wins.
+        let minimumUsableWidth = max(220.0, min(screen.visibleFrame.width - 48.0, screen.frame.width * 0.45))
         if dockWidth < minimumUsableWidth {
             dockWidth = minimumUsableWidth
         }
