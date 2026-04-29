@@ -180,22 +180,26 @@ class LilAgentsController {
     // MARK: - Dock Geometry
 
     /// Ask the Window Server directly for the Dock process's
-    /// actual window bounds on this screen. This is exactly what
-    /// the user sees — no UserDefaults estimation, no slot-width
-    /// guesswork, accurate regardless of magnification, custom
-    /// tile sizes, stacks, recent-apps, dividers, or any future
-    /// Apple dock-layout change.
+    /// visible-pill bounds on this screen. The Dock app owns
+    /// several windows simultaneously (backdrop, running-app
+    /// indicator dots, magnification overlay, click-through gesture
+    /// catchers that span much of the screen). We need to pick the
+    /// VISIBLE PILL, not the click-through layer.
     ///
-    /// The Dock app owns multiple windows on screen at any given
-    /// moment (the main backdrop, running-app indicator dots,
-    /// magnification overlay when hovering, expanded-stack
-    /// previews). We pick the one with the largest area that
-    /// touches a screen edge — that's reliably the main dock body.
+    /// v0.1.57 used "largest area" — that tended to grab an
+    /// oversized click-catcher window that extended beyond the
+    /// visible dock pill, so LilJustin walked past the visible
+    /// trash icon. v0.1.59 tightens the filter:
+    ///   1. Bottom edge within 12pt of screen bottom (the pill is
+    ///      pinned).
+    ///   2. Height in the typical dock pill range (40–160pt).
+    ///   3. Width <= 90% of screen width (excludes screen-spanning
+    ///      click-catchers).
+    ///   4. Among matches, prefer the SMALLEST width — that's the
+    ///      visible pill, not any wider invisible companion.
     ///
-    /// Returns nil if no Dock window is found on this screen
-    /// (auto-hide enabled, dock collapsed, multi-display dock not
-    /// duplicated). Caller falls back to the UserDefaults
-    /// estimator in that case.
+    /// Returns nil if no Dock window matches. Caller falls back to
+    /// the UserDefaults estimator.
     private func readDockWindowBounds(on screen: NSScreen) -> CGRect? {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
         guard let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else {
@@ -203,9 +207,9 @@ class LilAgentsController {
         }
 
         let screenFrame = screen.frame
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? screenFrame.height
 
-        var bestCandidate: CGRect?
-        var bestArea: CGFloat = 0
+        var candidates: [CGRect] = []
 
         for window in windowList {
             guard let ownerName = window[kCGWindowOwnerName as String] as? String,
@@ -216,37 +220,56 @@ class LilAgentsController {
                   let width = boundsDict["Width"] as? CGFloat,
                   let height = boundsDict["Height"] as? CGFloat else { continue }
 
-            // CGWindowListCopyWindowInfo reports flipped Y (origin
-            // top-left of primary display). Convert to Cocoa Y
-            // (origin bottom-left) using the global display height.
-            // For multi-display setups, use the primary display
-            // height since CGWindow Y is global.
-            let primaryHeight = NSScreen.screens.first?.frame.height ?? screenFrame.height
+            // CGWindowListCopyWindowInfo Y is flipped (origin top-left
+            // of primary display). Convert to Cocoa Y.
             let flippedY = primaryHeight - y - height
             let bounds = CGRect(x: x, y: flippedY, width: width, height: height)
 
-            // Must overlap THIS screen (multi-monitor: each display
-            // can have its own dock).
+            // Must overlap this screen.
             guard bounds.intersects(screenFrame) else { continue }
 
-            // Skip pencil-thin windows (running indicators are
-            // usually < 16pt tall) and trivially small overlays.
-            guard bounds.width >= 80, bounds.height >= 30 else { continue }
+            // Pinned to the bottom edge — the actual pill is here.
+            // Click-catcher layers tend to span the full screen and
+            // wouldn't pass this test.
+            let bottomGap = bounds.minY - screenFrame.minY
+            guard bottomGap >= 0, bottomGap <= 12 else { continue }
 
-            let area = bounds.width * bounds.height
-            if area > bestArea {
-                bestArea = area
-                bestCandidate = bounds
-            }
+            // Visible pill height range. Apple's tile sizes top out
+            // around 128pt; the pill adds padding/border. 40–160pt
+            // is the working range.
+            guard bounds.height >= 40, bounds.height <= 160 else { continue }
+
+            // Reject windows wider than 90% of the screen — those
+            // are click-catchers, not the visible pill.
+            guard bounds.width <= screenFrame.width * 0.90 else { continue }
+
+            candidates.append(bounds)
         }
 
-        return bestCandidate
+        // Of the surviving candidates, pick the SMALLEST width —
+        // that's the visible pill. A wider Dock-owned window at the
+        // same Y is almost certainly an invisible companion layer.
+        let pill = candidates.min(by: { $0.width < $1.width })
+        if let pill {
+            SessionDebugLogger.log("dock", "detected pill bounds: x=\(Int(pill.minX)) w=\(Int(pill.width)) h=\(Int(pill.height)) (from \(candidates.count) candidate(s))")
+        } else {
+            SessionDebugLogger.log("dock", "no visible-pill window matched filters; falling back to estimator")
+        }
+        return pill
     }
 
     private func getDockIconArea(screen: NSScreen) -> (x: CGFloat, width: CGFloat) {
         // Live read first — the Window Server knows the truth.
         if let dockBounds = readDockWindowBounds(on: screen) {
-            return (dockBounds.minX, dockBounds.width)
+            // Apply a small inset so the character doesn't walk to
+            // the literal pixel edge of the dock pill (the rounded
+            // corners + the drop shadow eat ~12pt visually). Sub-
+            // sequent horizontalRangeMetrics() in the character
+            // adds its own edge inset on top of this — keep this
+            // conservative.
+            let edgeInset: CGFloat = 12
+            let trimmedWidth = max(0, dockBounds.width - edgeInset * 2)
+            return (dockBounds.minX + edgeInset, trimmedWidth)
         }
 
         // Fallback estimator — UserDefaults icon-count × tile-size.
