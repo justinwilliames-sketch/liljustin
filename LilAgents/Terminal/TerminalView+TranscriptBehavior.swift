@@ -502,8 +502,16 @@ extension TerminalView {
         case .preserveVisiblePosition:
             if shouldStickToBottom {
                 scrollToBottom()
-            } else if let lastUserBubble = transcriptStack.arrangedSubviews.last(where: { ($0 as? ChatBubbleView)?.isUser == true }) {
-                scrollTranscriptViewIntoView(lastUserBubble, topPadding: 12, bottomPadding: 0)
+            } else if let mostRecentBubble = transcriptStack.arrangedSubviews.last(where: { $0 is ChatBubbleView }) {
+                // Anchor the TOP of the most recent bubble at the
+                // top of the visible area. After a turn completes,
+                // the most recent bubble is typically the
+                // assistant's reply — Sir wants to read that from
+                // the start, not see his own question pinned at
+                // the top with the response scrolled past below.
+                // Earlier code anchored the last *user* bubble,
+                // which produced exactly that wrong behaviour.
+                scrollTranscriptViewIntoView(mostRecentBubble, topPadding: 12, bottomPadding: 0)
             } else if let docView = scrollView.documentView {
                 let maxOffsetY = max(0, docView.bounds.height - scrollView.contentSize.height)
                 let restoredOffsetY = min(previousOffsetY, maxOffsetY)
