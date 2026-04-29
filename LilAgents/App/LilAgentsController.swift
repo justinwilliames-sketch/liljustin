@@ -455,13 +455,34 @@ class LilAgentsController {
         if pinnedScreenIndex >= 0, pinnedScreenIndex < NSScreen.screens.count {
             return NSScreen.screens[pinnedScreenIndex]
         }
+        // Default — anchor to the screen that owns the Dock, not the
+        // screen with the active window. macOS shows the Dock on
+        // exactly one screen (System Settings → Displays → "Dock at
+        // bottom of [screen]"); using NSScreen.main makes Orion
+        // follow Sir's cursor / focused window across extended
+        // displays, jumping monitors every time he switches apps.
+        // Pinning to the dock screen keeps him where the dock is.
+        if let dockScreen = NSScreen.screens.first(where: screenHasDock) {
+            return dockScreen
+        }
+        // Fallback — no screen reports a dock inset (auto-hide on,
+        // unusual multi-monitor config). Use main rather than nil
+        // so the character still has somewhere to render.
         return NSScreen.main
     }
 
-    /// The dock lives on the screen where visibleFrame.origin.y > frame.origin.y (bottom dock)
-    /// On screens without the dock, visibleFrame.origin.y == frame.origin.y
+    /// True when `screen` has a visible Dock attached. macOS reports the
+    /// Dock as a frame inset on the side it lives on (bottom = origin.y
+    /// raised, left = origin.x raised, right = maxX shortened). Checks
+    /// all three orientations so Orion follows the Dock wherever Sir
+    /// puts it.
     private func screenHasDock(_ screen: NSScreen) -> Bool {
-        return screen.visibleFrame.origin.y > screen.frame.origin.y
+        let f = screen.frame
+        let v = screen.visibleFrame
+        if v.origin.y > f.origin.y { return true }   // bottom dock
+        if v.origin.x > f.origin.x { return true }   // left dock
+        if v.maxX < f.maxX { return true }           // right dock
+        return false
     }
 
     private enum TickSource {
