@@ -319,8 +319,17 @@ extension TerminalView {
     }
 
     func beginAssistantTurn(name: String?) {
-        let labelName = name ?? theme.titleString
-        let speaker = TranscriptSpeaker(name: labelName, avatarPath: nil, kind: labelName.lowercased() == "liljustin" ? .justin : .system)
+        // Always render the streaming-placeholder bubble as
+        // LilJustin (kind: .justin) so the sparkle avatar shows
+        // exactly the same as it does post-response. Earlier this
+        // code did `kind: labelName.lowercased() == "liljustin" ? .justin : .system`,
+        // and any theme whose titleString didn't lowercase to
+        // exactly "liljustin" (the upstream LIL-LENNY themes
+        // still around for backwards-compat) routed the bubble to
+        // `.system`, which renders with a person icon instead of
+        // the sparkle. Single-persona app — no reason to detect.
+        let labelName = (name?.isEmpty == false) ? name! : "LilJustin"
+        let speaker = TranscriptSpeaker(name: labelName, avatarPath: nil, kind: .justin)
         appendBubble(text: NSAttributedString(string: ""), isUser: false, speaker: speaker)
     }
 
