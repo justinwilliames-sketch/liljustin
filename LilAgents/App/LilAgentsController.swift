@@ -146,8 +146,19 @@ class LilAgentsController {
         let dockTopY: CGFloat
 
         if screenHasDock(screen) {
-            (dockX, dockWidth) = getDockIconArea(screen: screen)
-            dockTopY = screen.visibleFrame.origin.y
+            // Prefer the Window Server's actual pill rectangle (the
+            // visible glass tile container behind the icons). When that
+            // query returns nil — auto-hide on, transient state during a
+            // pref change, or some future privacy gate — fall back to
+            // the upstream Lil-Lenny estimator that reads dock prefs.
+            if let pill = dockPillBounds(screen: screen) {
+                dockX = pill.origin.x
+                dockWidth = pill.width
+                dockTopY = pill.maxY
+            } else {
+                (dockX, dockWidth) = getDockIconArea(screen: screen)
+                dockTopY = screen.visibleFrame.origin.y
+            }
         } else {
             let margin: CGFloat = 40.0
             dockX = screen.frame.origin.x + margin
@@ -240,6 +251,105 @@ class LilAgentsController {
             return value.count
         }
         return 0
+    }
+
+    // MARK: - Dock Pill Detection (Window Server)
+
+    /// Last pill rect we wrote to NSLog. Used to suppress per-tick log
+    /// spam — we only emit a diagnostic line when the bounds actually
+    /// move (icon added/removed, magnification settle, screen change).
+    private var lastLoggedPillBounds: CGRect?
+
+    /// Asks the Window Server for the visible Dock pill — the
+    /// translucent glass tile container that sits behind the icons.
+    /// Returns Cocoa-coordinate bounds (bottom-left origin, same as
+    /// NSScreen.frame).
+    ///
+    /// Selection criterion is the canonical dock window level
+    /// (`CGWindowLevelForKey(.dockWindow)`) plus an alpha + screen-edge
+    /// + sane-size sanity filter. Prior CGWindowList attempts (v0.1.57,
+    /// v0.1.59) used area / width heuristics within the matching set
+    /// and picked the wrong sibling — an oversized click-catcher in
+    /// one case, a smaller auxiliary window in the other. Filtering by
+    /// the canonical level eliminates that whole class of mistake.
+    ///
+    /// Diagnostic candidates are NSLog'd whenever the picked pill moves
+    /// (or no pill is found), tagged with "[LilJustin]" — visible in
+    /// Console.app via Action ▸ Include Info Messages, filter "LilJustin".
+    /// If a future macOS reshapes the Dock window topology we can read
+    /// the log and adjust the filter without another full revert.
+    ///
+    /// Returns nil when:
+    ///   - The Dock is auto-hidden (no on-screen pill)
+    ///   - The Window Server returns no Dock-owned windows (rare)
+    ///   - No qualified candidate matches the filter
+    private func dockPillBounds(screen: NSScreen) -> CGRect? {
+        let opts: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
+        guard let raw = CGWindowListCopyWindowInfo(opts, kCGNullWindowID) as? [[String: Any]] else { return nil }
+
+        let dockWindows = raw.filter { ($0[kCGWindowOwnerName as String] as? String) == "Dock" }
+        let primary = NSScreen.screens.first ?? screen
+        let primaryHeight = primary.frame.height
+
+        // Quartz coords have top-left origin anchored to the primary
+        // display. Convert the screen's bottom edge into Quartz Y once.
+        let screenBottomQuartz = primaryHeight - screen.frame.origin.y
+        let screenLeft = screen.frame.origin.x
+        let screenRight = screen.frame.maxX
+        let dockLevel = Int(CGWindowLevelForKey(.dockWindow))
+
+        var qualified: [(rect: CGRect, alpha: Double, name: String)] = []
+        var diagLines: [String] = []
+
+        for w in dockWindows {
+            guard let boundsDict = w[kCGWindowBounds as String] as? [String: Any],
+                  let rect = CGRect(dictionaryRepresentation: boundsDict as CFDictionary) else { continue }
+            let layer = (w[kCGWindowLayer as String] as? Int) ?? Int.min
+            let alpha = (w[kCGWindowAlpha as String] as? Double) ?? 1.0
+            let name = (w[kCGWindowName as String] as? String) ?? ""
+
+            let onThisScreen = rect.maxX > screenLeft && rect.minX < screenRight
+            let visible = alpha > 0.5
+            let levelMatch = layer == dockLevel
+            let bottomQuartz = rect.origin.y + rect.height
+            let edgeMatch = abs(bottomQuartz - screenBottomQuartz) <= 4
+            let heightOk = rect.height >= 30 && rect.height <= 220
+            let widthOk = rect.width >= 200
+
+            let isQualified = onThisScreen && visible && levelMatch && edgeMatch && heightOk && widthOk
+            diagLines.append("  \(isQualified ? "*" : " ") layer=\(layer) alpha=\(String(format: "%.2f", alpha)) name=\"\(name)\" bounds=\(rect)")
+
+            if isQualified { qualified.append((rect, alpha, name)) }
+        }
+
+        guard let pill = qualified.max(by: { $0.rect.width < $1.rect.width }) else {
+            if lastLoggedPillBounds != nil {
+                lastLoggedPillBounds = nil
+                NSLog("[LilJustin] Dock pill: NO MATCH (level=\(dockLevel), bottomQuartz=\(screenBottomQuartz))\n" + diagLines.joined(separator: "\n"))
+            }
+            return nil
+        }
+
+        // Convert Quartz rect → Cocoa rect for downstream consumers.
+        let cocoaY = primaryHeight - (pill.rect.origin.y + pill.rect.height)
+        let cocoaRect = CGRect(x: pill.rect.origin.x, y: cocoaY, width: pill.rect.width, height: pill.rect.height)
+
+        let changed: Bool
+        if let last = lastLoggedPillBounds {
+            changed = abs(last.origin.x - cocoaRect.origin.x) > 2
+                || abs(last.origin.y - cocoaRect.origin.y) > 2
+                || abs(last.width - cocoaRect.width) > 2
+                || abs(last.height - cocoaRect.height) > 2
+        } else {
+            changed = true
+        }
+
+        if changed {
+            lastLoggedPillBounds = cocoaRect
+            NSLog("[LilJustin] Dock pill picked: \(cocoaRect) (level=\(dockLevel))\n" + diagLines.joined(separator: "\n"))
+        }
+
+        return cocoaRect
     }
 
     // MARK: - Dock Geometry
