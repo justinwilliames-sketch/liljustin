@@ -41,7 +41,7 @@
     <key>SUFeedURL</key>
     <string>https://github.com/justinwilliames-sketch/orion-by-orbit/releases/latest/download/appcast.xml</string>
     <key>SUPublicEDKey</key>
-    <string>bNQR7ti9TfIVO9mwWWH5hge2A8JzV98AczkncKfitQY=</string>
+    <string>i+5A3O3oQqarQOydg+qfyIMxdCKXgyoQvOF8EAZuUao=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <!-- Check every 30 minutes. Default was 86400 (24h), which made
