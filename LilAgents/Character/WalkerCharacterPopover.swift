@@ -327,25 +327,29 @@ extension WalkerCharacter {
     }
 
     /// Clear the current conversation and reset the popover to the
-    /// welcome state. v0.1.51 attempted a piecemeal reset (clear
-    /// session state, reset welcome caches, replayConversation([]),
-    /// showWelcomeGreeting). Sir reported through v0.1.55 that the
-    /// button still did nothing visible — something in the manual
-    /// reset sequence wasn't reaching the screen.
+    /// welcome state.
     ///
-    /// Going to the nuclear option: tear the popover all the way
-    /// down, then re-open it on the next runloop tick. The
-    /// popover-open path is the canonical fresh-render flow,
-    /// exercised every time the user clicks the character. We
-    /// know it works. Brief flicker is the cost; reliable reset
-    /// is the benefit.
+    /// v0.1.56 used a "nuclear" approach that nil'd out
+    /// popoverWindow and terminalView immediately after orderOut.
+    /// That crashed (NSStackView _removeView:animated: aborted)
+    /// because orderOut is async — AppKit was still animating
+    /// subview removal when we yanked the references out from
+    /// under it. The stack view hit a dangling constraint to the
+    /// already-released window's content view and SIGABRT'd. That
+    /// also explained the "history and new conversation both
+    /// showing" cosmetic — the teardown was incomplete, the new
+    /// popover opened on top of the old transcript's residual
+    /// state, and both layered briefly before the crash.
+    ///
+    /// v0.1.61 uses the canonical closePopover() path which does
+    /// NOT nil window/terminal references — AppKit retains them
+    /// through the animation and tears them down naturally. Then
+    /// openPopover() on the next runloop tick re-renders cleanly.
     @objc func clearConversationTapped() {
-        // NSLog so Sir can confirm in Console.app that the button
-        // is reaching the action — diagnostic of last resort.
-        NSLog("[LilJustin] clearConversationTapped fired — tearing down popover for clean re-open")
+        NSLog("[LilJustin] clearConversationTapped fired — close-and-reopen for clean reset")
 
-        // Wipe the in-memory conversation immediately so the
-        // re-opened popover sees an empty history.
+        // Wipe the in-memory conversation BEFORE close so the
+        // reopen's restoreTranscriptState reads an empty history.
         if let session = claudeSession {
             let key = session.key(for: focusedExpert)
             session.conversations[key] = nil
@@ -356,18 +360,17 @@ extension WalkerCharacter {
             session.isBusy = false
         }
 
-        // Tear down the popover window + terminal view. The next
-        // openPopover() call will recreate from scratch.
-        popoverWindow?.orderOut(nil)
-        removeEventMonitors()
-        popoverWindow = nil
-        terminalView = nil
-        thinkingBubbleWindow = nil
-        isIdleForPopover = false
+        // Use the canonical close path. closePopover does the right
+        // thing: orderOut, removeEventMonitors, set isIdleForPopover
+        // to false. It does NOT release popoverWindow or
+        // terminalView — those stay valid so AppKit's animation
+        // teardown completes safely.
+        closePopover()
 
-        // Re-open on the next tick so the teardown commits before
-        // creation begins. Any sub-tick races between order-out
-        // animations and the new createPopoverWindow are avoided.
+        // Re-open on the next runloop tick so the close commits
+        // first. openPopover sees the existing popoverWindow and
+        // reuses it; restoreTranscriptState reads the now-empty
+        // session.history and renders the welcome state.
         DispatchQueue.main.async { [weak self] in
             self?.openPopover()
         }

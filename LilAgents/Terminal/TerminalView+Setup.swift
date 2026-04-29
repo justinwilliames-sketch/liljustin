@@ -18,9 +18,17 @@ extension TerminalView {
             height: max(160, frame.height - 160)
         )
         scrollView.autoresizingMask = [.width, .height]
-        scrollView.hasVerticalScroller = true
+        // Hide the vertical scroller entirely. macOS's "Always show
+        // scroll bars" preference renders both a track and a thumb,
+        // which appeared as two parallel vertical lines on the
+        // popover's right edge in Sir's screenshot. Trackpad / wheel
+        // / drag scrolling all still work without a visible bar in
+        // a 468pt-wide chat surface — the visual is cleaner and one
+        // less surface for system-preference drift.
+        scrollView.hasVerticalScroller = false
         scrollView.scrollerStyle = .overlay
         scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
         scrollView.drawsBackground = false
         scrollView.contentView.drawsBackground = false
